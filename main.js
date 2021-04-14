@@ -1,10 +1,15 @@
+'use strict';
+
 const Discord = require('discord.js');
 const client = new Discord.Client();
 
 const prefix = '!';
-const version = "v1.0.2";
+const version = "v1.0.3";
 
-var mappedChannels = new Map();
+const ChannelData = require('./ChannelData.js');
+const channelDataLocation = `${__dirname}/data.db`;
+const channelData = new ChannelData(channelDataLocation);
+
 var pendingClones = new Map();
 var messageBuffers = new Map();
 
@@ -36,7 +41,7 @@ if (Array.prototype.flatMap === undefined) {
     Array.prototype.flatMap = function(f) {
         return this.reduce((acc, x) =>
             acc.concat(f(x)), []);
-    }
+    };
 }
 
 function mentionToChannel(text)
@@ -87,7 +92,7 @@ async function sendWebhookMessageAuto(msg)
 {
 	if (msg.content.startsWith(prefix + "unmirror")) return;
 	
-    let mChannel = mappedChannels.get(msg.channel);
+    let mChannel = await client.channels.fetch(channelData.mappedChannels.get(msg.channel.id).id);
 	
 	if (msg.channel == mChannel)
 	{
@@ -97,19 +102,19 @@ async function sendWebhookMessageAuto(msg)
     
     try
     {
-		webhooks = await mChannel.fetchWebhooks();
-		let webhook = webhooks.find(webhook => webhook.name.startsWith("Crosspost " + msg.channel.id));
+		let webhooks = await mChannel.fetchWebhooks();
+		
+		let webhook = webhooks.find(webhook => webhook.name == "ChannelLink");
 		if (webhook == undefined)
-		{
-			mappedChannels.delete(msg.channel);
-			return;
-		}
+			webhook = await mChannel.createWebhook("ChannelLink");
 		
         await sendWebhookMessage(msg, webhook);
+		
+		await channelData.updateLastMessage(msg.channel, msg);
     }
     catch (e)
     {
-        mappedChannels.delete(msg.channel);
+        await channelData.unmapChannel(msg.channel);
     }
 }
 
@@ -126,44 +131,94 @@ client.on('ready', () =>
         webhooks.forEach(async webhook =>
         {
             let parts = webhook.name.split(" ");
-            if (parts[0] == ("Crosspost"))
+            if (parts[0] == "Crosspost")
             {
                 let wChannel = await client.channels.fetch(webhook.channelID);
                 
-                client.channels.fetch(parts[1])
-                .then(channel => mappedChannels.set(channel, wChannel))
-                .catch(e => webhook.delete());
+                let channel = await client.channels.fetch(parts[1]);
+                await channelData.mapChannel(channel, wChannel);
+				
+				let messages = await channel.messages.fetch();
+				if (messages.size > 0)
+					await channelData.updateLastMessage(channel, messages.first());
+				
+                webhook.delete();
             }
         });
     });
+	
+	for (let entry of channelData.mappedChannels.entries())
+		cloneChannel(entry[0], entry[1].lastMessage);
 });
+
+async function cloneChannel(_channel, lastMessage)
+{
+	let channel = await client.channels.fetch(_channel);
+	let toChannel = await client.channels.fetch(channelData.mappedChannels.get(_channel).id);
+	
+	if (!channel.messages || !(channel.permissionsFor(client.user).has(["VIEW_CHANNEL", "READ_MESSAGE_HISTORY"]))) return;
+	
+	pendingClones.set(channel, toChannel);
+	pendingClones.set(toChannel, channel);
+	messageBuffers.set(channel, []);
+		
+	let messages = [...(await channel.messages.fetch({after: lastMessage, limit: 100})).values()];
+	
+	if (messages.length == 100)
+	{
+		let addedMessages;
+		do
+		{				
+			addedMessages = await channel.messages.fetch({after: messages[0].id, limit: 100});
+			messages = [...addedMessages.values()].concat(messages);
+		}
+		while (addedMessages.size == 100);
+	}
+	
+	messageBuffers.set(channel, messageBuffers.get(channel).concat(messages));
+	
+	while (messageBuffers.get(channel).length > 0)
+	{
+		let message = messageBuffers.get(channel).pop();
+		await sendWebhookMessageAuto(message);
+	}
+	
+	pendingClones.delete(channel);
+	pendingClones.delete(toChannel);
+	messageBuffers.delete(channel);
+	
+	return messages.length;
+}
 
 async function addMirror(fromChannel, idArg)
 {
-	channel = await client.channels.fetch(mentionToChannel(idArg));
+	let channel = await client.channels.fetch(mentionToChannel(idArg));
 	
-	if (mappedChannels.has(fromChannel))
+	if (channelData.mappedChannels.has(fromChannel.id))
 	{
 		fromChannel.send("Channel is already mirrored.");
 		return false;
 	}
 	
-	if ([...mappedChannels.values()].includes(fromChannel))
+	if ([...channelData.mappedChannels.values()].includes(fromChannel.id))
 	{
 		fromChannel.send("Cannot mirror destination channel.");
 		return false;
 	}
 	
-	if (mappedChannels.has(channel))
+	if (channelData.mappedChannels.has(channel.id))
 	{
 		fromChannel.send("Cannot mirror to mirrored channel.");
 		return false;
 	}
 	
 	try
-    {
-		channel.createWebhook(`Crosspost ${fromChannel.id} (#${fromChannel.name})`);
-		mappedChannels.set(fromChannel, channel);
+    {		
+		await channelData.mapChannel(fromChannel, channel);
+		
+		let messages = await fromChannel.messages.fetch();
+		if (messages.size > 0)
+			await channelData.updateLastMessage(fromChannel, messages.first());
 		
 		if (fromChannel != channel)
 			channel.send(`${fromChannel} is mirrored here.`);
@@ -173,6 +228,7 @@ async function addMirror(fromChannel, idArg)
 	catch (e)
 	{
 		fromChannel.send("Cannot access destination channel.");
+		console.log(e);
 		return false;
 	}
 }
@@ -185,21 +241,21 @@ async function addMirrorFrom(toChannel, idArg, isSilentArg)
 		return false;
 	}
     
-    channel = await client.channels.fetch(mentionToChannel(idArg));
+    let channel = await client.channels.fetch(mentionToChannel(idArg));
     
-    if (mappedChannels.has(channel))
+    if (channelData.mappedChannels.has(channel.id))
 	{
 		toChannel.send("Channel is already mirrored.");
 		return false;
 	}
 	
-	if ([...mappedChannels.values()].includes(channel))
+	if ([...channelData.mappedChannels.values()].includes(channel.id))
 	{
 		toChannel.send("Cannot mirror destination channel.");
 		return false;
 	}
 	
-	if (mappedChannels.has(toChannel))
+	if (channelData.mappedChannels.has(toChannel.id))
 	{
 		toChannel.send("Cannot mirror to mirrored channel.");
 		return false;
@@ -222,26 +278,31 @@ async function addMirrorFrom(toChannel, idArg, isSilentArg)
 async function removeMirror(fromChannel)
 {
     let channel;
-	if (mappedChannels.has(fromChannel))
+	if (channelData.mappedChannels.has(fromChannel.id))
 	{
-	    channel = mappedChannels.get(fromChannel);
+	    channel = await client.channels.fetch(channelData.mappedChannels.get(fromChannel.id).id);
 	}
-	else if ([...mappedChannels.values()].includes(fromChannel))
-	{
-		channel = fromChannel;
-		fromChannel = [...mappedChannels.entries()].find(entry => entry[1] == channel)[0];
-    }
 	else
-    {
-        fromChannel.send("Channel is not mirrored nor any channel is mirroring to it.");
-		return false;
+	{
+		channel = [...channelData.mappedChannels.entries()].find(entry => entry[1].id == fromChannel.id);
+		if (channel)
+		{
+			let tmp = fromChannel;
+			fromChannel = await client.channels.fetch(channel[0]);
+			channel = tmp;
+		}
+		else
+		{
+			msg.channel.send("Channel is not mirrored nor any channel is mirroring to it.");
+			return false;
+		}
 	}
 	
-	webhooks = await channel.fetchWebhooks();
-    let webhook = webhooks.find(webhook => webhook.name.startsWith("Crosspost " + fromChannel.id));
+	let webhooks = await channel.fetchWebhooks();
+    let webhook = webhooks.find(webhook => webhook.name == "ChannelLink");
     
     if (webhook != undefined) webhook.delete();
-    mappedChannels.delete(fromChannel);
+    await channelData.unmapChannel(fromChannel);
 	
 	if (fromChannel != channel) channel.send(`${fromChannel} is no longer mirrored.`);
 	
@@ -266,11 +327,12 @@ async function batchClone(msg, countArg, channel, toChannel)
 		}
 	}
 	
-	messages = [...(await channel.messages.fetch({limit: (countArg == "all" || countArg > 100) ? 100 : countArg})).values()];
+	let messages = [...(await channel.messages.fetch({limit: (countArg == "all" || countArg > 100) ? 100 : countArg})).values()];
 	if ((countArg == "all" && messages.length == 100) || countArg > 100)
 	{
-		reaction = msg.react("🔍");
-		counter = await msg.channel.send(`Searching messages... (${messages.length} found)`);
+		let addedMessages;
+		let reaction = msg.react("🔍");
+		let counter = await msg.channel.send(`Searching messages... (${messages.length} found)`);
 		do
 		{
 			if (!pendingClones.has(msg.channel))
@@ -291,7 +353,7 @@ async function batchClone(msg, countArg, channel, toChannel)
 	messageBuffers.set(channel, messageBuffers.get(channel).concat(messages));
 	
 	let webhooks = await toChannel.fetchWebhooks();
-	let webhook = webhooks.find(webhook => webhook.name.startsWith("Crosspost " + channel.id));
+	let webhook = webhooks.find(webhook => webhook.name == "ChannelLink");
 	let isTemporary = false;
 	
 	if (webhook == undefined)
@@ -303,7 +365,9 @@ async function batchClone(msg, countArg, channel, toChannel)
 	}
 	
 	toChannel.startTyping();
-	initialLength = messages.length;
+	let initialLength = messages.length;
+  
+	let message;
 	while (message = messageBuffers.get(channel).pop())
 	{
 		if (!pendingClones.has(msg.channel))
@@ -336,21 +400,25 @@ async function batchCloneWrapper(msg, countArg, toChannel)
 	let channel;
     if (toChannel == undefined)
     {
-	    if (mappedChannels.has(msg.channel))
+	    if (channelData.mappedChannels.has(msg.channel.id))
 	    {
 		    channel = msg.channel;
 	    }
-	    else if ([...mappedChannels.values()].includes(msg.channel))
-	    {
-	        channel = [...mappedChannels.entries()].find(entry => entry[1] == msg.channel)[0];
-        }
-        else
-        {
-            msg.channel.send("Channel is not mirrored nor any channel is mirroring to it.");
-		    return false;
-        }
+	    else
+		{
+			channel = [...channelData.mappedChannels.entries()].find(entry => entry[1].id == msg.channel.id)[0];
+			if (channel)
+			{
+				channel = await client.channels.fetch(channel);
+			}
+			else
+			{
+				msg.channel.send("Channel is not mirrored nor any channel is mirroring to it.");
+				return false;
+			}
+		}
         
-        toChannel = mappedChannels.get(channel);
+        toChannel = await client.channels.fetch(channelData.mappedChannels.get(channel.id).id);
 	}
 	else
 	{
@@ -363,8 +431,7 @@ async function batchCloneWrapper(msg, countArg, toChannel)
 		messageBuffers.set(channel, []);
         pendingClones.set(channel, toChannel);
 		pendingClones.set(toChannel, channel);
-        ret = await batchClone(msg, countArg, channel, toChannel);
-        return ret;
+        return await batchClone(msg, countArg, channel, toChannel);
     }
 	finally
 	{
@@ -400,8 +467,8 @@ async function deleteRange(channel, start, end)
     
     while (true)
     {
-        messages = await channel.messages.fetch({limit: 100, before: end});
-        for (msg of messages.values())
+        let messages = await channel.messages.fetch({limit: 100, before: end});
+        for (let msg of messages.values())
 	    {
 		    if (msg.id < start)
 		        return true;
@@ -429,7 +496,7 @@ async function scanChannel(channel, mode, fromChannel)
 		var yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
 		// Calculate full weeks to nearest Thursday and return
 		return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
-	}
+	};
 	
 	if (mode != "daily" && mode != "weekly" && mode != "monthly")
 	{
@@ -446,7 +513,7 @@ async function scanChannel(channel, mode, fromChannel)
 	{
 		channel.send("Channel is not a text channel or permissions are missing.");
 		return;
-	};
+	}
 	
 	let authors = new Map();
 	let userMessages = new Map();
@@ -461,7 +528,7 @@ async function scanChannel(channel, mode, fromChannel)
 		messages = [...(await fromChannel.messages.fetch({after: messages ? messages[messages.length - 1].id : 0, limit: 100})).values()];
 		await counter.edit(`Fetching messages... (${totalLength += messages.length} loaded)`);
 		
-		for (message of messages.reverse())
+		for (let message of messages.reverse())
 		{				
 			if (!authors.has(message.author.tag))
 				authors.set(message.author.tag, message.author);
@@ -504,7 +571,7 @@ async function scanChannel(channel, mode, fromChannel)
 	
 	let result = `Found ${invites.size} invites${invites.size ? ":\n" : "."}`;
 	counter = 0;
-	for (invite of invites)
+	for (let invite of invites)
 	{
 		if (counter == 10)
 		{
@@ -518,7 +585,7 @@ async function scanChannel(channel, mode, fromChannel)
 	channel.send(result);
 	result = "";
 	
-	for (entry of userMessages.entries())
+	for (let entry of userMessages.entries())
 	{
 		entry[0] = authors.get(entry[0]);
 		let data = entry[1];
@@ -529,7 +596,7 @@ async function scanChannel(channel, mode, fromChannel)
 			+ `  ${mode[0].toUpperCase() + mode.substring(1)} message count:\n`;
 		
 		result += "```";
-		for (dayEntry of data.dailyCount.entries())
+		for (let dayEntry of data.dailyCount.entries())
 		{
 			result += `    ${dayEntry[0]}: ${dayEntry[1]}\n`;
 		}
@@ -537,7 +604,7 @@ async function scanChannel(channel, mode, fromChannel)
 	}
 	
 	let str = "";
-	for (line of result.split('\n'))
+	for (let line of result.split('\n'))
 	{
 		if (str.length + line.length > 2000 - 3)
 		{
@@ -555,13 +622,13 @@ async function scanChannel(channel, mode, fromChannel)
 
 async function resetChannel(fromChannel)
 {
-	if (mappedChannels.has(fromChannel) || [...mappedChannels.values()].includes(fromChannel))
+	if (channelData.mappedChannels.has(fromChannel) || [...channelData.mappedChannels.values()].includes(fromChannel))
 	{
 		fromChannel.send("Unmirror channel first.");
 		return false;
 	}
 	
-	channel = await fromChannel.clone();
+	let channel = await fromChannel.clone();
 	channel.setPosition(fromChannel.position);
 	fromChannel.delete();
 	return true;
@@ -595,8 +662,8 @@ async function createServer(fromChannel)
 		return false;
 	}
 	
-	channel = [...guild.channels.cache.values()].find(channel => channel.type == "text");
-	invite = await channel.createInvite();
+	let channel = [...guild.channels.cache.values()].find(channel => channel.type == "text");
+	let invite = await channel.createInvite();
 	fromChannel.send(invite.url);
 	return true;
 }
@@ -611,12 +678,12 @@ async function cloneServer(guild, fromGuild, mode)
 {
     fromGuild = client.guilds.resolve(fromGuild);
     
-    channels = new Map();
-    roles = new Map();
+    let channels = new Map();
+    let roles = new Map();
     
     if (mode == "both" || mode == "roles")
     {
-        for (role of [...fromGuild.roles.cache.values()].filter(x => !x.managed).sort((x, y) => y.position - x.position))
+        for (let role of [...fromGuild.roles.cache.values()].filter(x => !x.managed).sort((x, y) => y.position - x.position))
         {
             if (role.id == fromGuild.roles.everyone.id) continue;
             
@@ -635,7 +702,7 @@ async function cloneServer(guild, fromGuild, mode)
     
     if (mode == "both" || mode == "channels")
     {
-        for (channel of [...fromGuild.channels.cache.values()].filter(x => x.type == "category").sort((x, y) => x.position - y.position))
+        for (let channel of [...fromGuild.channels.cache.values()].filter(x => x.type == "category").sort((x, y) => x.position - y.position))
         {
             channels.set(channel, await guild.channels.create(channel.name,
             {
@@ -653,7 +720,7 @@ async function cloneServer(guild, fromGuild, mode)
             }));
         }
         
-        for (channel of [...fromGuild.channels.cache.values()].filter(x => x.type != "category").sort((x, y) => x.position - y.position))
+        for (let channel of [...fromGuild.channels.cache.values()].filter(x => x.type != "category").sort((x, y) => x.position - y.position))
         {
             await guild.channels.create(channel.name,
             {
@@ -683,7 +750,7 @@ async function cloneServer(guild, fromGuild, mode)
 
 function delAllServers()
 {
-	for (guild of client.guilds.cache.values())
+	for (let guild of client.guilds.cache.values())
 	{
 		if (guild.ownerID != client.user.id) continue;
 		
@@ -692,15 +759,18 @@ function delAllServers()
 	return true;
 }
 
-function getMirroredChannels(channel, guild)
+async function getMirroredChannels(channel, guild)
 {
-	resp = "";
-	for (mirror of mappedChannels.entries())
+	let resp = "";
+	for (let mirror of channelData.mappedChannels.entries())
 	{
-		if (mirror[0].guild.id == guild.id
-			|| mirror[1].guild.id == guild.id)
+		let fromChannel = await client.channels.fetch(mirror[0]);
+		let toChannel = await client.channels.fetch(mirror[1].id);
+		
+		if (fromChannel.guild == guild
+			|| toChannel.guild == guild)
 		{
-			resp += `${mirror[0]} (${mirror[0].guild}) => ${mirror[1]} (${mirror[1].guild})\n`;
+			resp += `${fromChannel} (${fromChannel.guild}) => ${toChannel} (${toChannel.guild})\n`;
 		}
 	}
 	if (resp != "")
@@ -710,13 +780,13 @@ function getMirroredChannels(channel, guild)
 
 async function getOwnedServers(fromChannel)
 {
-	resp = "";
-	for (guild of client.guilds.cache.values())
+	let resp = "";
+	for (let guild of client.guilds.cache.values())
 	{
 		if (guild.ownerID != client.user.id) continue;
 		
-		channel = [...guild.channels.cache.values()].find(channel => channel.type == "text");
-		invite = await channel.createInvite();
+		let channel = [...guild.channels.cache.values()].find(channel => channel.type == "text");
+		let invite = await channel.createInvite();
 		resp += invite.url + "\n";
 	}
 	if (resp != "")
@@ -727,7 +797,7 @@ async function getOwnedServers(fromChannel)
 async function timer(msg, date, time, countstr, endstr)
 {
     date = date.split(".");
-    for (i = 0; i < date.length; i++)
+    for (let i = 0; i < date.length; i++)
 	{
 		date[i] = parseInt(date[i]);
 		if (date[i] == undefined || date.length != 3)
@@ -735,10 +805,10 @@ async function timer(msg, date, time, countstr, endstr)
 			msg.channel.send("Invalid date format");
 			return false;
 		}
-	};
+	}
 	
     time = time.split(":");
-    for (i = 0; i < time.length; i++)
+    for (let i = 0; i < time.length; i++)
 	{
 		time[i] = parseInt(time[i]);
 		if (time[i] == undefined || time.length != 2)
@@ -746,7 +816,7 @@ async function timer(msg, date, time, countstr, endstr)
 			msg.channel.send("Invalid time format");
 			return false;
 		}
-	};
+	}
 	
 	if (!countstr)
 	{
@@ -759,7 +829,6 @@ async function timer(msg, date, time, countstr, endstr)
 	    msg.channel.send("Endstr is empty.");
 	    return;
 	}
-	
     
     let goal = new Date(date[2], date[1] - 1, date[0], time[0], time[1]);
 	let current;
@@ -841,11 +910,11 @@ client.on('message', async msg =>
 {
 	if (!msg.guild) return;
 	
-	let mappedChannel = mappedChannels.get(msg.channel);
+	let mappedChannel = channelData.mappedChannels.get(msg.channel.id);
     if (mappedChannel != undefined)
     {
-		buffer = messageBuffers.get(msg.channel);
-		if (buffer != undefined && mappedChannel == pendingClones.get(msg.channel))
+		let buffer = messageBuffers.get(msg.channel);
+		if (buffer != undefined && await client.channels.fetch(mappedChannel.id) == pendingClones.get(msg.channel))
 		{
 			buffer.unshift(msg);
 		}
@@ -958,4 +1027,4 @@ client.on('message', async msg =>
 	}
 });
 
-client.login('NzMzMjEyMjczNjkwMTQ4OTA0.Xw_3JA.7bDfmT2CPQySe9xIYgrJAb4yEGM');
+client.login("NzMzMjEyMjczNjkwMTQ4OTA0.Xw_3JA.7bDfmT2CPQySe9xIYgrJAb4yEGM");
