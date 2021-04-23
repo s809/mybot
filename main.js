@@ -4,7 +4,7 @@ const Discord = require('discord.js');
 const client = new Discord.Client();
 
 const prefix = '!';
-const version = "v1.0.3";
+const version = "v1.0.4";
 
 const ChannelData = require('./ChannelData.js');
 const channelDataLocation = `${__dirname}/data.db`;
