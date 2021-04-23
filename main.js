@@ -852,7 +852,7 @@ async function timer(msg, date, time, countstr, endstr)
 
 async function botinvite(channel)
 {
-    channel.send(await client.generateInvite(Discord.Permissions.FLAGS.ADMINISTRATOR));
+    channel.send(await client.generateInvite(Discord.Permissions.FLAGS.ALL));
     return true;
 }
 
@@ -867,7 +867,7 @@ async function setupReceiverServer(guild)
 	let rootCategory = await guild.channels.create("Root Category", {type: "category"});
 	
 	await commandChannel.send(
-`Fill \`senderToken\`, \`receiverToken\` and \`fromGuild\` with your data.
+`Fill \`senderToken\`, \`receiverToken\`, \`fromGuild\` and (optional) \`maxInitMessages\` with your data.
 \`\`\`{
 	"senderToken": "",
 	"receiverToken": "",
@@ -876,7 +876,8 @@ async function setupReceiverServer(guild)
 	"rootCategory": "${rootCategory.id}",
 	"deletedCategory": "${deletedCategory.id}",
 	"fromGuild": "",
-	"toGuild": "${guild.id}"
+	"toGuild": "${guild.id}",
+	"maxInitMessages": 0
 }\`\`\``);
 	return true;
 }
