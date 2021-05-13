@@ -893,7 +893,7 @@ function help(channel)
 	+ "  If given more than 500 messages, send rate is limited to 2 seconds.\n"
 	+ prefix + "stopclone - stop pending clone operation.\n"
 	+ prefix + "delrange <startid> <endid> - delete all messages within range.\n"
-	+ prefix + "scanchannel <mode{daily,weekly,monthly}> <(optional)channel> - get information about users sent to this or defined channel."
+	+ prefix + "scanchannel <mode{daily,weekly,monthly}> <(optional)channel> - get information about users sent to this or defined channel.\n"
 	+ prefix + "resetchannel - clone and delete this channel.\n"
 	+ prefix + "createserver - create test server.\n"
 	+ prefix + "delserver - delete test server.\n"
