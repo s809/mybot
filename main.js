@@ -839,14 +839,14 @@ async function timer(msg, date, time, countstr, endstr)
     {
 		let diff = new Date(goal - Date.now() + 60000);
 		
-		res.edit(countstr.replace("%s", `${diff.getUTCHours().toString().padStart(2, "0")}:${diff.getUTCMinutes().toString().padStart(2, "0")}`));
+		await res.edit(countstr.replace("%s", `${diff.getUTCHours().toString().padStart(2, "0")}:${diff.getUTCMinutes().toString().padStart(2, "0")}`));
 		await new Promise(resolve => setTimeout(resolve, 60000 - Date.now() % 60000));
 		
 		current = new Date(Date.now());
     }
 	while (goal > current);
     
-    res.edit(endstr);
+    await res.edit(endstr);
     return true;
 }
 
@@ -1011,7 +1011,7 @@ client.on('message', async msg =>
             }
             catch (e)
             {
-                await msg.channel.send(`${e}\n${e.stack}`);
+                await msg.channel.send(`${e.stack}`);
 		        await msg.react("❌");
             }
             
