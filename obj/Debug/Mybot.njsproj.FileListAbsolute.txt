@@ -1,0 +1,3 @@
+C:\Users\NoNick\Desktop\mybot\obj\Debug\Mybot.njsproj.CoreCompileInputs.cache
+C:\Users\NoNick\Desktop\mybot\bin\Microsoft.NodejsTools.WebRole.dll
+C:\Users\NoNick\Desktop\mybot\obj\Debug\MyBot.njsprojAssemblyReference.cache

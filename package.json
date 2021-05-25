@@ -1,0 +1,12 @@
+{
+  "name": "MyBot",
+  "version": "1.0.0",
+  "description": "MyBot",
+  "author": {
+    "name": ""
+  },
+  "dependencies": {
+    "discord.js": "^12.5.3",
+    "sqlite3": "^5.0.2"
+  }
+}
