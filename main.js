@@ -165,7 +165,17 @@ client.on('message', async msg => {
     if (command === undefined || !command.func) {
         if (!(env.evalModeChannels.includes(msg.channel) && msg.author.id === env.owner)) return;
 
-        eval(`(async () => { ${msg.content.substr(1)} })();`);
+        try {
+            try {
+                await msg.channel.send(String(await eval(`(async () => { ${msg.content.substr(1)} })();`)));
+            } catch (e) {
+                if (msg.channel.deleted)
+                    throw e;
+                await msg.channel.send("```" + e.stack + "```");
+            }
+        } catch (e) {
+            console.log(e);
+        }
         return;
     }
 
