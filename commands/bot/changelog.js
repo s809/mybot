@@ -43,10 +43,10 @@ function prepareChangelog() {
 
 async function changelog(msg, page = 1) {
     page = parseInt(page);
-    let maxPage = logstrs.length / env.maxVersionsOnChangelogPage + 1;
+    let maxPage = Math.floor(logstrs.length / env.maxVersionsOnChangelogPage + 1);
 
     if (isNaN(page) || page < 1 || page > maxPage) {
-        msg.channel.send(`${page} is not a valid page number. (Allowed range is 1-${maxPage}.)`);
+        msg.channel.send(`${page} is not a valid page number. (Allowed range is 1-${maxPage})`);
         return false;
     }
     page--;
