@@ -13,7 +13,7 @@ const messageBuffers = env.messageBuffers;
 client.on('ready', () => {
     console.log(`Logged in as ${client.user.tag}.`);
 
-    client.user.setPresence({ activity: { name: env.version } });
+    client.user.setPresence({ activity: { name: "v" + require("./package.json").version } });
 
     client.guilds.cache.forEach(async guild => {
         let webhooks = await guild.fetchWebhooks();
@@ -166,13 +166,25 @@ client.on('message', async msg => {
         if (!(env.evalModeChannels.includes(msg.channel) && msg.author.id === env.owner)) return;
 
         try {
+            let response;
             try {
-                await msg.channel.send(String(await eval(`(async () => { ${msg.content.substr(1)} })();`)));
+                try {
+                    response = await eval(`(async () => { ${msg.content.substr(1)} })();`);
+                    return;
+                } catch (e) {
+                    try {
+
+                    } catch (e2) {
+
+                    }
+                }
             } catch (e) {
                 if (msg.channel.deleted)
                     throw e;
                 await msg.channel.send("```" + e.stack + "```");
             }
+
+            await msg.channel.send(String(response));
         } catch (e) {
             console.log(e);
         }
