@@ -175,14 +175,7 @@ client.on('message', async msg => {
                     if (!(e instanceof SyntaxError))
                         throw e;
 
-                    try {
-                        response = await eval(`(async () => { ${msg.content.substr(1)} })();`);
-                    } catch (e2) {
-                        if (e2 instanceof SyntaxError && e.stack.length > e2.stack.length)
-                            throw e;
-                        else
-                            throw e2;
-                    }
+                    response = await eval(`(async () => { ${msg.content.substr(1)} })();`);
                 }
             } catch (e) {
                 if (msg.channel.deleted)

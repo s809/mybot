@@ -22,6 +22,7 @@
   <ItemGroup>
     <Content Include="commands\bot.js" />
     <Content Include="commands\bot\changelog.js" />
+    <Content Include="commands\bot\uptime.js" />
     <Content Include="commands\clone\stop.js" />
     <Content Include="commands\owner.js" />
     <Content Include="commands\get\mirroredchannels.js" />
@@ -35,7 +36,7 @@
     <Content Include="env.js" />
     <Content Include="main.js" />
     <Content Include="requireHelper.js" />
-    <Content Include="commands\bot\botinvite.js" />
+    <Content Include="commands\bot\invite.js" />
     <Content Include="commands\channel.js" />
     <Content Include="commands\clone.js" />
     <Content Include="commands\delrange.js" />
