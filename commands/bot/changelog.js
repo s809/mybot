@@ -1,12 +1,11 @@
 const child_process = require("child_process");
-const env = require("../../env");
+const sendUtil = require("../../sendUtil");
 
-const logstrs = prepareChangelog();
+const logstr = prepareChangelog();
 
 function prepareChangelog() {
     let commitCount = parseInt(child_process.execSync("git rev-list --count HEAD", { encoding: "utf8" }));
 
-    let arr = [];
     let str = "";
     let lastVersion = "";
 
@@ -27,8 +26,7 @@ function prepareChangelog() {
 
         if (version !== lastVersion) {
             if (lastVersion !== "")
-                arr.push(str.substr(0, str.length - 1));
-            str = "";
+                str += "\n";
 
             lastVersion = version;
             str += version + ":\n";
@@ -36,22 +34,12 @@ function prepareChangelog() {
 
         str += msg.substr(0, msg.length - 1);
     }
-    arr.push(str.substr(0, str.length - 1))
 
-    return arr;
+    return str;
 }
 
-async function changelog(msg, page = 1) {
-    page = parseInt(page);
-    let maxPage = Math.floor(logstrs.length / env.maxVersionsOnChangelogPage + 1);
-
-    if (isNaN(page) || page < 1 || page > maxPage) {
-        msg.channel.send(`${page} is not a valid page number. (Allowed range is 1-${maxPage})`);
-        return false;
-    }
-    page--;
-
-    msg.channel.send("```" + logstrs.slice(page * env.maxVersionsOnChangelogPage, Math.min(page + env.maxVersionsOnChangelogPage, logstrs.length)).join("\n\n") + "```");
+async function changelog(msg) {
+    await sendUtil.sendLongText(msg.channel, logstr);
     return true;
 }
 
@@ -59,8 +47,7 @@ module.exports =
 {
     name: "changelog",
     description: "get bot changelog",
-    args: "<page>",
     minArgs: 0,
-    maxArgs: 1,
+    maxArgs: 0,
     func: changelog,
 }

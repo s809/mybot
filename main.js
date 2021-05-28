@@ -180,14 +180,11 @@ client.on('message', async msg => {
             } catch (e) {
                 if (msg.channel.deleted)
                     throw e;
-                response = e.stack;
+                response = e;
             }
 
-            response = require("util").inspect(response, { depth: 1 }).replace(/(\*|_|`|~|\\)/g, '\\$1');
-            if (response.length > 2000 - 3 * 2)
-                response = `<Too long value (length = ${response.length})>`;
-
-            await msg.channel.send("```" + response + "```");
+            response = require("util").inspect(response, { depth: 1 });
+            await sendUtil.sendLongText(msg.channel, response);
         } catch (e) {
             console.log(e);
         }
