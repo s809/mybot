@@ -55,29 +55,35 @@ async function sendWebhookMessageAuto(msg) {
 async function sendLongText(channel, text) {
     text = text.replaceAll("```", '\\`\\`\\`');
 
-    if (text.length < 2000 - 3 * 2) {
+    const maxMessageLength = 2000;
+
+    if (text.length < maxMessageLength - 3 * 2) {
         await channel.send("```" + text + "```");
         return;
     }
 
     let page = 0;
-    const pagecount = Math.ceil((text.length - 1) / 2000);
+    const pagecount = Math.ceil((text.length - 1) / maxMessageLength);
 
-    const header = "Page %page% of %pagecount%\n```%content%```";
-    const getMessage = () => {
-        let start = page * 2000
-            - header.replace(/%.*?%/g, "").length * page // header without placeholders
-            - Array(page).fill().map((x, i) => i + 1).join("").length // page placeholder
-            - pagecount.toString().length * page // pagecount placeholder
+    const header = "Page %page% of %pagecount%\n```%content% ```";
+    let start = 0;
+    let pages = [];
+    while (start < text.length) {
+        let nocontent = header.replace("%page%", ++page).replace("%pagecount%", pagecount);
+        let end = start + maxMessageLength - nocontent.replace("%content%", "").length;
+        let content = text.substring(start, end);
 
-        let nocontent = header.replace("%page%", page + 1).replace("%pagecount%", pagecount);
+        let isTrailingEscape = !!content.match(/(?<!\\)\\(\\\\)*$/);
+        if (isTrailingEscape)
+            content = text.substring(start, end - 1);
 
-        let end = start + 2000 - nocontent.replace("%content%", "").length;
+        pages.push(nocontent.replace("%content%", content));
 
-        return nocontent.replace("%content%", text.substring(start, end));
+        start += content.length;
     }
+    page = 0;
 
-    let msg = await channel.send(getMessage());
+    let msg = await channel.send(pages[page]);
 
     const back = "◀", stop = "✖", forward = "▶";
     await msg.react(back);
@@ -92,14 +98,14 @@ async function sendLongText(channel, text) {
         switch (reaction.emoji.name) {
             case back:
                 page = Math.max(page - 1, 0);
-                await msg.edit(getMessage());
+                await msg.edit(pages[page]);
                 break;
             case stop:
                 collector.stop();
                 break;
             case forward:
                 page = Math.min(page + 1, pagecount - 1);
-                await msg.edit(getMessage());
+                await msg.edit(pages[page]);
                 break;
         }
 
