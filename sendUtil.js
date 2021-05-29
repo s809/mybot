@@ -53,7 +53,7 @@ async function sendWebhookMessageAuto(msg) {
 }
 
 async function sendLongText(channel, text) {
-    text = text.replace(/(\*|_|`|~|\\)/g, '\\$1');
+    text = text.replaceAll("```", '\\`\\`\\`');
 
     if (text.length < 2000 - 3 * 2) {
         await channel.send("```" + text + "```");
