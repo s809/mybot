@@ -10,7 +10,7 @@ async function uptime(msg, type) {
             diff = new Date(require("os").uptime() * 1000);
             break;
         default:
-            msg.channel.send("Invalid type parameter.");
+            await msg.channel.send("Invalid type parameter.");
             return false;
     }
 
@@ -26,7 +26,7 @@ async function uptime(msg, type) {
     var seconds = Math.floor(diff / (1000));
     diff -= seconds * (1000);
 
-    msg.channel.send(`${days} days, ${hours} hours, ${mins} minutes, ${seconds} seconds`);
+    await msg.channel.send(`${days} days, ${hours} hours, ${mins} minutes, ${seconds} seconds`);
     return true;
 }
 

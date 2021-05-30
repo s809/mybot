@@ -1,4 +1,4 @@
-module.exports = (path) => {
+module.exports = path => {
     let map = new Map();
 
     for (let file of require('fs').readdirSync(path, { withFileTypes: true })

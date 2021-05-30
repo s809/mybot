@@ -24,12 +24,18 @@
     <Content Include="commands\bot\changelog.js" />
     <Content Include="commands\bot\uptime.js" />
     <Content Include="commands\clone\stop.js" />
+    <Content Include="commands\help.js" />
     <Content Include="commands\owner.js" />
     <Content Include="commands\get\mirroredchannels.js" />
     <Content Include="commands\get\ownedservers.js" />
+    <Content Include="commands\owner\restart.js" />
+    <Content Include="commands\owner\shell.js" />
     <Content Include="commands\owner\evalmode.js" />
     <Content Include="commands\owner\setupreceiverserver.js" />
     <Content Include="commands\server\delall.js" />
+    <Content Include="modules\cloneChannel.js" />
+    <Content Include="modules\commands.js" />
+    <Content Include="modules\eval.js" />
     <Content Include="package-lock.json" />
     <Content Include="package.json" />
     <Content Include="ChannelData.js" />
@@ -63,6 +69,7 @@
     <Folder Include="commands\bot\" />
     <Folder Include="commands\owner\" />
     <Folder Include="commands\server" />
+    <Folder Include="modules\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.Common.targets" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <Import Project="$(VSToolsPath)\Node.js Tools\Microsoft.NodejsToolsV2.targets" />
