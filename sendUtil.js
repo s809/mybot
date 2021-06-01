@@ -68,7 +68,7 @@ async function sendLongText(channel, text) {
     const pagecount = Math.ceil((text.length - 1) / maxMessageLength);
 
     // Split text into multuple messages
-    const header = "Page %page% of %pagecount%\n```%content% ```";
+    const header = "Page %page% of %pagecount%:\n```js\n%content% ```";
     let start = 0;
     let pages = [];
     while (start < text.length) {
