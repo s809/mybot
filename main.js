@@ -61,7 +61,7 @@ env.client.on('message', async msg => {
     let args = msg.content.match(/[^" ]+|"(?:\\"|[^"])+"/g);
     args.forEach((str, i, arr) => {
         if (i === 0)
-            str = str.slice(1);
+            str = str.slice(env.prefix.length);
         if (str.charAt(0) === '"')
             str = str.slice(1, -1);
 
@@ -121,7 +121,11 @@ env.client.on('message', async msg => {
     }
 });
 
-if (require("os").hostname() === "instance-20201212-1309")
+if (process.argv.indexOf("--debug") < 0) {
     env.client.login("NzMzMjEyMjczNjkwMTQ4OTA0.Xw_3JA.7bDfmT2CPQySe9xIYgrJAb4yEGM"); // MyBot
-else
+}
+else {
+    console.log("(Warn) Running in debug mode.")
     env.client.login("ODA5NDUxMzYzNzg0MzI3MjQ4.YCVSVA.J8BPawVSK4AgFvMQhLwiIZcVsUQ") // TestNoise
+    env.prefix = "t!"
+}

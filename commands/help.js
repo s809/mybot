@@ -24,7 +24,7 @@ async function help(msg) {
                 let newFullCommand = fullCommand;
                 if (newFullCommand.length > 0 || command.args || command.description) {
                     if (level === 0)
-                        newFullCommand = "!";
+                        newFullCommand = env.prefix;
                     newFullCommand += command.name + " ";
                 }
 
