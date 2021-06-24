@@ -59,15 +59,15 @@ async function sendLongText(channel, text) {
     const back = "◀", stop = "✖", forward = "▶";
 
     // Text fits in one message
-    if (text.length < maxMessageLength - 3 * 2) {
-        await channel.send("```" + text + "```");
+    if (text.length < maxMessageLength - (3 * 2 + 3)) {
+        await channel.send("```js\n" + text + "```");
         return;
     }
 
     let page = 0;
     const pagecount = Math.ceil((text.length - 1) / maxMessageLength);
 
-    // Split text into multuple messages
+    // Split text into multiple messages
     const header = "Page %page% of %pagecount%:\n```js\n%content% ```";
     let start = 0;
     let pages = [];

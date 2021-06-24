@@ -2,7 +2,11 @@
   "name": "mybot",
   "version": "1.1.6",
   "dependencies": {
+    "@discordjs/opus": "^0.5.0",
+    "@types/node": "^15.12.2",
     "discord.js": "^12.5.3",
-    "sqlite3": "^5.0.2"
+    "node-fetch": "^2.6.1",
+    "sqlite3": "^5.0.2",
+    "ytdl-core": "^4.8.2"
   }
 }
