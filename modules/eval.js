@@ -1,18 +1,19 @@
 const env = require("../env");
 const sendUtil = require("../sendUtil");
 
+
 async function botEval(msg) {
     try {
         let response;
 
         try {
             try {
-                response = await eval(`(async () => ${msg.content.substr(env.prefix.length)})();`);
+                response = await eval(`(async () => ${msg.content.substr(env.prefix.length)})();`); // jshint ignore: line
             } catch (e) {
                 if (!(e instanceof SyntaxError))
                     throw e;
 
-                response = await eval(`(async () => { ${msg.content.substr(env.prefix.length)} })();`);
+                response = await eval(`(async () => { ${msg.content.substr(env.prefix.length)} })();`); // jshint ignore: line
             }
         } catch (e) {
             if (msg.channel.deleted)

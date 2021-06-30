@@ -1,3 +1,5 @@
+"use strict";
+
 module.exports = {
     clamp: (num, max) => num > max ? max : num,
 

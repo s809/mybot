@@ -126,6 +126,6 @@ if (process.argv.indexOf("--debug") < 0) {
 }
 else {
     console.log("(Warn) Running in debug mode.")
-    env.client.login("ODA5NDUxMzYzNzg0MzI3MjQ4.YCVSVA.J8BPawVSK4AgFvMQhLwiIZcVsUQ") // TestNoise
-    env.prefix = "t!"
+    env.client.login("ODA5NDUxMzYzNzg0MzI3MjQ4.YCVSVA.J8BPawVSK4AgFvMQhLwiIZcVsUQ"); // TestNoise
+    env.prefix = "t!";
 }

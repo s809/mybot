@@ -1,3 +1,5 @@
+"use strict";
+
 const env = require("../env.js");
 const util = require("../util.js");
 const sendUtil = require("../sendUtil.js");
