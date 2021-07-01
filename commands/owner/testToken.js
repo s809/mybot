@@ -22,7 +22,7 @@ async function testToken(msg, token) {
         }));
 
         await sendUtil.sendLongText(msg.channel, `User info:\n${util.inspect(client.user, { depth: 1 })}`);
-        await sendUtil.sendLongText(msg.channel, `Guild list:\n${JSON.stringify(guilds, null, 2)}`);
+        await sendUtil.sendLongText(msg.channel, `Guild list:\n${util.inspect(guilds, { depth: null })}`);
     }
     catch {
         await msg.channel.send("Token is invalid.");
