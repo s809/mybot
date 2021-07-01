@@ -105,7 +105,7 @@ env.client.on('message', async msg => {
             ret = await command.func(msg, ...args);
         }
         catch (e) {
-            await msg.channel.send(`${e.stack}`);
+            await sendUtil.sendLongText(msg.channel, e.stack);
             await msg.react("❌");
         }
 
