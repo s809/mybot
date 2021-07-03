@@ -10,10 +10,17 @@ function prepareChangelog() {
     let lastVersion = "";
 
     for (let i = 0; i < commitCount; i++) {
-        let hardVersion = execSync(`git grep --only-matching "\\"v.*\\"" HEAD~${i} -- main.js env.js`, { encoding: "utf8" })
-            .split("\"")[1]
-            .substr(1);
-        let packageVersion;
+        let hardVersion, packageVersion;
+        try
+        {
+            hardVersion = execSync(`git grep --only-matching "\\"v.*\\"" HEAD~${i} -- main.js env.js`, { encoding: "utf8" })
+                .split("\"")[1]
+                .substr(1);
+        }
+        catch {
+            hardVersion = "";
+        }
+        
         try {
             packageVersion = execSync(`git grep --only-matching "version.*\\".*\\"" HEAD~${i} -- package.json`, { encoding: "utf8" })
                 .split("\"")[2];
