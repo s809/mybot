@@ -1,19 +1,21 @@
-const env = require("../env");
-const sendUtil = require("../sendUtil");
+"use strict";
 
+import util from "util";
+import { prefix } from "../env.js";
+import { sendLongText } from "../sendUtil.js";
 
-async function botEval(msg) {
+export default async function botEval(msg) {
     try {
         let response;
 
         try {
             try {
-                response = await eval(`(async () => ${msg.content.substr(env.prefix.length)})();`); // jshint ignore: line
+                response = await eval(`(async () => ${msg.content.substr(prefix.length)})();`); // jshint ignore: line
             } catch (e) {
                 if (!(e instanceof SyntaxError))
                     throw e;
 
-                response = await eval(`(async () => { ${msg.content.substr(env.prefix.length)} })();`); // jshint ignore: line
+                response = await eval(`(async () => { ${msg.content.substr(prefix.length)} })();`); // jshint ignore: line
             }
         } catch (e) {
             if (msg.channel.deleted)
@@ -21,11 +23,9 @@ async function botEval(msg) {
             response = e;
         }
 
-        response = require("util").inspect(response, { depth: 1 });
-        await sendUtil.sendLongText(msg.channel, response);
+        response = util.inspect(response, { depth: 1 });
+        await sendLongText(msg.channel, response);
     } catch (e) {
         console.log(e);
     }
 }
-
-module.exports = botEval;

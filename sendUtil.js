@@ -1,7 +1,9 @@
-const Discord = require('discord.js');
-const env = require("./env.js");
+"use strict";
 
-async function sendWebhookMessage(msg, webhook) {
+import { HTTPError } from "discord.js";
+import { client, channelData } from "./env.js";
+
+export async function sendWebhookMessage(msg, webhook) {
     for (; ;) {
         try {
             let content = msg.cleanContent;
@@ -21,15 +23,15 @@ async function sendWebhookMessage(msg, webhook) {
             break;
         }
         catch (e) {
-            if (!(e instanceof Discord.HTTPError))
+            if (!(e instanceof HTTPError))
                 throw e;
             console.log(`${e}\n${e.stack}`);
         }
     }
 }
 
-async function sendWebhookMessageAuto(msg) {
-    let mChannel = await env.client.channels.fetch(env.channelData.mappedChannels.get(msg.channel.id).id);
+export async function sendWebhookMessageAuto(msg) {
+    let mChannel = await client.channels.fetch(channelData.mappedChannels.get(msg.channel.id).id);
 
     if (msg.channel === mChannel) {
         if (msg.webhookID) return;
@@ -45,15 +47,15 @@ async function sendWebhookMessageAuto(msg) {
 
         await sendWebhookMessage(msg, webhook);
 
-        await env.channelData.updateLastMessage(msg.channel, msg);
+        await channelData.updateLastMessage(msg.channel, msg);
     }
     catch (e) {
-        await env.channelData.unmapChannel(msg.channel);
+        await channelData.unmapChannel(msg.channel);
     }
 }
 
-async function sendLongText(channel, text) {
-    text = text.replaceAll("```", '\\`\\`\\`');
+export async function sendLongText(channel, text) {
+    text = text.replaceAll("```", "\\`\\`\\`");
 
     const maxMessageLength = 2000;
     const back = "◀", stop = "✖", forward = "▶";
@@ -114,10 +116,4 @@ async function sendLongText(channel, text) {
     });
 
     collector.on("end", async () => await msg.reactions.removeAll());
-}
-
-module.exports = {
-    sendWebhookMessage: sendWebhookMessage,
-    sendWebhookMessageAuto: sendWebhookMessageAuto,
-    sendLongText: sendLongText,
 }

@@ -1,3 +1,5 @@
+"use strict";
+
 async function deleteRange(msg, start, end) {
     start = parseInt(start);
     end = parseInt(end);
@@ -20,12 +22,9 @@ async function deleteRange(msg, start, end) {
     }
 }
 
-module.exports =
-{
-    name: "delrange",
-    description: "delete all messages within range",
-    args: "<startid> <endid>",
-    minArgs: 2,
-    maxArgs: 2,
-    func: deleteRange,
-}
+export const name = "delrange";
+export const description = "delete all messages within range";
+export const args = "<startid> <endid>";
+export const minArgs = 2;
+export const maxArgs = 2;
+export const func = deleteRange;

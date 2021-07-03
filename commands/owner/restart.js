@@ -1,11 +1,11 @@
+"use strict";
+
+import { execSync } from "child_process";
+
 async function restart(msg) {
-    require("child_process").execSync("git pull && npm i && ./mybot.sh");
+    execSync("git pull && npm i && ./mybot.sh");
     return true;
 }
 
-module.exports = {
-    name: "restart",
-    minArgs: 0,
-    maxArgs: 0,
-    func: restart,
-}
+export const name = "restart";
+export const func = restart;

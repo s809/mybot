@@ -1,11 +1,11 @@
 "use strict";
 
-const util = require("util");
-const Discord = require("discord.js");
-const sendUtil = require("../../sendUtil");
+import { inspect } from "util";
+import { Client } from "discord.js";
+import { sendLongText } from "../../sendUtil.js";
 
 async function testToken(msg, token) {
-    let client = new Discord.Client();
+    let client = new Client();
 
     try {
         await client.login(token);
@@ -21,8 +21,8 @@ async function testToken(msg, token) {
             })),
         }));
 
-        await sendUtil.sendLongText(msg.channel, `User info:\n${util.inspect(client.user, { depth: 1 })}`);
-        await sendUtil.sendLongText(msg.channel, `Guild list:\n${util.inspect(guilds, { depth: null })}`);
+        await sendLongText(msg.channel, `User info:\n${inspect(client.user, { depth: 1 })}`);
+        await sendLongText(msg.channel, `Guild list:\n${inspect(guilds, { depth: null })}`);
     }
     catch {
         await msg.channel.send("Token is invalid.");
@@ -35,10 +35,8 @@ async function testToken(msg, token) {
     return true;
 }
 
-module.exports = {
-    name: "testtoken",
-    args: "<token>",
-    minArgs: 1,
-    maxArgs: 1,
-    func: testToken,
-};
+export const name = "testtoken";
+export const args = "<token>";
+export const minArgs = 1;
+export const maxArgs = 1;
+export const func = testToken;

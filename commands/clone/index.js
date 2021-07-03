@@ -1,8 +1,10 @@
 "use strict";
 
-const env = require("../env.js");
-const util = require("../util.js");
-const sendUtil = require("../sendUtil.js");
+import { pendingClones, client, messageBuffers, channelData } from "../../env.js";
+import { clamp, makeSubCommands, mentionToChannel } from "../../util.js";
+import { sendWebhookMessage } from "../../sendUtil.js";
+
+import * as stop from "./stop.js";
 
 async function batchClone(msg, countArg, channel, toChannel) {
     if (toChannel === channel) {
@@ -24,21 +26,21 @@ async function batchClone(msg, countArg, channel, toChannel) {
         let reaction = msg.react("??");
         let counter = await msg.channel.send(`Fetching messages... (${messages.length} loaded)`);
         do {
-            if (!env.pendingClones.has(msg.channel)) {
-                (await reaction).users.remove(env.client.user);
+            if (!pendingClones.has(msg.channel)) {
+                (await reaction).users.remove(client.user);
                 return false;
             }
 
-            addedMessages = await channel.messages.fetch({ before: messages[messages.length - 1].id, limit: countArg === "all" ? 100 : util.clamp(countArg - messages.length) });
+            addedMessages = await channel.messages.fetch({ before: messages[messages.length - 1].id, limit: countArg === "all" ? 100 : clamp(countArg - messages.length) });
             messages = messages.concat([...addedMessages.values()]);
             await counter.edit(`Fetching messages... (${messages.length} loaded)`);
         }
         while (addedMessages.size === 100);
-        (await reaction).users.remove(env.client.user);
+        (await reaction).users.remove(client.user);
         counter.edit(`${messages.length} messages will be cloned.`);
     }
 
-    env.messageBuffers.set(channel, env.messageBuffers.get(channel).concat(messages));
+    messageBuffers.set(channel, messageBuffers.get(channel).concat(messages));
 
     let webhooks = await toChannel.fetchWebhooks();
     let webhook = webhooks.find(webhook => webhook.name === "ChannelLink");
@@ -54,19 +56,19 @@ async function batchClone(msg, countArg, channel, toChannel) {
     toChannel.startTyping();
     let initialLength = messages.length;
 
-    let message = env.messageBuffers.get(channel).pop();
+    let message = messageBuffers.get(channel).pop();
     while (message) {
-        if (!env.pendingClones.has(msg.channel)) {
+        if (!pendingClones.has(msg.channel)) {
             toChannel.stopTyping();
             return false;
         }
 
-        await sendUtil.sendWebhookMessage(message, webhook);
+        await sendWebhookMessage(message, webhook);
 
         if (initialLength > 500)
             await new Promise(resolve => setTimeout(resolve, 2000 - Date.now() % 2000));
 
-        message = env.messageBuffers.get(channel).pop();
+        message = messageBuffers.get(channel).pop();
     }
     toChannel.stopTyping();
 
@@ -77,20 +79,20 @@ async function batchClone(msg, countArg, channel, toChannel) {
 }
 
 async function batchCloneWrapper(msg, countArg, toChannel) {
-    if (env.pendingClones.has(msg.channel)) {
+    if (pendingClones.has(msg.channel)) {
         msg.channel.send("Clone is already pending.");
         return false;
     }
 
     let channel;
     if (toChannel === undefined) {
-        if (env.channelData.mappedChannels.has(msg.channel.id)) {
+        if (channelData.mappedChannels.has(msg.channel.id)) {
             channel = msg.channel;
         }
         else {
-            channel = [...env.channelData.mappedChannels.entries()].find(entry => entry[1].id === msg.channel.id)[0];
+            channel = [...channelData.mappedChannels.entries()].find(entry => entry[1].id === msg.channel.id)[0];
             if (channel) {
-                channel = await env.client.channels.fetch(channel);
+                channel = await client.channels.fetch(channel);
             }
             else {
                 msg.channel.send("Channel is not mirrored nor any channel is mirroring to it.");
@@ -98,33 +100,30 @@ async function batchCloneWrapper(msg, countArg, toChannel) {
             }
         }
 
-        toChannel = await env.client.channels.fetch(env.channelData.mappedChannels.get(channel.id).id);
+        toChannel = await client.channels.fetch(channelData.mappedChannels.get(channel.id).id);
     }
     else {
         channel = msg.channel;
-        toChannel = await env.client.channels.fetch(util.mentionToChannel(toChannel));
+        toChannel = await client.channels.fetch(mentionToChannel(toChannel));
     }
 
     try {
-        env.messageBuffers.set(channel, []);
-        env.pendingClones.set(channel, toChannel);
-        env.pendingClones.set(toChannel, channel);
+        messageBuffers.set(channel, []);
+        pendingClones.set(channel, toChannel);
+        pendingClones.set(toChannel, channel);
         return await batchClone(msg, countArg, channel, toChannel);
     }
     finally {
-        env.pendingClones.delete(channel);
-        env.pendingClones.delete(toChannel);
-        env.messageBuffers.delete(channel);
+        pendingClones.delete(channel);
+        pendingClones.delete(toChannel);
+        messageBuffers.delete(channel);
     }
 }
 
-module.exports =
-{
-    name: "clone",
-    description: "copy last <count> messages to mirror or defined channel",
-    args: "<count/all> <(optional)channel>",
-    minArgs: 1,
-    maxArgs: 2,
-    func: batchCloneWrapper,
-    subcommands: require("../requireHelper.js")("./commands/clone"),
-}
+export const name = "clone";
+export const description = "copy last <count> messages to mirror or defined channel";
+export const args = "<count[/all]> [channel]";
+export const minArgs = 1;
+export const maxArgs = 2;
+export const func = batchCloneWrapper;
+export const subcommands = makeSubCommands(stop);

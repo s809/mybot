@@ -1,18 +1,19 @@
-const util = require("util");
-const exec = util.promisify(require('child_process').exec);
-const { sendLongText } = require("../../sendUtil");
+"use strict";
+
+import { exec as _exec } from "child_process";
+import { promisify } from "util";
+const exec = promisify(_exec);
+import { sendLongText } from "../../sendUtil.js";
 
 async function shell(msg) {
-    let command = '"' + [...arguments].slice(1).join('" "') + '"';
+    let command = `"${[...arguments].slice(1).join("\" \"")}"`;
     let { stdout, stderr } = await exec(command, { encoding: "utf8" });
     await sendLongText(msg.channel, "--- stdout ---\n" + stdout);
     await sendLongText(msg.channel, "--- stderr ---\n" + stderr);
     return true;
 }
 
-module.exports = {
-    name: "shell",
-    minArgs: 1,
-    maxArgs: Number.MAX_SAFE_INTEGER,
-    func: shell,
-}
+export const name = "shell";
+export const minArgs = 1;
+export const maxArgs = Infinity;
+export const func = shell;

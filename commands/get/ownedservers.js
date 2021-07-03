@@ -1,10 +1,12 @@
-const env = require("../../env.js");
+"use strict";
+
+import { client } from "../../env.js";
 
 async function getOwnedServers(msg) {
     let resp = "";
 
-    for (let guild of env.client.guilds.cache.values()) {
-        if (guild.ownerID !== env.client.user.id) continue;
+    for (let guild of client.guilds.cache.values()) {
+        if (guild.ownerID !== client.user.id) continue;
 
         let channel = [...guild.channels.cache.values()].find(channel => channel.type === "text");
         let invite = await channel.createInvite();
@@ -12,16 +14,13 @@ async function getOwnedServers(msg) {
     }
 
     if (resp !== "")
-        msg.channel.send(resp);
+        await msg.channel.send(resp);
 
     return true;
 }
 
-module.exports =
-{
-    name: "ownedservers",
-    description: "list bot test servers",
-    minArgs: 0,
-    maxArgs: 0,
-    func: getOwnedServers,
-}
+export const name = "ownedservers";
+export const description = "list bot test servers";
+export const minArgs = 0;
+export const maxArgs = 0;
+export const func = getOwnedServers;

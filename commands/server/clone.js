@@ -1,7 +1,9 @@
-const env = require("../../env.js");
+"use strict";
+
+import { client } from "../../env.js";
 
 async function cloneServer(msg, fromGuild, mode) {
-    fromGuild = env.client.guilds.resolve(fromGuild);
+    fromGuild = client.guilds.resolve(fromGuild);
 
     let channels = new Map();
     let roles = new Map();
@@ -68,12 +70,9 @@ async function cloneServer(msg, fromGuild, mode) {
     return true;
 }
 
-module.exports =
-{
-    name: "clone",
-    description: "clone all channels and/or roles from another server",
-    args: "<id> <mode{channels,roles,both}>",
-    minArgs: 2,
-    maxArgs: 2,
-    func: cloneServer,
-}
+export const name = "clone";
+export const description = "clone all channels and/or roles from another server";
+export const args = "<id> <mode{channels,roles,both}>";
+export const minArgs = 2;
+export const maxArgs = 2;
+export const func = cloneServer;

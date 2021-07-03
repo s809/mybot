@@ -1,28 +1,28 @@
-const child_process = require("child_process");
-const sendUtil = require("../../sendUtil");
+"use strict";
 
-const logstr = prepareChangelog();
+import { execSync } from "child_process";
+import { sendLongText } from "../../sendUtil.js";
 
 function prepareChangelog() {
-    let commitCount = parseInt(child_process.execSync("git rev-list --count HEAD", { encoding: "utf8" }));
+    let commitCount = parseInt(execSync("git rev-list --count HEAD", { encoding: "utf8" }));
 
     let str = "";
     let lastVersion = "";
 
     for (let i = 0; i < commitCount; i++) {
-        let hardVersion = child_process.execSync(`git grep --only-matching "\\"v.*\\"" HEAD~${i} -- main.js env.js`, { encoding: "utf8" })
-            .split('"')[1]
+        let hardVersion = execSync(`git grep --only-matching "\\"v.*\\"" HEAD~${i} -- main.js env.js`, { encoding: "utf8" })
+            .split("\"")[1]
             .substr(1);
         let packageVersion;
         try {
-            packageVersion = child_process.execSync(`git grep --only-matching "version.*\\".*\\"" HEAD~${i} -- package.json`, { encoding: "utf8" })
-                .split('"')[2];
+            packageVersion = execSync(`git grep --only-matching "version.*\\".*\\"" HEAD~${i} -- package.json`, { encoding: "utf8" })
+                .split("\"")[2];
         } catch {
             packageVersion = "";
         }
         let version = hardVersion > packageVersion ? hardVersion : packageVersion;
 
-        let msg = child_process.execSync(`git log -1 HEAD~${i} --format=%B`, { encoding: "utf8" });
+        let msg = execSync(`git log -1 HEAD~${i} --format=%B`, { encoding: "utf8" });
 
         if (version !== lastVersion) {
             if (lastVersion !== "")
@@ -38,16 +38,15 @@ function prepareChangelog() {
     return str;
 }
 
+const logstr = prepareChangelog();
+
 async function changelog(msg) {
-    await sendUtil.sendLongText(msg.channel, logstr);
+    await sendLongText(msg.channel, logstr);
     return true;
 }
 
-module.exports =
-{
-    name: "changelog",
-    description: "get bot changelog",
-    minArgs: 0,
-    maxArgs: 0,
-    func: changelog,
-}
+export const name = "changelog";
+export const description = "get bot changelog";
+export const minArgs = 0;
+export const maxArgs = 0;
+export const func = changelog;

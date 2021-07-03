@@ -1,21 +1,18 @@
-const env = require("../../env.js");
+"use strict";
+
+import { pendingClones } from "../../env.js";
 
 async function stopBatchClone(msg) {
-    if (!env.pendingClones.has(msg.channel)) {
+    if (!pendingClones.has(msg.channel)) {
         msg.channel.send("Clone is not pending.");
         return false;
     }
 
-    env.pendingClones.delete(env.pendingClones.get(msg.channel));
-    env.pendingClones.delete(msg.channel);
+    pendingClones.delete(pendingClones.get(msg.channel));
+    pendingClones.delete(msg.channel);
     return true;
 }
 
-module.exports =
-{
-    name: "stop",
-    description: "stop pending clone operation",
-    minArgs: 0,
-    maxArgs: 0,
-    func: stopBatchClone,
-}
+export const name = "stop";
+export const description = "stop pending clone operation";
+export const func = stopBatchClone;

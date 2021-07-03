@@ -1,3 +1,7 @@
+"use strict";
+
+import { sleep } from "../util.js";
+
 async function timer(msg, date, time, countstr, endstr) {
     date = date.split(".");
     for (let i = 0; i < date.length; i++) {
@@ -36,7 +40,7 @@ async function timer(msg, date, time, countstr, endstr) {
         let diff = new Date(goal - Date.now() + 60000);
 
         await res.edit(countstr.replace("%s", `${diff.getUTCHours().toString().padStart(2, "0")}:${diff.getUTCMinutes().toString().padStart(2, "0")}`));
-        await new Promise(resolve => setTimeout(resolve, 60000 - Date.now() % 60000));
+        await sleep(60000 - Date.now() % 60000);
 
         current = new Date(Date.now());
     }
@@ -46,12 +50,9 @@ async function timer(msg, date, time, countstr, endstr) {
     return true;
 }
 
-module.exports =
-{
-    name: "timer",
-    description: "self-updating UTC timer message",
-    args: "<dd.mm.yyyy> <hh:mm> <countstr{%s}> <endstr>",
-    minArgs: 4,
-    maxArgs: 4,
-    func: timer,
-}
+export const name = "timer";
+export const description = "self-updating UTC timer message";
+export const args = "<dd.mm.yyyy> <hh:mm> <countstr{%s}> <endstr>";
+export const minArgs = 4;
+export const maxArgs = 4;
+export const func = timer;

@@ -1,19 +1,16 @@
-const env = require("../../env.js");
+"use strict";
+
+import { client } from "../../env.js";
 
 function delAllServers() {
-    for (let guild of env.client.guilds.cache.values()) {
-        if (guild.ownerID !== env.client.user.id) continue;
+    for (let guild of client.guilds.cache.values()) {
+        if (guild.ownerID !== client.user.id) continue;
 
         guild.delete();
     }
     return true;
 }
 
-module.exports =
-{
-    name: "delall",
-    description: "delete all test servers",
-    minArgs: 0,
-    maxArgs: 0,
-    func: delAllServers,
-}
+export const name = "delall";
+export const description = "delete all test servers";
+export const func = delAllServers;

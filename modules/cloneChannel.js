@@ -1,17 +1,17 @@
 "use strict";
 
-const env = require("../env");
-const sendUtil = require("../sendUtil");
+import { client, channelData, pendingClones, messageBuffers } from "../env.js";
+import { sendWebhookMessageAuto } from "../sendUtil.js";
 
-async function cloneChannel(_channel, lastMessage) {
-    let channel = await env.client.channels.fetch(_channel);
-    let toChannel = await env.client.channels.fetch(env.channelData.mappedChannels.get(_channel).id);
+export default async function cloneChannel(_channel, lastMessage) {
+    let channel = await client.channels.fetch(_channel);
+    let toChannel = await client.channels.fetch(channelData.mappedChannels.get(_channel).id);
 
-    if (!channel.messages || !(channel.permissionsFor(env.client.user).has(["VIEW_CHANNEL", "READ_MESSAGE_HISTORY"]))) return;
+    if (!channel.messages || !(channel.permissionsFor(client.user).has(["VIEW_CHANNEL", "READ_MESSAGE_HISTORY"]))) return;
 
-    env.pendingClones.set(channel, toChannel);
-    env.pendingClones.set(toChannel, channel);
-    env.messageBuffers.set(channel, []);
+    pendingClones.set(channel, toChannel);
+    pendingClones.set(toChannel, channel);
+    messageBuffers.set(channel, []);
 
     let messages = [...(await channel.messages.fetch({ after: lastMessage, limit: 100 })).values()];
 
@@ -24,18 +24,16 @@ async function cloneChannel(_channel, lastMessage) {
         while (addedMessages.size === 100);
     }
 
-    env.messageBuffers.set(channel, env.messageBuffers.get(channel).concat(messages));
+    messageBuffers.set(channel, messageBuffers.get(channel).concat(messages));
 
-    while (env.messageBuffers.get(channel).length > 0) {
-        let message = env.messageBuffers.get(channel).pop();
-        await sendUtil.sendWebhookMessageAuto(message);
+    while (messageBuffers.get(channel).length > 0) {
+        let message = messageBuffers.get(channel).pop();
+        await sendWebhookMessageAuto(message);
     }
 
-    env.pendingClones.delete(channel);
-    env.pendingClones.delete(toChannel);
-    env.messageBuffers.delete(channel);
+    pendingClones.delete(channel);
+    pendingClones.delete(toChannel);
+    messageBuffers.delete(channel);
 
     return messages.length;
 }
-
-module.exports = cloneChannel;

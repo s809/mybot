@@ -1,12 +1,14 @@
-const Discord = require("discord.js");
-const env = require("../../env.js");
+"use strict";
+
+import { Permissions } from "discord.js";
+import { client } from "../../env.js";
 
 async function createServer(msg) {
     let guild;
     try {
-        guild = await env.client.guilds.create("testGuild",
+        guild = await client.guilds.create("testGuild",
             {
-                icon: env.client.user.displayAvatarURL(),
+                icon: client.user.displayAvatarURL(),
                 defaultMessageNotifications: "MENTIONS",
                 channels: [
                     {
@@ -18,7 +20,7 @@ async function createServer(msg) {
                 roles: [
                     {
                         id: 0,
-                        permissions: Discord.Permissions.ALL
+                        permissions: Permissions.ALL
                     }]
             });
     }
@@ -32,11 +34,6 @@ async function createServer(msg) {
     return true;
 }
 
-module.exports =
-{
-    name: "create",
-    description: "create test server",
-    minArgs: 0,
-    maxArgs: 0,
-    func: createServer,
-}
+export const name = "create";
+export const description = "create test server";
+export const func = createServer;

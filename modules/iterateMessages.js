@@ -1,6 +1,6 @@
 "use strict";
 
-async function* iterateMessages(channel, count = null, latest = true, bottomToTop = false) {
+export default async function* iterateMessages(channel, count = null, latest = true, bottomToTop = false) {
     let messages;
     let totalLength = 0;
 
@@ -18,5 +18,3 @@ async function* iterateMessages(channel, count = null, latest = true, bottomToTo
     }
     while (messages.length > 0);
 }
-
-module.exports = iterateMessages;

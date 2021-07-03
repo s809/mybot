@@ -1,5 +1,7 @@
-const env = require("../../env.js");
-const util = require("../../util.js");
+"use strict";
+
+import { client } from "../../env.js";
+import { mentionToChannel } from "../../util.js";
 
 async function scanChannel(msg, mode, fromChannel) {
     const inviteLink = /(https?:\/\/)?(www.)?(discord.(gg|io|me|li)|discordapp.com\/invite)\/[^\s/]+?(?=\b)/g;
@@ -16,17 +18,17 @@ async function scanChannel(msg, mode, fromChannel) {
     };
 
     if (mode !== "daily" && mode !== "weekly" && mode !== "monthly") {
-        msg.channel.send("Mode is not defined!");
+        await msg.channel.send("Mode is not defined!");
         return false;
     }
 
     if (fromChannel !== undefined)
-        fromChannel = await env.client.channels.fetch(util.mentionToChannel(fromChannel));
+        fromChannel = await client.channels.fetch(mentionToChannel(fromChannel));
     else
         fromChannel = msg.channel;
 
-    if (!fromChannel.messages || !(fromChannel.permissionsFor(env.client.user).has(["VIEW_CHANNEL", "READ_MESSAGE_HISTORY"]))) {
-        msg.channel.send("Channel is not a text channel or permissions are missing.");
+    if (!fromChannel.messages || !(fromChannel.permissionsFor(client.user).has(["VIEW_CHANNEL", "READ_MESSAGE_HISTORY"]))) {
+        await msg.channel.send("Channel is not a text channel or permissions are missing.");
         return;
     }
 
@@ -52,9 +54,9 @@ async function scanChannel(msg, mode, fromChannel) {
                 date = getWeekNumber(message.createdAt).toString().padStart(2, "0") + "." + message.createdAt.getUTCFullYear();
             }
             else {
-                date = (mode === "daily" ? message.createdAt.getUTCDate().toString().padStart(2, "0") + "." : "")
-                    + (message.createdAt.getUTCMonth() + 1).toString().padStart(2, "0") + "."
-                    + message.createdAt.getUTCFullYear();
+                date = (mode === "daily" ? message.createdAt.getUTCDate().toString().padStart(2, "0") + "." : "") +
+                    (message.createdAt.getUTCMonth() + 1).toString().padStart(2, "0") + "." +
+                    message.createdAt.getUTCFullYear();
             }
 
             Array.from(message.content.matchAll(inviteLink), x => x[0]).forEach(x => invites.add(x));
@@ -83,7 +85,7 @@ async function scanChannel(msg, mode, fromChannel) {
     counter = 0;
     for (let invite of invites) {
         if (counter === 10) {
-            msg.channel.send(result);
+            await msg.channel.send(result);
             result = "";
             counter = 0;
         }
@@ -97,10 +99,10 @@ async function scanChannel(msg, mode, fromChannel) {
         entry[0] = authors.get(entry[0]);
         let data = entry[1];
 
-        result += `\`${entry[0].tag} (${entry[0].id}):\`\n`
-            + `  First message: ${data.first.url} (${data.first.createdAt.toLocaleString()})\n`
-            + `  Last message: ${data.last.url} (${data.last.createdAt.toLocaleString()})\n`
-            + `  ${mode[0].toUpperCase() + mode.substring(1)} message count:\n`;
+        result += `\`${entry[0].tag} (${entry[0].id}):\`\n` +
+            `  First message: ${data.first.url} (${data.first.createdAt.toLocaleString()})\n` +
+            `  Last message: ${data.last.url} (${data.last.createdAt.toLocaleString()})\n` +
+            `  ${mode[0].toUpperCase() + mode.substring(1)} message count:\n`;
 
         result += "```";
         for (let dayEntry of data.dailyCount.entries()) {
@@ -124,12 +126,9 @@ async function scanChannel(msg, mode, fromChannel) {
     return true;
 }
 
-module.exports =
-{
-    name: "scan",
-    description: "get information about users sent to this or defined channel",
-    args: "<mode{daily,weekly,monthly}> <(optional)channel>",
-    minArgs: 1,
-    maxArgs: 2,
-    func: scanChannel,
-}
+export const name = "scan";
+export const description = "get information about users sent to this or defined channel";
+export const args = "<mode{daily,weekly,monthly}> [channel]";
+export const minArgs = 1;
+export const maxArgs = 2;
+export const func = scanChannel;

@@ -1,3 +1,5 @@
+"use strict";
+
 async function setupReceiverServer(msg) {
     for (let channel of msg.guild.channels.cache.values())
         await channel.delete();
@@ -23,9 +25,5 @@ async function setupReceiverServer(msg) {
     return true;
 }
 
-module.exports = {
-    name: "setupreceiverserver",
-    minArgs: 0,
-    maxArgs: 0,
-    func: setupReceiverServer,
-}
+export const name = "setupreceiverserver";
+export const func = setupReceiverServer;

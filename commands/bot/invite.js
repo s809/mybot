@@ -1,16 +1,15 @@
-const Discord = require("discord.js");
-const env = require("../../env.js");
+"use strict";
+
+import { Permissions } from "discord.js";
+import { client } from "../../env.js";
 
 async function botInvite(msg) {
-    msg.channel.send(await env.client.generateInvite(Discord.Permissions.FLAGS.ALL));
+    await msg.channel.send(await client.generateInvite(Permissions.FLAGS.ALL));
     return true;
 }
 
-module.exports =
-{
-    name: "invite",
-    description: "get bot server invite link",
-    minArgs: 0,
-    maxArgs: 0,
-    func: botInvite,
-}
+export const name = "invite";
+export const description = "get bot server invite link";
+export const minArgs = 0;
+export const maxArgs = 0;
+export const func = botInvite;

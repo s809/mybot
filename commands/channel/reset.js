@@ -1,22 +1,26 @@
-const env = require("../../env.js");
+"use strict";
+
+import { channelData } from "../../env.js";
 
 async function resetChannel(msg) {
-    if (env.channelData.mappedChannels.has(msg.channel) || [...env.channelData.mappedChannels.values()].includes(msg.channel)) {
-        msg.channel.send("Unmirror channel first.");
+    if (channelData.mappedChannels.has(msg.channel) || [...channelData.mappedChannels.values()].includes(msg.channel)) {
+        await msg.channel.send("Unmirror channel first.");
         return false;
     }
 
-    let channel = await msg.channel.clone();
-    channel.setPosition(msg.channel.position);
-    msg.channel.delete();
+    await Promise.all([
+        (async () => {
+            let channel = await msg.channel.clone();
+            await channel.setPosition(msg.channel.position);
+        })(),
+        msg.channel.delete()
+    ]);
+    
     return true;
 }
 
-module.exports =
-{
-    name: "reset",
-    description: "clone and delete this channel",
-    minArgs: 0,
-    maxArgs: 0,
-    func: resetChannel,
-}
+export const name = "reset";
+export const description = "clone and delete this channel";
+export const minArgs = 0;
+export const maxArgs = 0;
+export const func = resetChannel;

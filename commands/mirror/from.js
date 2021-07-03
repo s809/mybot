@@ -1,5 +1,7 @@
-const env = require("../../env.js");
-const util = require("../../util.js");
+"use strict";
+
+import { client, channelData } from "../../env.js";
+import { mentionToChannel } from "../../util.js";
 
 async function addMirrorFrom(msg, idArg, isSilentArg) {
     if (isSilentArg !== undefined && isSilentArg !== "silent") {
@@ -7,19 +9,19 @@ async function addMirrorFrom(msg, idArg, isSilentArg) {
         return false;
     }
 
-    let channel = await env.client.channels.fetch(util.mentionToChannel(idArg));
+    let channel = await client.channels.fetch(mentionToChannel(idArg));
 
-    if (env.channelData.mappedChannels.has(channel.id)) {
+    if (channelData.mappedChannels.has(channel.id)) {
         msg.channel.send("Channel is already mirrored.");
         return false;
     }
 
-    if ([...env.channelData.mappedChannels.values()].includes(channel.id)) {
+    if ([...channelData.mappedChannels.values()].includes(channel.id)) {
         msg.channel.send("Cannot mirror destination channel.");
         return false;
     }
 
-    if (env.channelData.mappedChannels.has(msg.channel.id)) {
+    if (channelData.mappedChannels.has(msg.channel.id)) {
         msg.channel.send("Cannot mirror to mirrored channel.");
         return false;
     }
@@ -36,12 +38,9 @@ async function addMirrorFrom(msg, idArg, isSilentArg) {
     return await require("../mirror.js").func({ channel: channel }, msg.channel.toString());
 }
 
-module.exports =
-{
-    name: "from",
-    description: "mirror another channel to this channel",
-    args: "<channel> <(optional)silent>",
-    minArgs: 1,
-    maxArgs: 2,
-    func: addMirrorFrom,
-}
+export const name = "from";
+export const description = "mirror another channel to this channel";
+export const args = "<channel> <(optional)silent>";
+export const minArgs = 1;
+export const maxArgs = 2;
+export const func = addMirrorFrom;

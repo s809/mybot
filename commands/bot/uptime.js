@@ -1,19 +1,10 @@
-const env = require("../../env.js");
+"use strict";
 
-async function uptime(msg, type) {
-    let diff;
-    switch (type) {
-        case "bot":
-            diff = new Date(env.client.uptime);
-            break;
-        case "host":
-            diff = new Date(require("os").uptime() * 1000);
-            break;
-        default:
-            await msg.channel.send("Invalid type parameter.");
-            return false;
-    }
+import os from "os";
+import { client } from "../../env.js";
 
+function getUptimeStr(diff)
+{
     var days = Math.floor(diff / (1000 * 60 * 60 * 24));
     diff -= days * (1000 * 60 * 60 * 24);
 
@@ -26,16 +17,17 @@ async function uptime(msg, type) {
     var seconds = Math.floor(diff / (1000));
     diff -= seconds * (1000);
 
-    await msg.channel.send(`${days} days, ${hours} hours, ${mins} minutes, ${seconds} seconds`);
+    return `${days} days, ${hours} hours, ${mins} minutes, ${seconds} seconds`;
+}
+
+async function uptime(msg) {
+    let bot = new Date(client.uptime);
+    let host = new Date(os.uptime() * 1000);
+
+    await msg.channel.send(`Bot uptime: ${getUptimeStr(bot)}\nHost uptime: ${getUptimeStr(host)}`);
     return true;
 }
 
-module.exports =
-{
-    name: "uptime",
-    description: "get bot uptime",
-    args: "<type{bot, host}>",
-    minArgs: 0,
-    maxArgs: 1,
-    func: uptime,
-}
+export const name = "uptime";
+export const description = "get bot uptime";
+export const func = uptime;
