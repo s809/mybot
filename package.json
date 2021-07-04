@@ -7,8 +7,11 @@
     "@types/node": "^15.12.2",
     "better-sqlite3": "^7.4.1",
     "discord.js": "^12.5.3",
-    "jshint": "^2.13.0",
     "node-fetch": "^2.6.1",
     "ytdl-core": "^4.8.2"
+  },
+  "devDependencies": {
+    "eslint": "^7.30.0",
+    "eslint-plugin-jsdoc": "^35.4.1"
   }
 }

@@ -27,8 +27,8 @@ function prepareChangelog() {
         } catch {
             packageVersion = "";
         }
+        
         let version = hardVersion > packageVersion ? hardVersion : packageVersion;
-
         let msg = execSync(`git log -1 HEAD~${i} --format=%B`, { encoding: "utf8" });
 
         if (version !== lastVersion) {

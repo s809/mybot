@@ -1,6 +1,5 @@
 "use strict";
 
-import { promisify } from "util";
 import Database from "better-sqlite3";
 
 if (process.platform === "win32") {

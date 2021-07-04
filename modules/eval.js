@@ -1,21 +1,28 @@
 "use strict";
 
-import util from "util";
+import Discord from "discord.js";
+import { inspect } from "util";
 import { prefix } from "../env.js";
 import { sendLongText } from "../sendUtil.js";
 
+/**
+ * Evaluate code from message content.
+ * Auto-detects if evaluated code is one- or multi-line.
+ * @param {Discord.Message} msg
+ */
 export default async function botEval(msg) {
     try {
+        let expr = msg.content.substr(prefix.length);
         let response;
 
         try {
             try {
-                response = await eval(`(async () => ${msg.content.substr(prefix.length)})();`); // jshint ignore: line
+                response = await eval(`(async () => ${expr})();`); // jshint ignore: line
             } catch (e) {
                 if (!(e instanceof SyntaxError))
                     throw e;
 
-                response = await eval(`(async () => { ${msg.content.substr(prefix.length)} })();`); // jshint ignore: line
+                response = await eval(`(async () => {\n${expr}\n})();`); // jshint ignore: line
             }
         } catch (e) {
             if (msg.channel.deleted)
@@ -23,7 +30,7 @@ export default async function botEval(msg) {
             response = e;
         }
 
-        response = util.inspect(response, { depth: 1 });
+        response = inspect(response, { depth: 1 });
         await sendLongText(msg.channel, response);
     } catch (e) {
         console.log(e);

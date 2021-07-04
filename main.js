@@ -128,6 +128,7 @@ client.on("message", async msg => {
 
     try {
         let reaction = await msg.react("🔄");
+        /** @type {boolean} */
         let ret;
 
         try {
