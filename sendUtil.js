@@ -123,22 +123,19 @@ async function sendPagedTextWithButtons(channel, pages, embed) {
         custom_id: "back_button", // eslint-disable-line camelcase
         style: "blurple",
         emoji: back,
-        disabled: true,
-        label: "Back"
+        disabled: true
     });
 
     let stopButton = new MessageButton({
         custom_id: "stop_button", // eslint-disable-line camelcase
         style: "red",
-        emoji: stop,
-        label: "Stop"
+        emoji: stop
     });
 
     let forwardButton = new MessageButton({
         custom_id: "forward_button", // eslint-disable-line camelcase
         style: "blurple",
-        emoji: forward,
-        label: "Forward"
+        emoji: forward
     });
 
     let options = {
