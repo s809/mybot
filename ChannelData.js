@@ -2,22 +2,10 @@
 
 import Database from "better-sqlite3";
 
-if (process.platform === "win32") {
-    var rl = require("readline").createInterface(
-        {
-            input: process.stdin,
-            output: process.stdout
-        });
-
-    rl.on("SIGINT", () => {
-        process.emit("SIGINT");
-    });
-}
-
 export default class ChannelData {
     constructor(location) {
         this.db = new Database(location);
-        process.once("SIGINT", () => {
+        process.once("exit", () => {
             this.db.close();
         });
 
