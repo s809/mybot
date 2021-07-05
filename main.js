@@ -1,3 +1,6 @@
+/**
+ * @file Main bot file.
+ */
 "use strict";
 
 import { readFileSync } from "fs";
@@ -151,11 +154,12 @@ client.on("message", async msg => {
     }
 });
 
+// eslint-disable-next-line no-undef
 if (process.argv.indexOf("--debug") < 0) {
     client.login("NzMzMjEyMjczNjkwMTQ4OTA0.Xw_3JA.7bDfmT2CPQySe9xIYgrJAb4yEGM"); // MyBot
 }
 else {
     console.log("(Warn) Running in debug mode.");
-    client.login("ODA5NDUxMzYzNzg0MzI3MjQ4.YCVSVA.J8BPawVSK4AgFvMQhLwiIZcVsUQ"); // TestNoise
     setPrefix("t!");
+    client.login("ODA5NDUxMzYzNzg0MzI3MjQ4.YCVSVA.J8BPawVSK4AgFvMQhLwiIZcVsUQ"); // TestNoise
 }

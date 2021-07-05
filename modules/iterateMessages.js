@@ -1,3 +1,6 @@
+/**
+ * @file Provides functions for iterating by messages.
+ */
 "use strict";
 
 import Discord from "discord.js";
@@ -6,9 +9,12 @@ import { clamp } from "../util.js";
 const maxFetchMessages = 100;
 
 /**
- * @param {Discord.Channel} channel 
- * @param {number?} count 
- * @returns {AsyncGenerator<Discord.Message, void, undefined>}
+ * Iterates messages, top-to-bottom.
+ * 
+ * @param {Discord.Channel} channel Channel to iterate messages from.
+ * @param {number?} count Amount of messages to iterate.
+ * @yields {Discord.Message} Messages from a channel.
+ * @example iterateMessagesFromTop(channel, count);
  */
 async function* iterateMessagesFromTop(channel, count) {
     let lastMessageId = 0;
@@ -30,9 +36,12 @@ async function* iterateMessagesFromTop(channel, count) {
 }
 
 /**
- * @param {Discord.Channel} channel 
- * @param {number?} count 
- * @returns {AsyncGenerator<Discord.Message, void, undefined>}
+ * Iterates messages, bottom-to-top.
+ * 
+ * @param {Discord.Channel} channel Channel to iterate messages from.
+ * @param {number?} count Amount of messages to iterate.
+ * @yields Messages from a channel.
+ * @example iterateMessagesFromBottom(channel, count);
  */
 async function* iterateMessagesFromBottom(channel, count) {
     let firstMessageId = channel.lastMessageId;
@@ -56,10 +65,12 @@ async function* iterateMessagesFromBottom(channel, count) {
 /**
  * Iterate through messages, bottom-to-top.
  * When {@link fromBeginning} is true, iterates top-to-bottom.
+ * 
  * @param {Discord.Channel} channel Channel to iterate messages from.
- * @param {number?} count Amount of messages to iterate.
+ * @param {number} count Amount of messages to iterate.
  * @param {boolean} fromBeginning Whether to iterate from beginning of a channel.
- * @returns {AsyncGenerator<Discord.Message, void, undefined>}
+ * @yields Messages from a channel.
+ * @example iterateMessages(msg.channel, count = 10, fromBeginning = true);
  */
 export default async function* iterateMessages(channel, count = null, fromBeginning = false) {
     if (count !== null && (typeof count !== "number" || count < 1))
