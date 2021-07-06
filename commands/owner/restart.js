@@ -15,12 +15,9 @@ import { client } from "../../env.js";
  * @example restart(msg);
  */
 async function restart(msg) {
-    execSync("git pull && npm ci && ./mybot.sh --nokill");
+    execSync("git pull && npm i && ./mybot.sh --nokill");
 
-    await Promise.all([
-        msg.reactions.cache.find(x => x.emoji === "🔄" && x.users.resolve(client.user))?.users.remove(),
-        msg.react("✅")
-    ]);
+    await msg.react("✅");
     process.exit();
 }
 
