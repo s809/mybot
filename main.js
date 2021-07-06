@@ -145,7 +145,7 @@ client.on("message", async msg => {
         {
             await Promise.allSettled([
                 msg.react(ret ? "✅" : "❌"),
-                reaction.users.remove(client.user)
+                reaction.users.remove()
             ]);
         }
     }
