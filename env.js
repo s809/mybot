@@ -3,18 +3,19 @@
  */
 "use strict";
 
-import { dirname } from "path";
-import { fileURLToPath } from "url";
+import { readFileSync } from "fs";
 import { Channel, Client, Message } from "discord.js";
 import disbut from "discord-buttons";
 import ChannelData from "./ChannelData.js";
 
+/** @type {string} */
+export const version = JSON.parse(readFileSync("./package.json", "utf8")).version;
 export var prefix = "!";
 export const owner = "559800250924007434"; // NoNick
 export const maxVersionsOnChangelogPage = 10;
 export const client = new Client();
 disbut(client);
-export const channelData = new ChannelData(`${dirname(fileURLToPath(import.meta.url))}/data.db`);
+export const channelData = new ChannelData(`./data.db`);
 
 /** @type {Map<Channel, Channel>} */
 export const pendingClones = new Map();

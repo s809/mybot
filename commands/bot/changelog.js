@@ -1,13 +1,24 @@
+/**
+ * @file Changelog command.
+ */
 "use strict";
 
 import { execSync } from "child_process";
 import { sendLongText } from "../../sendUtil.js";
+import Discord from "discord.js";
+import { version as currentVersion } from "../../env.js";
 
+/**
+ * Prepares bot changelog based on Git commits.
+ * 
+ * @returns {string} Changelog text.
+ */
 function prepareChangelog() {
     let commitCount = parseInt(execSync("git rev-list --count HEAD", { encoding: "utf8" }));
 
-    let str = "";
-    let lastVersion = "";
+    let str = `${currentVersion}:\n`;
+    let lastVersion = currentVersion;
+    let lastMessage = "";
 
     for (let i = 0; i < commitCount; i++) {
         let hardVersion, packageVersion;
@@ -32,23 +43,34 @@ function prepareChangelog() {
         let msg = execSync(`git log -1 HEAD~${i} --format=%B`, { encoding: "utf8" });
 
         if (version !== lastVersion) {
-            if (lastVersion !== "")
-                str += "\n";
+            if (lastVersion !== currentVersion)
+            {
+                if (lastVersion !== "")
+                    str += "\n";
 
+                str += lastVersion + ":\n";
+            }
             lastVersion = version;
-            str += version + ":\n";
         }
 
-        str += msg.substr(0, msg.length - 1);
+        str += lastMessage;
+        lastMessage = msg.substr(0, msg.length - 1);
     }
+    str += `\n${lastVersion}\n${lastMessage.substr(0, lastMessage.length - 1)}`;
 
     return str;
 }
 
 const logstr = prepareChangelog();
 
+/**
+ * Sends a message with changelog.
+ * 
+ * @param {Discord.Message} msg Message a command was sent from.
+ * @returns {boolean} Whether the execution was successful.
+ */
 async function changelog(msg) {
-    await sendLongText(msg.channel, logstr);
+    await sendLongText(msg.channel, logstr, null);
     return true;
 }
 

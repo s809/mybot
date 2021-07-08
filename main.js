@@ -3,15 +3,12 @@
  */
 "use strict";
 
-import { readFileSync } from "fs";
-/** @type {string} */
-const version = JSON.parse(readFileSync("./package.json", "utf8")).version;
-
 import {
     client,
     channelData,
     messageBuffers,
     pendingClones,
+    version,
     prefix,
     owner,
     evalModeChannels,
