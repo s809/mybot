@@ -1,3 +1,7 @@
+/**
+ * @file Module for importing all commands.
+ */
+
 import { makeSubCommands } from "../util.js";
 
 import * as bot from "../commands/bot/index.js";

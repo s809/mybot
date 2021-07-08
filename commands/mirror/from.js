@@ -40,7 +40,7 @@ async function addMirrorFrom(msg, idArg, isSilentArg) {
 
 export const name = "from";
 export const description = "mirror another channel to this channel";
-export const args = "<channel> <(optional)silent>";
+export const args = "<channel> [\"silent\"]";
 export const minArgs = 1;
 export const maxArgs = 2;
 export const func = addMirrorFrom;

@@ -1,76 +1,124 @@
 "use strict";
 
+import Discord from "discord.js";
 import { pendingClones, client, messageBuffers, channelData } from "../../env.js";
-import { clamp, makeSubCommands, mentionToChannel } from "../../util.js";
+import { makeSubCommands, mentionToChannel, sleep } from "../../util.js";
 import { sendWebhookMessage } from "../../sendUtil.js";
 
 import * as stop from "./stop.js";
+import iterateMessages from "../../modules/iterateMessages.js";
 
-async function batchClone(msg, countArg, channel, toChannel) {
-    if (toChannel === channel) {
-        msg.channel.send("Cannot clone to same channel.");
+const errorStrings = {
+    sameChannel: "Cannot clone to same channel.",
+    alreadyPending: "Clone is already pending.",
+    notMirrored: "Channel is not mirrored nor any channel is mirroring to it.",
+    invalidArgument: "Invalid argument."
+};
+
+/**
+ * Clone message from one channel to another.
+ * 
+ * @param {Discord.Message} msg Message with this command.
+ * @param {string} count Amount of messages to clone.
+ * @param {Discord.TextChannel} srcChannel Source channel.
+ * @param {Discord.TextChannel} destChannel Destination channel.
+ * @returns {Promise<boolean>} Whether a command was successfully completed.
+ */
+async function batchClone(msg, count, srcChannel, destChannel) {
+    if (destChannel === srcChannel) {
+        await msg.channel.send(errorStrings.sameChannel);
         return false;
     }
 
-    if (countArg !== "all") {
-        countArg = parseInt(countArg);
-        if (isNaN(countArg) || countArg < 1) {
-            msg.channel.send("Invalid argument.");
+    if (count === "all") {
+        count = null;
+    }
+    else {
+        count = parseInt(count);
+        if (isNaN(count) || count < 1) {
+            await msg.channel.send(errorStrings.invalidArgument);
             return false;
         }
     }
 
-    let messages = [...(await channel.messages.fetch({ limit: (countArg === "all" || countArg > 100) ? 100 : countArg })).values()];
-    if ((countArg === "all" && messages.length === 100) || countArg > 100) {
-        let addedMessages;
-        let reaction = msg.react("??");
-        let counter = await msg.channel.send(`Fetching messages... (${messages.length} loaded)`);
-        do {
-            if (!pendingClones.has(msg.channel)) {
-                (await reaction).users.remove(client.user);
-                return false;
-            }
+    /** @type {Discord.Message} */
+    let counter;
+    /** @type {Error} */
+    let counterError = null;
+    /** @type {Promise<Discord.Message>} */
+    let counterPromise = null;
 
-            addedMessages = await channel.messages.fetch({ before: messages[messages.length - 1].id, limit: countArg === "all" ? 100 : clamp(countArg - messages.length) });
-            messages = messages.concat([...addedMessages.values()]);
-            await counter.edit(`Fetching messages... (${messages.length} loaded)`);
+    const markCounterUpdated = message => {
+        counter = message;
+        counterPromise = null;
+        return message;
+    };
+    const markCounterError = e => {
+        counterError = e;
+    };
+    
+    counterPromise = msg.channel.send(`Fetching messages...`)
+        .then(markCounterUpdated)
+        .catch(markCounterError);
+
+    /** @type {Discord.Message[]} */
+    let messages = [];
+    for await (let message of iterateMessages(srcChannel, "0", null, count))
+    {
+        if (counterError)
+            throw counterError;
+        if (!counterPromise)
+        {
+            counterPromise = counter.edit(`Fetching messages... (${messages.length} fetched)`)
+                .then(markCounterUpdated)
+                .catch(markCounterError);
         }
-        while (addedMessages.size === 100);
-        (await reaction).users.remove(client.user);
-        counter.edit(`${messages.length} messages will be cloned.`);
+
+        messages.unshift(message);
+
+        // Gives counter a chance to update while a new block is being added to array.
+        // Without this line it's updated only when new block is fetched.
+        await new Promise(resolve => setImmediate(resolve));
     }
 
-    messageBuffers.set(channel, messageBuffers.get(channel).concat(messages));
+    // Wait and update counter before cloning.
+    if (counterPromise)
+        await counterPromise;
+    if (counterError)
+        throw counterError;
+    await counter.edit(`${messages.length} messages will be cloned.`);
 
-    let webhooks = await toChannel.fetchWebhooks();
+    messageBuffers.set(srcChannel, messageBuffers.get(srcChannel).concat(messages));
+
+    let webhooks = await destChannel.fetchWebhooks();
     let webhook = webhooks.find(webhook => webhook.name === "ChannelLink");
     let isTemporary = false;
 
     if (webhook === undefined) {
-        webhook = webhooks.find(webhook => webhook.name === "TempCrosspost");
+        webhook = webhooks.find(webhook => webhook.name === "TempChannelLink");
         if (webhook === undefined)
-            webhook = await toChannel.createWebhook("TempCrosspost");
+            webhook = await destChannel.createWebhook("TempChannelLink");
         isTemporary = true;
     }
 
-    toChannel.startTyping();
+    destChannel.startTyping();
     let initialLength = messages.length;
 
-    let message = messageBuffers.get(channel).pop();
+    let message = messageBuffers.get(srcChannel).pop();
     while (message) {
         if (!pendingClones.has(msg.channel)) {
-            toChannel.stopTyping();
+            destChannel.stopTyping();
             return false;
         }
 
         await sendWebhookMessage(message, webhook);
 
         if (initialLength > 500)
-            await new Promise(resolve => setTimeout(resolve, 2000 - Date.now() % 2000));
+            await sleep(2000);
 
-        message = messageBuffers.get(channel).pop();
+        message = messageBuffers.get(srcChannel).pop();
     }
-    toChannel.stopTyping();
+    destChannel.stopTyping();
 
     if (isTemporary)
         await webhook.delete();
@@ -78,14 +126,22 @@ async function batchClone(msg, countArg, channel, toChannel) {
     return true;
 }
 
-async function batchCloneWrapper(msg, countArg, toChannel) {
+/**
+ * Clone message from one channel to another.
+ * 
+ * @param {Discord.Message} msg Message with this command.
+ * @param {string} count Amount of messages to clone.
+ * @param {Discord.TextChannel} destChannel Destination channel.
+ * @returns {Promise<boolean>} Whether a command was successfully completed.
+ */
+async function batchCloneWrapper(msg, count, destChannel) {
     if (pendingClones.has(msg.channel)) {
-        msg.channel.send("Clone is already pending.");
+        await msg.channel.send(errorStrings.alreadyPending);
         return false;
     }
 
     let channel;
-    if (toChannel === undefined) {
+    if (destChannel === undefined) {
         if (channelData.mappedChannels.has(msg.channel.id)) {
             channel = msg.channel;
         }
@@ -95,34 +151,34 @@ async function batchCloneWrapper(msg, countArg, toChannel) {
                 channel = await client.channels.fetch(channel);
             }
             else {
-                msg.channel.send("Channel is not mirrored nor any channel is mirroring to it.");
+                msg.channel.send(errorStrings.notMirrored);
                 return false;
             }
         }
 
-        toChannel = await client.channels.fetch(channelData.mappedChannels.get(channel.id).id);
+        destChannel = await client.channels.fetch(channelData.mappedChannels.get(channel.id).id);
     }
     else {
         channel = msg.channel;
-        toChannel = await client.channels.fetch(mentionToChannel(toChannel));
+        destChannel = await client.channels.fetch(mentionToChannel(destChannel));
     }
 
     try {
         messageBuffers.set(channel, []);
-        pendingClones.set(channel, toChannel);
-        pendingClones.set(toChannel, channel);
-        return await batchClone(msg, countArg, channel, toChannel);
+        pendingClones.set(channel, destChannel);
+        pendingClones.set(destChannel, channel);
+        return await batchClone(msg, count, channel, destChannel);
     }
     finally {
         pendingClones.delete(channel);
-        pendingClones.delete(toChannel);
+        pendingClones.delete(destChannel);
         messageBuffers.delete(channel);
     }
 }
 
 export const name = "clone";
 export const description = "copy last <count> messages to mirror or defined channel";
-export const args = "<count[/all]> [channel]";
+export const args = "<count|\"all\"> [channel]";
 export const minArgs = 1;
 export const maxArgs = 2;
 export const func = batchCloneWrapper;

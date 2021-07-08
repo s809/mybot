@@ -1,8 +1,23 @@
+/**
+ * @file Module for storing data for channel maps.
+ */
 "use strict";
 
+import Discord from "discord.js";
 import Database from "better-sqlite3";
 
+/**
+ * @typedef MappedChannelData
+ * @property {Discord.Snowflake} id ID of a destination channel.
+ * @property {Discord.Snowflake} lastMessage ID of a last message in source channel.
+ */
+
 export default class ChannelData {
+    /**
+     * Constructor for ChannelData.
+     * 
+     * @param {string} location Location of a database file.
+     */
     constructor(location) {
         this.db = new Database(location);
         process.once("exit", () => {
@@ -21,10 +36,17 @@ export default class ChannelData {
             }
         };
         
+        /** @type {Map<Discord.Snowflake, MappedChannelData>} */
         this.mappedChannels = new Map();
         this.readData();
     }
 
+    /**
+     * Creates or changes map between two channels.
+     * 
+     * @param {Discord.Channel} first Source channel.
+     * @param {Discord.Channel} second Destination channel.
+     */
     async mapChannel(first, second) {
         if (!first.id)
             throw new Error("first object has no id property");
@@ -47,6 +69,12 @@ export default class ChannelData {
         }
     }
 
+    /**
+     * Updates ID of a last message in map.
+     * 
+     * @param {Discord.Channel} channel Source channel.
+     * @param {Discord.Message} message New last message.
+     */
     async updateLastMessage(channel, message) {
         if (!channel.id)
             throw new Error("channel object has no id property");
@@ -57,6 +85,11 @@ export default class ChannelData {
         this.statements.mappedChannels.updateLastMessage.run(message.id, channel.id);
     }
 
+    /**
+     * Removes mapping between channels.
+     * 
+     * @param {Discord.Channel} channel Source channel.
+     */
     async unmapChannel(channel) {
         if (!channel.id)
             throw new Error("channel object has no id property");

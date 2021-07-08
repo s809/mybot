@@ -4,6 +4,7 @@
 "use strict";
 
 import { readFileSync } from "fs";
+/** @type {string} */
 const version = JSON.parse(readFileSync("./package.json", "utf8")).version;
 
 import {
@@ -27,52 +28,26 @@ import {
 client.on("ready", async () => {
     console.log(`Logged in as ${client.user.tag}.`);
 
-    await client.user.setPresence({ activity: { name: `v${version}` } });
-
-    for (let guild of client.guilds.cache.values()) {
-        let webhooks;
-        try
-        {
-            webhooks = await guild.fetchWebhooks();
+    await client.user.setPresence({
+        activity: {
+            name: `v${version}`
         }
-        catch
-        {
-            continue;
-        }
+    });
 
-        // Convert "Crosspost *" webhooks
-        for (let webhook of webhooks.values()) {
-            let parts = webhook.name.split(" ");
-
-            if (parts[0] === "Crosspost") {
-                let wChannel = await client.channels.fetch(webhook.channelID);
-
-                let channel = await client.channels.fetch(parts[1]);
-                await channelData.mapChannel(channel, wChannel);
-
-                let messages = await channel.messages.fetch();
-                if (messages.size > 0)
-                    await channelData.updateLastMessage(channel, messages.first());
-
-                webhook.delete();
-            }
-        }
-    }
-
-    for (let entry of channelData.mappedChannels.entries()) {
-        cloneChannel(entry[0], entry[1].lastMessage)
-            .catch(() => channelData.unmapChannel({ id: entry[0] }));
-    }
+    console.log("Syncing channels...");
+    await Promise.all(
+        [...channelData.mappedChannels.entries()]
+        .map(entry => cloneChannel(entry[0], entry[1].lastMessage)
+                      .catch(() => channelData.unmapChannel({ id: entry[0] }))));
+    console.log("All channels are synced.");
 });
-
-client.on("rateLimit", console.log);
 
 client.on("message", async msg => {
     if (msg.guild) {
         let mappedChannel = channelData.mappedChannels.get(msg.channel.id);
-        if (mappedChannel !== undefined) {
+        if (mappedChannel) {
             let buffer = messageBuffers.get(msg.channel);
-            if (buffer !== undefined && await client.channels.fetch(mappedChannel.id) === pendingClones.get(msg.channel)) {
+            if (buffer && await client.channels.fetch(mappedChannel.id) === pendingClones.get(msg.channel)) {
                 buffer.unshift(msg);
             }
             else {
@@ -154,7 +129,6 @@ client.on("message", async msg => {
     }
 });
 
-// eslint-disable-next-line no-undef
 if (process.argv.indexOf("--debug") < 0) {
     client.login("NzMzMjEyMjczNjkwMTQ4OTA0.Xw_3JA.7bDfmT2CPQySe9xIYgrJAb4yEGM"); // MyBot
 }

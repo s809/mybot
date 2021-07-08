@@ -259,10 +259,10 @@ async function sendPagedTextWithReactions(channel, pages, embed) {
  * @param {string} text Text to send.
  * @param {string?} code Language for optional code block wrapping.
  * @param {boolean} embed Whether to wrap text in an embed.
- * @param {boolean} useOldButtons Whetner to use reactions instead of embed buttons.
+ * @param {boolean} useReactions Whetner to use reactions instead of embed buttons.
  * @example sendLongText(msg.channel, "super long text", code = false, embed = false);
  */
-export async function sendLongText(channel, text, code = "js", embed = true, useOldButtons = false) {
+export async function sendLongText(channel, text, code = "js", embed = true, useReactions = false) {
     text = text.replaceAll("```", "\\`\\`\\`");
 
     const contentWrapWithCode = contentWrap.replace("%code%", code);
@@ -285,7 +285,7 @@ export async function sendLongText(channel, text, code = "js", embed = true, use
     const pages = prepareLongText(text, textWrap, maxMessageLength);
     
     // Send message and add buttons
-    if (!useOldButtons)
+    if (!useReactions)
         await sendPagedTextWithButtons(channel, pages, embed);
     else
         await sendPagedTextWithReactions(channel, pages, embed);

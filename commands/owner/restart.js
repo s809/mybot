@@ -5,7 +5,6 @@
 
 import { execSync } from "child_process";
 import { Message } from "discord.js";
-import { client } from "../../env.js";
 
 /**
  * Update and restart bot.

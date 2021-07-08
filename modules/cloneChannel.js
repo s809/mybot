@@ -1,39 +1,44 @@
+/**
+ * @file Module for syncing cloned channels.
+ */
 "use strict";
 
+import Discord from "discord.js";
 import { client, channelData, pendingClones, messageBuffers } from "../env.js";
 import { sendWebhookMessageAuto } from "../sendUtil.js";
+import iterateMessages from "./iterateMessages.js";
 
-export default async function cloneChannel(_channel, lastMessage) {
-    let channel = await client.channels.fetch(_channel);
-    let toChannel = await client.channels.fetch(channelData.mappedChannels.get(_channel).id);
+/**
+ * Synchronizes a channel with channel mapped to it.
+ * 
+ * @param {Discord.Snowflake} channel ID of source channel.
+ * @param {Discord.Snowflake} lastMessage ID of a last message in source channel.
+ * @returns {number} Amount of cloned messages.
+ */
+export default async function cloneChannel(channel, lastMessage) {
+    let srcChannel = await client.channels.fetch(channel);
+    let destChannel = await client.channels.fetch(channelData.mappedChannels.get(channel).id);
 
-    if (!channel.messages || !(channel.permissionsFor(client.user).has(["VIEW_CHANNEL", "READ_MESSAGE_HISTORY"]))) return;
+    if (!srcChannel.messages || !(srcChannel.permissionsFor(client.user).has(["VIEW_CHANNEL", "READ_MESSAGE_HISTORY"]))) return;
 
-    pendingClones.set(channel, toChannel);
-    pendingClones.set(toChannel, channel);
-    messageBuffers.set(channel, []);
+    pendingClones.set(srcChannel, destChannel);
+    pendingClones.set(destChannel, srcChannel);
+    messageBuffers.set(srcChannel, []);
 
-    let messages = [...(await channel.messages.fetch({ after: lastMessage, limit: 100 })).values()];
+    let messages = [];
+    for await (let message of iterateMessages(srcChannel, lastMessage))
+        messages.unshift(message);
 
-    if (messages.length === 100) {
-        let addedMessages;
-        do {
-            addedMessages = await channel.messages.fetch({ after: messages[0].id, limit: 100 });
-            messages = [...addedMessages.values()].concat(messages);
-        }
-        while (addedMessages.size === 100);
-    }
+    messageBuffers.set(srcChannel, messageBuffers.get(srcChannel).concat(messages));
 
-    messageBuffers.set(channel, messageBuffers.get(channel).concat(messages));
-
-    while (messageBuffers.get(channel).length > 0) {
-        let message = messageBuffers.get(channel).pop();
+    while (messageBuffers.get(srcChannel).length > 0) {
+        let message = messageBuffers.get(srcChannel).pop();
         await sendWebhookMessageAuto(message);
     }
 
-    pendingClones.delete(channel);
-    pendingClones.delete(toChannel);
-    messageBuffers.delete(channel);
+    pendingClones.delete(srcChannel);
+    pendingClones.delete(destChannel);
+    messageBuffers.delete(srcChannel);
 
     return messages.length;
 }
