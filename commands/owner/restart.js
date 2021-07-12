@@ -14,7 +14,7 @@ import { Message } from "discord.js";
  * @example restart(msg);
  */
 async function restart(msg) {
-    execSync("git pull && npm i && ./mybot.sh --nokill");
+    execSync("git pull && npm install && ./mybot.sh --nokill");
 
     await msg.react("✅");
     process.exit();

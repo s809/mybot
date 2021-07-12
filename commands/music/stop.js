@@ -27,5 +27,5 @@ async function stop(msg) {
 }
 
 export const name = "stop";
-export const description = "stop currently playing song";
+export const description = "stop player";
 export const func = stop;

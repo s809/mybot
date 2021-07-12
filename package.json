@@ -16,8 +16,5 @@
   "devDependencies": {
     "eslint": "^7.30.0",
     "eslint-plugin-jsdoc": "^35.4.1"
-  },
-  "scripts": {
-    "preinstall": "sudo apt -y install make gcc g++ python3 python-is-python3"
   }
 }
