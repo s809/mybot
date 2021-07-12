@@ -123,9 +123,9 @@ async function play(msg, url) {
             }
         }
     } finally {
-        conn.destroy();
-        entry.readable?.destroy();
         musicPlayingGuilds.delete(voiceChannel.guild);
+        entry.readable?.destroy();
+        conn.destroy();
     }
 }
 
