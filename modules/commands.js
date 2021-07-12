@@ -9,6 +9,7 @@ import * as channel from "../commands/channel/index.js";
 import * as clone from "../commands/clone/index.js";
 import * as get from "../commands/get/index.js";
 import * as mirror from "../commands/mirror/index.js";
+import * as music from "../commands/music/index.js";
 import * as owner from "../commands/owner/index.js";
 import * as server from "../commands/server/index.js";
 
@@ -23,6 +24,7 @@ export default makeSubCommands(
     clone,
     get,
     mirror,
+    music,
     owner,
     server,
 

@@ -4,7 +4,7 @@
 "use strict";
 
 import { readFileSync } from "fs";
-import { Channel, Client, Message } from "discord.js";
+import { Guild, Channel, Client, Message } from "discord.js";
 import disbut from "discord-buttons";
 import ChannelData from "./ChannelData.js";
 
@@ -36,3 +36,6 @@ export function setPrefix(newPrefix)
 {
     prefix = newPrefix;
 }
+
+/** @type {Map<Guild, import("./commands/music/index.js").MusicPlayerEntry>} */
+export const musicPlayingGuilds = new Map();

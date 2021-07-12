@@ -1,7 +1,8 @@
 {
   "env": {
     "node": true,
-    "es2021": true
+    "es2021": true,
+    "commonjs": false
   },
   "extends": "eslint:recommended",
   "parserOptions": {
@@ -33,10 +34,7 @@
     "block-spacing": "error",
     "brace-style": "off",
     "camelcase": "error",
-    "capitalized-comments": [
-      "error",
-      "always"
-    ],
+    "capitalized-comments": "off",
     "class-methods-use-this": "error",
     "comma-dangle": "off",
     "comma-spacing": [
@@ -142,7 +140,7 @@
     "no-alert": "error",
     "no-array-constructor": "error",
     "no-await-in-loop": "off",
-    "no-bitwise": "error",
+    "no-bitwise": "off",
     "no-caller": "error",
     "no-confusing-arrow": "error",
     "no-console": "off",
@@ -361,7 +359,7 @@
     "jsdoc/require-yields": 1, 
     "jsdoc/require-yields-check": 1, 
     "jsdoc/tag-lines": 1, 
-    "jsdoc/valid-types": 1 
+    "jsdoc/valid-types": 0
   },
   "plugins": [
     "jsdoc"
