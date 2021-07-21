@@ -73,3 +73,18 @@ export function makeSubCommands(...args)
     
     return map;
 }
+
+/**
+ * Wraps text in titled borders.
+ * 
+ * @param {string} title Title for wrapping.
+ * @param {string} text Text to wrap.
+ * @returns {string} Wrapped text.
+ */
+export function wrapText(title, text) {
+    title = title.toUpperCase();
+
+    return `----- ${title} -----\n` +
+           text + 
+           `\n----- END ${title} -----`;
+}

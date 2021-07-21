@@ -21,6 +21,7 @@ import {
     sendWebhookMessageAuto,
     sendLongText
 } from "./sendUtil.js";
+import { wrapText } from "./util.js";
 
 client.on("ready", async () => {
     console.log(`Logged in as ${client.user.tag}.`);
@@ -124,6 +125,21 @@ client.on("message", async msg => {
     catch (e) {
         console.error(e.stack);
     }
+});
+
+process.on("unhandledRejection", async e => {
+    let text = wrapText("unhandled rejection", e.stack);
+
+    if (client.user) {
+        try {
+            let user = await client.users.fetch(owner);
+            let channel = await user.createDM();
+            await channel.send({ content: text, split: true });
+        }
+        catch { /* Do nothing */ }
+    }
+
+    console.warn(text);
 });
 
 if (process.argv.indexOf("--debug") < 0) {
