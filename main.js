@@ -127,26 +127,28 @@ client.on("message", async msg => {
     }
 });
 
-process.on("unhandledRejection", async e => {
-    let text = wrapText("unhandled rejection", e.stack);
-
-    if (client.user) {
-        try {
-            let user = await client.users.fetch(owner);
-            let channel = await user.createDM();
-            await channel.send({ content: text, split: true });
-        }
-        catch { /* Do nothing */ }
+(async () => {
+    if (process.argv.indexOf("--debug") < 0) {
+        await client.login("NzMzMjEyMjczNjkwMTQ4OTA0.Xw_3JA.7bDfmT2CPQySe9xIYgrJAb4yEGM"); // MyBot
+    }
+    else {
+        console.log("(Warn) Running in debug mode.");
+        setPrefix("t!");
+        await client.login("ODA5NDUxMzYzNzg0MzI3MjQ4.YCVSVA.J8BPawVSK4AgFvMQhLwiIZcVsUQ"); // TestNoise
     }
 
-    console.warn(text);
-});
-
-if (process.argv.indexOf("--debug") < 0) {
-    client.login("NzMzMjEyMjczNjkwMTQ4OTA0.Xw_3JA.7bDfmT2CPQySe9xIYgrJAb4yEGM"); // MyBot
-}
-else {
-    console.log("(Warn) Running in debug mode.");
-    setPrefix("t!");
-    client.login("ODA5NDUxMzYzNzg0MzI3MjQ4.YCVSVA.J8BPawVSK4AgFvMQhLwiIZcVsUQ"); // TestNoise
-}
+    process.on("uncaughtException", async (e, origin) => {
+        let text = wrapText(origin, e.stack);
+    
+        if (client.user) {
+            try {
+                let user = await client.users.fetch(owner);
+                let channel = await user.createDM();
+                await channel.send({ content: text, split: true });
+            }
+            catch { /* Do nothing */ }
+        }
+    
+        console.warn(text);
+    });
+})();
