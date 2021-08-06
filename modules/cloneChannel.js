@@ -3,8 +3,8 @@
  */
 "use strict";
 
-import Discord from "discord.js";
-import { client, channelData, pendingClones, messageBuffers } from "../env.js";
+import Discord, { GuildChannel, TextChannel } from "discord.js";
+import { client, data, pendingClones, messageBuffers } from "../env.js";
 import { sendWebhookMessageAuto } from "../sendUtil.js";
 import iterateMessages from "./iterateMessages.js";
 
@@ -13,11 +13,14 @@ import iterateMessages from "./iterateMessages.js";
  * 
  * @param {Discord.Snowflake} channel ID of source channel.
  * @param {Discord.Snowflake} lastMessage ID of a last message in source channel.
- * @returns {number} Amount of cloned messages.
+ * @returns {Promise<number>} Amount of cloned messages.
  */
 export default async function cloneChannel(channel, lastMessage) {
+    /** @type {TextChannel} */
     let srcChannel = await client.channels.fetch(channel);
-    let destChannel = await client.channels.fetch(channelData.mappedChannels.get(channel).id);
+    /** @type {MappedChannel} */
+    let mappedChannel = data.guilds[srcChannel.guild.id].mappedChannels[channel];
+    let destChannel = await client.channels.fetch(mappedChannel.id);
 
     if (!srcChannel.messages || !(srcChannel.permissionsFor(client.user).has(["VIEW_CHANNEL", "READ_MESSAGE_HISTORY"]))) return;
 

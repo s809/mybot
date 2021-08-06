@@ -1,34 +1,39 @@
 "use strict";
 
 import { mentionToChannel, makeSubCommands } from "../../util.js";
-import { client, channelData } from "../../env.js";
+import { client, data } from "../../env.js";
 
 import * as from from "./from.js";
 import * as remove from "./remove.js";
+import { isChannelMapped } from "../../modules/mappedChannels.js";
+import { Message } from "discord.js";
 
+/**
+ * @param {Message} msg
+ * @param {string} idArg
+ */
 async function mirror(msg, idArg) {
     let channel = await client.channels.fetch(mentionToChannel(idArg));
 
-    if (channelData.mappedChannels.has(msg.channel.id)) {
+    if (isChannelMapped(channel.guild.id, channel.id)) {
         await msg.channel.send("Channel is already mirrored.");
         return false;
     }
 
-    if ([...channelData.mappedChannels.values()].includes(msg.channel.id)) {
-        await msg.channel.send("Cannot mirror destination channel.");
+    if (isChannelMapped(channel.guild.id, msg.channel.id)) {
+        await msg.channel.send("Cannot mirror to mirror channel.");
         return false;
     }
-
-    if (channelData.mappedChannels.has(channel.id)) {
-        await msg.channel.send("Cannot mirror to mirrored channel.");
-        return false;
-    }
-
-    await channelData.mapChannel(msg.channel, channel);
 
     let messages = await msg.channel.messages.fetch();
-    if (messages.size > 0)
-        await channelData.updateLastMessage(msg.channel, messages.first());
+    let mappedChannels = data.guilds[msg.guild.id].mappedChannels;
+
+    /** @type {import("../../modules/mappedChannels.js").MappedChannel} */
+    let mappedChannel = {
+        id: channel.id,
+        lastMessageId: messages.size > 0 ? messages.first().id : "0"
+    };
+    mappedChannels[msg.channel.id] = mappedChannel;
 
     if (msg.channel !== channel)
         await channel.send(`${msg.channel} is mirrored here.`);

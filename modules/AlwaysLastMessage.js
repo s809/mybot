@@ -3,7 +3,7 @@
  */
 "use strict";
 
-import { Channel, Message } from "discord.js";
+import { Message, MessagePayload, TextChannel } from "discord.js";
 
 /**
  * Wrapper for resending edited message if it's not last in channel.
@@ -22,21 +22,21 @@ export default class AlwaysLastMessage {
     /**
      * Edits or resends message with new content.
      * 
-     * @param {string} content Content to fill new message with.
+     * @param {string | MessagePayload | import("discord.js").MessageOptions} options Content to fill new message with.
      */
-    async edit(content) {
+    async edit(options) {
         if (this.editLock) return;
         this.editLock = true;
 
-        if (this.message.channel.lastMessageID !== this.message.id)
+        if (this.message.channel.lastMessageId !== this.message.id)
             await Promise.all([
                 this.message.delete(),
                 (async () => {
-                    this.message = await this.message.channel.send(content);
+                    this.message = await this.message.channel.send(options);
                 })()
             ]);
         else
-            await this.message.edit(content);
+            await this.message.edit(options);
 
         this.editLock = false;
     }
@@ -45,11 +45,11 @@ export default class AlwaysLastMessage {
 /**
  * Sends and creates wrapper for resending a message when edited.
  * 
- * @param {Channel} channel Channel in which to send message.
- * @param {string} text Content to fill new message with.
+ * @param {TextChannel} channel Channel in which to send message.
+ * @param {string | MessagePayload | import("discord.js").MessageOptions} options Content to fill new message with.
  * @returns {AlwaysLastMessage} New {@link AlwaysLastMessage} instance.
  */
-export async function sendAlwaysLastMessage(channel, text) {
-    let message = await channel.send(text);
+export async function sendAlwaysLastMessage(channel, options) {
+    let message = await channel.send(options);
     return new AlwaysLastMessage(message);
 }

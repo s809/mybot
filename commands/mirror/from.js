@@ -1,7 +1,10 @@
 "use strict";
 
-import { client, channelData } from "../../env.js";
+import { TextChannel } from "discord.js";
+import { client } from "../../env.js";
+import { isChannelMapped } from "../../modules/mappedChannels.js";
 import { mentionToChannel } from "../../util.js";
+import { func as addMirror } from "./index.js";
 
 async function addMirrorFrom(msg, idArg, isSilentArg) {
     if (isSilentArg !== undefined && isSilentArg !== "silent") {
@@ -9,33 +12,29 @@ async function addMirrorFrom(msg, idArg, isSilentArg) {
         return false;
     }
 
+    /** @type {TextChannel} */
     let channel = await client.channels.fetch(mentionToChannel(idArg));
 
-    if (channelData.mappedChannels.has(channel.id)) {
-        msg.channel.send("Channel is already mirrored.");
+    if (isChannelMapped(channel.guild.id, channel.id)) {
+        await msg.channel.send("Cannot mirror from mirror channel.");
         return false;
     }
 
-    if ([...channelData.mappedChannels.values()].includes(channel.id)) {
-        msg.channel.send("Cannot mirror destination channel.");
-        return false;
-    }
-
-    if (channelData.mappedChannels.has(msg.channel.id)) {
-        msg.channel.send("Cannot mirror to mirrored channel.");
+    if (isChannelMapped(channel.guild.id, msg.channel.id)) {
+        await msg.channel.send("This channel is mirrored.");
         return false;
     }
 
     try {
         if (msg.channel !== channel && isSilentArg === undefined)
-            channel.send(`This channel is mirrored to ${msg.channel}.`);
+            await channel.send(`This channel is mirrored to ${msg.channel}.`);
     }
     catch (e) {
-        msg.channel.send("Cannot access source channel.");
+        await msg.channel.send("Cannot access source channel.");
         return false;
     }
 
-    return await require("../mirror.js").func({ channel: channel }, msg.channel.toString());
+    return await addMirror({ channel: channel, guild: channel.guild }, msg.channel.toString());
 }
 
 export const name = "from";

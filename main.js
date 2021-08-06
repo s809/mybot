@@ -5,18 +5,21 @@
 
 import {
     client,
-    channelData,
+    data,
     messageBuffers,
     pendingClones,
     version,
     prefix,
     owner,
     evalModeChannels,
-    setPrefix
+    setPrefix,
+    enableDebug,
+    isDebug
 } from "./env.js";
 import cloneChannel from "./modules/cloneChannel.js";
 import commands from "./modules/commands.js";
 import botEval from "./modules/eval.js";
+import { getMappedChannelEntries } from "./modules/mappedChannels.js";
 import {
     sendWebhookMessageAuto,
     sendLongText
@@ -26,23 +29,47 @@ import { wrapText } from "./util.js";
 client.on("ready", async () => {
     console.log(`Logged in as ${client.user.tag}.`);
 
-    await client.user.setPresence({
-        activity: {
-            name: `v${version}`
-        }
+    client.user.setPresence({
+        activities: [{
+            name: `v${version}${isDebug ? "-dev" : ""}`
+        }]
     });
+
+    // Add new guilds
+    for (let guild of client.guilds.cache.values()) {
+        data.guilds[guild.id] ??= {
+            mappedChannels: {}
+        };
+    }
+
+    // Remove missing guilds
+    for (let guildId of Object.keys(data.guilds)) {
+        if (!await client.guilds.fetch(guildId))
+            delete data.guilds[guildId];
+    }
+
+    data.saveData();
 
     console.log("Syncing channels...");
     await Promise.all(
-        [...channelData.mappedChannels.entries()]
-        .map(entry => cloneChannel(entry[0], entry[1].lastMessage)
-                      .catch(() => channelData.unmapChannel({ id: entry[0] }))));
+        Object.keys(data.guilds).flatMap(guildId => getMappedChannelEntries(data.guilds[guildId]))
+            .map(entry => cloneChannel(entry[0], entry[1].lastMessageId)));
     console.log("All channels are synced.");
 });
 
-client.on("message", async msg => {
+client.on("guildCreate", async guild => {
+    data.guilds[guild.id] ??= {
+        mappedChannels: {}
+    };
+});
+
+client.on("guildDelete", async guild => {
+    delete data.guilds[guild.id];
+});
+
+client.on("messageCreate", async msg => {
     if (msg.guild) {
-        let mappedChannel = channelData.mappedChannels.get(msg.channel.id);
+        let mappedChannel = data.guilds[msg.guild.id].mappedChannels[msg.channel.id];
         if (mappedChannel) {
             let buffer = messageBuffers.get(msg.channel);
             if (buffer && await client.channels.fetch(mappedChannel.id) === pendingClones.get(msg.channel)) {
@@ -114,8 +141,7 @@ client.on("message", async msg => {
             await sendLongText(msg.channel, e.stack);
         }
 
-        if (!msg.deleted)
-        {
+        if (!msg.deleted) {
             await Promise.allSettled([
                 msg.react(ret ? "✅" : "❌"),
                 reaction.users.remove()
@@ -132,14 +158,14 @@ client.on("message", async msg => {
         await client.login("NzMzMjEyMjczNjkwMTQ4OTA0.Xw_3JA.7bDfmT2CPQySe9xIYgrJAb4yEGM"); // MyBot
     }
     else {
-        console.log("(Warn) Running in debug mode.");
+        enableDebug();
         setPrefix("t!");
         await client.login("ODA5NDUxMzYzNzg0MzI3MjQ4.YCVSVA.J8BPawVSK4AgFvMQhLwiIZcVsUQ"); // TestNoise
     }
 
     process.on("uncaughtException", async (e, origin) => {
         let text = wrapText(origin, e.stack);
-    
+
         if (client.user) {
             try {
                 let user = await client.users.fetch(owner);
@@ -148,7 +174,7 @@ client.on("message", async msg => {
             }
             catch { /* Do nothing */ }
         }
-    
+
         console.warn(text);
     });
 })();

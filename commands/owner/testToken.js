@@ -1,15 +1,19 @@
 "use strict";
 
 import { inspect } from "util";
-import { Client } from "discord.js";
+import { Client, Intents } from "discord.js";
 import { sendLongText } from "../../sendUtil.js";
 
 async function testToken(msg, token) {
-    let client = new Client();
+    let client = new Client({
+        intents: Object.values(Intents.FLAGS)
+            .filter(x => x !== Intents.FLAGS.GUILD_PRESENCES &&
+                x !== Intents.FLAGS.GUILD_MEMBERS)
+    });
 
     try {
         await client.login(token);
-        await client.user.setPresence({ status: "invisible" });
+        client.user.setPresence({ status: "invisible" });
         await new Promise(resolve => client.on("ready", resolve));
 
         let guilds = client.guilds.cache.map(guild => ({

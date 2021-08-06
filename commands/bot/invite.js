@@ -4,7 +4,10 @@ import { Permissions } from "discord.js";
 import { client } from "../../env.js";
 
 async function botInvite(msg) {
-    await msg.channel.send(await client.generateInvite(Permissions.FLAGS.ALL));
+    await msg.channel.send(await client.generateInvite({
+        scopes: ["bot"],
+        permissions: Permissions.ALL
+    }));
     return true;
 }
 

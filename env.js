@@ -4,18 +4,31 @@
 "use strict";
 
 import { readFileSync } from "fs";
-import { Guild, Channel, Client, Message } from "discord.js";
-import disbut from "discord-buttons";
-import ChannelData from "./ChannelData.js";
+import { Channel, Client, Guild, Intents, Message } from "discord.js";
+import { UserDataManager } from "./modules/UserDataManager.js";
 
 /** @type {string} */
 export const version = JSON.parse(readFileSync("./package.json", "utf8")).version;
+export var isDebug = false;
 export var prefix = "!";
 export const owner = "559800250924007434"; // NoNick
-export const maxVersionsOnChangelogPage = 10;
-export const client = new Client();
-disbut(client);
-export const channelData = new ChannelData(`./data.db`);
+export const client = new Client({ intents: Object.values(Intents.FLAGS) });
+export const data = new UserDataManager("./data", {
+    guilds: {
+        fileType: "object"
+    },
+    users: {
+        fileType: "object"
+    },
+    scripts: {
+        startup: {
+            fileType: "string"
+        },
+        callable: {
+            fileType: "string"
+        }
+    }
+});
 
 /** @type {Map<Channel, Channel>} */
 export const pendingClones = new Map();
@@ -32,9 +45,13 @@ export const evalModeChannels = [];
  * @param {string} newPrefix New prefix.
  * @example setPrefix("t!");
  */
-export function setPrefix(newPrefix)
-{
+export function setPrefix(newPrefix) {
     prefix = newPrefix;
+}
+
+export function enableDebug() {
+    console.log("(Warn) Running in debug mode.");
+    isDebug = true;
 }
 
 /** @type {Map<Guild, import("./commands/music/index.js").MusicPlayerEntry>} */

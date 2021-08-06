@@ -1,12 +1,13 @@
 "use strict";
 
-import Discord from "discord.js";
-import { pendingClones, client, messageBuffers, channelData } from "../../env.js";
+import Discord, { TextChannel } from "discord.js";
+import { pendingClones, client, messageBuffers, data } from "../../env.js";
 import { makeSubCommands, mentionToChannel, sleep } from "../../util.js";
 import { sendWebhookMessage } from "../../sendUtil.js";
 
 import * as stop from "./stop.js";
 import iterateMessages from "../../modules/iterateMessages.js";
+import { getMappedChannelByDest } from "../../modules/mappedChannels.js";
 
 const errorStrings = {
     sameChannel: "Cannot clone to same channel.",
@@ -101,24 +102,33 @@ async function batchClone(msg, count, srcChannel, destChannel) {
         isTemporary = true;
     }
 
-    destChannel.startTyping();
+    const doTyping = () => destChannel.sendTyping();
+    let interval = setInterval(doTyping, 5000);
     let initialLength = messages.length;
-
-    let message = messageBuffers.get(srcChannel).pop();
-    while (message) {
-        if (!pendingClones.has(msg.channel)) {
-            destChannel.stopTyping();
-            return false;
-        }
-
-        await sendWebhookMessage(message, webhook);
-
-        if (initialLength > 500)
-            await sleep(2000);
+    let message;
+    try {
+        await doTyping();
 
         message = messageBuffers.get(srcChannel).pop();
+        while (message) {
+            if (!pendingClones.has(msg.channel))
+                return false;
+
+            await sendWebhookMessage(message, webhook);
+
+            if (initialLength > 500)
+                await sleep(2000);
+
+            message = messageBuffers.get(srcChannel).pop();
+        }
     }
-    destChannel.stopTyping();
+    catch (e) {
+        e.message += `\nMessage URL: ${message.url}`;
+        throw e;
+    }
+    finally {
+        clearInterval(interval);
+    }
 
     if (isTemporary)
         await webhook.delete();
@@ -140,13 +150,14 @@ async function batchCloneWrapper(msg, count, destChannel) {
         return false;
     }
 
+    /** @type {TextChannel | import("discord.js").Snowflake} */
     let channel;
     if (destChannel === undefined) {
-        if (channelData.mappedChannels.has(msg.channel.id)) {
+        if (msg.channel.id in data.guilds[msg.guild.id].mappedChannels) {
             channel = msg.channel;
         }
         else {
-            channel = [...channelData.mappedChannels.entries()].find(entry => entry[1].id === msg.channel.id)[0];
+            channel = getMappedChannelByDest(msg.guild.id, msg.channel.id)?.[0];
             if (channel) {
                 channel = await client.channels.fetch(channel);
             }
@@ -156,7 +167,7 @@ async function batchCloneWrapper(msg, count, destChannel) {
             }
         }
 
-        destChannel = await client.channels.fetch(channelData.mappedChannels.get(channel.id).id);
+        destChannel = await client.channels.fetch(data.guilds[msg.guild.id].mappedChannels[channel.id].id);
     }
     else {
         channel = msg.channel;

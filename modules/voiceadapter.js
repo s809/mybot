@@ -3,9 +3,9 @@
  */
 import voice from '@discordjs/voice';
 const { DiscordGatewayAdapterCreator, DiscordGatewayAdapterLibraryMethods } = voice;
-import { Snowflake, Client, Constants, Channel } from 'discord.js';
+import { Client, Constants, Channel } from 'discord.js';
 
-/** @type {Map<Snowflake, DiscordGatewayAdapterLibraryMethods>} */
+/** @type {Map<import('discord.js').Snowflake, DiscordGatewayAdapterLibraryMethods>} */
 const adapters = new Map();
 /** @type {Set<Client>} */
 const trackedClients = new Set();

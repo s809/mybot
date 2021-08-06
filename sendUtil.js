@@ -3,9 +3,9 @@
  */
 "use strict";
 
-import { Message, MessageActionRow, MessageButton } from "discord-buttons";
-import Discord, { HTTPError } from "discord.js";
-import { client, channelData } from "./env.js";
+import Discord, { HTTPError, MessageButton, MessageActionRow, Message } from "discord.js";
+import { inspect } from "util";
+import { client, data } from "./env.js";
 
 const title = "Page %page% of %pagecount%";
 const separator = ":\n";
@@ -24,25 +24,27 @@ const back = "◀", stop = "✖", forward = "▶";
 export async function sendWebhookMessage(msg, webhook) {
     for (let attempt = 1; attempt <= 3; attempt++) {
         try {
-            let content = msg.cleanContent;
+            let content = msg.content;
             if (!content && msg.embeds.length === 0 && msg.attachments.size === 0) {
                 if (msg.type === "DEFAULT") return;
                 content = msg.type;
             }
 
-            await webhook.send(content,
-                {
-                    username: msg.author.username,
-                    avatarURL: msg.author.displayAvatarURL(),
-                    embeds: msg.embeds.filter(embed => embed.type === "rich"),
-                    files: Array.from(msg.attachments.values(), att => att.url),
-                    disableMentions: "all"
-                });
+            await webhook.send({
+                username: msg.author.username,
+                avatarURL: msg.author.displayAvatarURL(),
+                content: content.length ? content : undefined,
+                embeds: msg.embeds.filter(embed => !embed.provider),
+                files: Array.from(msg.attachments.values(), att => att.url),
+                disableMentions: "all"
+            });
             break;
         }
         catch (e) {
-            if (!(e instanceof HTTPError))
+            if (!(e instanceof HTTPError)) {
+                e.message += `\nMessage length: ${msg.content.length}\nEmbeds: ${inspect(msg.embeds)}\nAttachments: ${inspect(msg.attachments)}`;
                 throw e;
+            }
             console.log(`Attempt ${attempt} to send webhook message failed: ${e.stack}`);
         }
     }
@@ -55,11 +57,12 @@ export async function sendWebhookMessage(msg, webhook) {
  * @example sendWebhookMessageAuto(msg, webhook);
  */
 export async function sendWebhookMessageAuto(msg) {
-    let mChannel = await client.channels.fetch(channelData.mappedChannels.get(msg.channel.id).id);
+    let mappedChannels = data.guilds[msg.guild.id].mappedChannels;
+    let mChannel = await client.channels.fetch(mappedChannels[msg.channel.id].id);
 
     if (msg.channel === mChannel) {
         if (msg.webhookID) return;
-        msg.delete();
+        await msg.delete();
     }
 
     try {
@@ -71,10 +74,10 @@ export async function sendWebhookMessageAuto(msg) {
 
         await sendWebhookMessage(msg, webhook);
 
-        await channelData.updateLastMessage(msg.channel, msg);
+        mappedChannels[msg.channel.id].lastMessageId = msg.id;
     }
     catch (e) {
-        await channelData.unmapChannel(msg.channel);
+        mappedChannels[msg.channel.id] = undefined;
     }
 }
 
@@ -120,67 +123,77 @@ function prepareLongText(text, textWrap) {
  */
 async function sendPagedTextWithButtons(channel, pages, embed) {
     let backButton = new MessageButton({
-        custom_id: "back_button", // eslint-disable-line camelcase
-        style: "blurple",
+        customId: "back_button",
+        style: "PRIMARY",
         emoji: back,
         disabled: true
     });
 
     let stopButton = new MessageButton({
-        custom_id: "stop_button", // eslint-disable-line camelcase
-        style: "red",
+        customId: "stop_button",
+        style: "DANGER",
         emoji: stop
     });
 
     let forwardButton = new MessageButton({
-        custom_id: "forward_button", // eslint-disable-line camelcase
-        style: "blurple",
+        customId: "forward_button",
+        style: "PRIMARY",
         emoji: forward
     });
 
+    /** @type {import("discord.js").MessageOptions} */
     let options = {
-        component: new MessageActionRow()
-            .addComponents(backButton, stopButton, forwardButton),
-        embed: undefined
+        components: [
+            new MessageActionRow()
+                .addComponents(backButton, stopButton, forwardButton)
+        ]
     };
     if (embed)
     {
-        options.embed = {
+        options.embeds = [{
             title: title.replace("%page%", 1).replace("%pagecount%", pages.length),
             description: pages[0],
-        };
+        }];
+    }
+    else {
+        options.content = pages[0];
     }
     
     /** @type {Message} */
-    let msg = await channel.send(embed ? options : pages[0], embed ? undefined : options);
+    let msg = await channel.send(options);
 
     let page = 0;
     const editMsg = async () =>
     {
-        options.component = new MessageActionRow()
-            .addComponents(backButton, stopButton, forwardButton);
+        options.components = [
+            new MessageActionRow()
+                .addComponents(backButton, stopButton, forwardButton)
+        ];
         if (embed)
         {
-            options.embed = {
+            options.embeds = [{
                 title: title.replace("%page%", page + 1).replace("%pagecount%", pages.length),
                 description: pages[page],
-            };
+            }];
         }
-        await msg.edit(embed ? options : pages[page], embed ? undefined : options);
+        else {
+            options.content = pages[page];
+        }
+        await msg.edit(options);
     };
     
-    let collector = msg.createButtonCollector(() => true, { idle: 60000 });
-    collector.on("collect", async button => {
-        await button.reply.defer();
+    let collector = msg.createMessageComponentCollector(() => true, { idle: 60000 });
+    collector.on("collect", async interaction => {
+        await interaction.deferUpdate();
 
-        switch (button.id) {
-            case backButton.custom_id:
+        switch (interaction.customId) {
+            case backButton.customId:
                 page = Math.max(page - 1, 0);
                 break;
-            case stopButton.custom_id:
+            case stopButton.customId:
                 collector.stop();
                 return;
-            case forwardButton.custom_id:
+            case forwardButton.customId:
                 page = Math.min(page + 1, pages.length - 1);
                 break;
         }
@@ -202,7 +215,7 @@ async function sendPagedTextWithButtons(channel, pages, embed) {
 /**
  * Send message with reactions for page switching.
  * 
- * @param {Discord.Channel} channel Channel in which to send a message.
+ * @param {Discord.TextChannel} channel Channel in which to send a message.
  * @param {string[]} pages Array of page texts.
  * @param {boolean} embed Whether to wrap text in an embed. 
  * @example sendPagedTextWithButtons(channel, pages, embed);
@@ -210,10 +223,10 @@ async function sendPagedTextWithButtons(channel, pages, embed) {
 async function sendPagedTextWithReactions(channel, pages, embed) {
     /** @type {Discord.Message} */
     let msg = await channel.send(embed ? {
-        embed: {
+        embeds: [{
             title: title.replace("%page%", 1).replace("%pagecount%", pages.length),
             description: pages[0],
-        }
+        }]
     } : pages[0]);
 
     await msg.react(back);
@@ -240,10 +253,10 @@ async function sendPagedTextWithReactions(channel, pages, embed) {
 
         await Promise.all([
             msg.edit(embed ? {
-                embed: {
+                embeds: [{
                     title: title.replace("%page%", page + 1).replace("%pagecount%", pages.length),
                     description: pages[page],
-                }
+                }]
             } : pages[page]),
             reaction.users.remove(user)
         ]);
@@ -255,7 +268,7 @@ async function sendPagedTextWithReactions(channel, pages, embed) {
 /**
  * Sends text, splitting and adding page buttons if necessary.
  * 
- * @param {Discord.Channel} channel Channel to send a message.
+ * @param {Discord.TextChannel} channel Channel to send a message.
  * @param {string} text Text to send.
  * @param {string?} code Language for optional code block wrapping.
  * @param {boolean} embed Whether to wrap text in an embed.
@@ -274,9 +287,9 @@ export async function sendLongText(channel, text, code = "js", embed = true, use
     // Text fits in one message
     if (text.length < maxMessageLength - (contentWrapWithCode.length - "%content%".length)) {
         await channel.send(embed ? {
-            embed: {
+            embeds: [{
                 description: contentWrapWithCode.replace("%content%", text),
-            }
+            }]
         } : contentWrapWithCode.replace("%content%", text));
         return;
     }

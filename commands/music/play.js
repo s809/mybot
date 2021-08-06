@@ -101,7 +101,7 @@ async function play(msg, url) {
             entry.currentVideo = currentVideo;
             await entry.updateStatus("Buffering...");
 
-            entry.readable = await ytdl(currentVideo.url, { highWaterMark: 1 << 25 });
+            entry.readable = await ytdl(currentVideo.url, { highWaterMark: 1 << 30 });
             entry.resource = createAudioResource(entry.readable);
 
             player.play(entry.resource);

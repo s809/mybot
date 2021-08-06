@@ -1,11 +1,12 @@
 "use strict";
 
-import { channelData, client } from "../../env.js";
+import { client } from "../../env.js";
+import { getMappedChannelEntries } from "../../modules/mappedChannels.js";
 
 async function getMirroredChannels(msg) {
     let resp = "";
 
-    for (let mirror of channelData.mappedChannels.entries()) {
+    for (let mirror of getMappedChannelEntries(msg.guild.id)) {
         let fromChannel = await client.channels.fetch(mirror[0]);
         let toChannel = await client.channels.fetch(mirror[1].id);
 

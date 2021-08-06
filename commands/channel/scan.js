@@ -1,6 +1,7 @@
 "use strict";
 
 import { client } from "../../env.js";
+import iterateMessages from "../../modules/iterateMessages.js";
 import { mentionToChannel } from "../../util.js";
 
 async function scanChannel(msg, mode, fromChannel) {
@@ -36,49 +37,81 @@ async function scanChannel(msg, mode, fromChannel) {
     let userMessages = new Map();
     let invites = new Set();
 
-    let messages;
     let totalLength = 0;
 
-    let counter = await msg.channel.send(`Fetching messages...`);
-    do {
-        messages = [...(await fromChannel.messages.fetch({ after: messages ? messages[messages.length - 1].id : 0, limit: 100 })).values()];
-        await counter.edit(`Fetching messages... (${totalLength += messages.length} loaded)`);
+    /** @type {Discord.Message} */
+    let counter;
+    /** @type {Error} */
+    let counterError = null;
+    /** @type {Promise<Discord.Message>} */
+    let counterPromise = null;
 
-        for (let message of messages.reverse()) {
-            if (!authors.has(message.author.tag))
-                authors.set(message.author.tag, message.author);
-            let author = message.author.tag;
+    const markCounterUpdated = message => {
+        counter = message;
+        counterPromise = null;
+        return message;
+    };
+    const markCounterError = e => {
+        counterError = e;
+    };
 
-            let date;
-            if (mode === "weekly") {
-                date = getWeekNumber(message.createdAt).toString().padStart(2, "0") + "." + message.createdAt.getUTCFullYear();
-            }
-            else {
-                date = (mode === "daily" ? message.createdAt.getUTCDate().toString().padStart(2, "0") + "." : "") +
-                    (message.createdAt.getUTCMonth() + 1).toString().padStart(2, "0") + "." +
-                    message.createdAt.getUTCFullYear();
-            }
+    counterPromise = msg.channel.send(`Fetching messages...`)
+        .then(markCounterUpdated)
+        .catch(markCounterError);
 
-            Array.from(message.content.matchAll(inviteLink), x => x[0]).forEach(x => invites.add(x));
-
-            if (!userMessages.has(author)) {
-                userMessages.set(author,
-                    {
-                        first: message,
-                        last: "",
-                        dailyCount: new Map()
-                    });
-            }
-            let entry = userMessages.get(author);
-
-            entry.last = message;
-
-            if (!entry.dailyCount.get(date))
-                entry.dailyCount.set(date, 0);
-            entry.dailyCount.set(date, entry.dailyCount.get(date) + 1);
+    for await (let message of iterateMessages(fromChannel, "0"))
+    {
+        if (counterError)
+            throw counterError;
+        if (!counterPromise)
+        {
+            counterPromise = counter.edit(`Fetching messages... (${totalLength} fetched)`)
+                .then(markCounterUpdated)
+                .catch(markCounterError);
         }
+
+        if (!authors.has(message.author.tag))
+            authors.set(message.author.tag, message.author);
+        let author = message.author.tag;
+
+        let date;
+        if (mode === "weekly") {
+            date = getWeekNumber(message.createdAt).toString().padStart(2, "0") + "." + message.createdAt.getUTCFullYear();
+        }
+        else {
+            date = (mode === "daily" ? message.createdAt.getUTCDate().toString().padStart(2, "0") + "." : "") +
+                (message.createdAt.getUTCMonth() + 1).toString().padStart(2, "0") + "." +
+                message.createdAt.getUTCFullYear();
+        }
+
+        Array.from(message.content.matchAll(inviteLink), x => x[0]).forEach(x => invites.add(x));
+
+        if (!userMessages.has(author)) {
+            userMessages.set(author, {
+                first: message,
+                last: "",
+                dailyCount: new Map()
+            });
+        }
+        let entry = userMessages.get(author);
+
+        entry.last = message;
+
+        if (!entry.dailyCount.get(date))
+            entry.dailyCount.set(date, 0);
+        entry.dailyCount.set(date, entry.dailyCount.get(date) + 1);
+        
+        // Gives counter a chance to update while a new block is being added to array.
+        // Without this line it's updated only when new block is fetched.
+        await new Promise(resolve => setImmediate(resolve));
+        totalLength++;
     }
-    while (messages.length > 0);
+
+    // Wait and delete counter.
+    if (counterPromise)
+        await counterPromise;
+    if (counterError)
+        throw counterError;
     await counter.delete();
 
     let result = `Found ${invites.size} invites${invites.size ? ":\n" : "."}`;

@@ -1,9 +1,14 @@
 "use strict";
 
-import { channelData } from "../../env.js";
+import { Message } from "discord.js";
+import { data } from "../../env.js";
+import { isChannelMapped } from "../../modules/mappedChannels.js";
 
+/**
+ * @param {Message} msg
+ */
 async function resetChannel(msg) {
-    if (channelData.mappedChannels.has(msg.channel) || [...channelData.mappedChannels.values()].includes(msg.channel)) {
+    if (isChannelMapped(msg.guild.id, msg.channel.id)) {
         await msg.channel.send("Unmirror channel first.");
         return false;
     }
