@@ -51,13 +51,14 @@ client.on("ready", async () => {
     data.saveData();
 
     // Execute startup scripts
-    for (let scriptN of Object.getOwnPropertyNames(data.scripts.startup)) {
+    for (let scriptName of Object.getOwnPropertyNames(data.scripts.startup)) {
         await botEval({
-            content: prefix + data.scripts.startup[scriptN],
+            content: prefix + data.scripts.startup[scriptName],
             channel: {
                 deleted: false,
                 send: () => { /* TODO Add logs */ }
-            }
+            },
+            client: client
         });
     }
 
