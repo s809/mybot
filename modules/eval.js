@@ -7,7 +7,8 @@ import { sendLongText } from "../sendUtil.js";
 
 /**
  * Evaluate code from message content.
- * Auto-detects if evaluated code is one- or multi-line.
+ * Auto-detects if evaluated code is one- or multi-statement.
+ * 
  * @param {Discord.Message} msg
  */
 export default async function botEval(msg) {

@@ -50,6 +50,17 @@ client.on("ready", async () => {
 
     data.saveData();
 
+    // Execute startup scripts
+    for (let scriptN of Object.getOwnPropertyNames(data.scripts.startup)) {
+        await botEval({
+            content: prefix + data.scripts.startup[scriptN],
+            channel: {
+                deleted: false,
+                send: () => { /* TODO Add logs */ }
+            }
+        });
+    }
+
     console.log("Syncing channels...");
     await Promise.all(
         Object.keys(data.guilds).flatMap(guildId => getMappedChannelEntries(data.guilds[guildId]))
