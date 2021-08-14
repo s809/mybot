@@ -4,7 +4,7 @@
 "use strict";
 
 import { execSync } from "child_process";
-import { sendLongText } from "../../sendUtil.js";
+import sendLongText from "../../modules/sendLongText.js";
 import Discord from "discord.js";
 import { version as currentVersion } from "../../env.js";
 
@@ -70,7 +70,10 @@ const logstr = prepareChangelog();
  * @returns {boolean} Whether the execution was successful.
  */
 async function changelog(msg) {
-    await sendLongText(msg.channel, logstr, null);
+    await sendLongText(msg.channel, logstr, {
+        code: null,
+        splitByLines: true
+    });
     return true;
 }
 

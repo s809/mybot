@@ -3,7 +3,7 @@
 import Discord from "discord.js";
 import { inspect } from "util";
 import { prefix } from "../env.js";
-import { sendLongText } from "../sendUtil.js";
+import sendLongText from "./sendLongText.js";
 
 /**
  * Evaluate code from message content.

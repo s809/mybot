@@ -4,17 +4,16 @@
 "use strict";
 
 import { Message } from "discord.js";
-import { sendLongText } from "../../sendUtil.js";
+import sendLongText from "../../modules/sendLongText.js";
 
 /**
  * Runs test code.
  * 
  * @param {Message} msg Message. 
  * @returns {boolean} Whether execution was successful.
- * @example test(msg);
  */
 async function test(msg) {
-    await sendLongText(msg.channel, "abcd_".repeat(3500));
+    await sendLongText(msg.channel, "ab".repeat(1500) + "\n" + "cd".repeat(2500));
     return true;
 }
 

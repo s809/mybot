@@ -1,9 +1,8 @@
 "use strict";
 
 import { Message } from "discord.js";
-import { data, prefix } from "../../../env.js";
-import botEval from "../../../modules/eval.js";
-import { sendLongText } from "../../../sendUtil.js";
+import { data } from "../../../env.js";
+import sendLongText from "../../../modules/sendLongText.js";
 
 /**
  * @param {Message} msg
@@ -19,8 +18,7 @@ async function listScripts(msg) {
         }
     }
 
-    await sendLongText(msg.channel, str.slice(0, -1), "", false);
-
+    await sendLongText(msg.channel, str.slice(0, -1));
     return true;
 }
 

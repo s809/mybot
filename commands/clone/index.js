@@ -3,7 +3,7 @@
 import Discord, { TextChannel } from "discord.js";
 import { pendingClones, client, messageBuffers, data } from "../../env.js";
 import { makeSubCommands, mentionToChannel, sleep } from "../../util.js";
-import { sendWebhookMessage } from "../../sendUtil.js";
+import { sendWebhookMessage } from "../../modules/sendWebhookMessage.js";
 
 import * as stop from "./stop.js";
 import iterateMessages from "../../modules/iterateMessages.js";

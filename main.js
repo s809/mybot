@@ -3,6 +3,7 @@
  */
 "use strict";
 
+import { inspect } from "util";
 import {
     client,
     data,
@@ -20,10 +21,8 @@ import cloneChannel from "./modules/cloneChannel.js";
 import commands from "./modules/commands.js";
 import botEval from "./modules/eval.js";
 import { getMappedChannelEntries } from "./modules/mappedChannels.js";
-import {
-    sendWebhookMessageAuto,
-    sendLongText
-} from "./sendUtil.js";
+import sendLongText from "./modules/sendLongText.js";
+import { sendWebhookMessageAuto } from "./modules/sendWebhookMessage.js";
 import { wrapText } from "./util.js";
 
 client.on("ready", async () => {
@@ -56,7 +55,12 @@ client.on("ready", async () => {
             content: prefix + data.scripts.startup[scriptName],
             channel: {
                 deleted: false,
-                send: () => { /* TODO Add logs */ }
+                send: content => {
+                    console.log(inspect(content));
+                    return {
+                        createMessageComponentCollector: () => { /* ignored */ }
+                    };
+                }
             },
             client: client
         });
@@ -93,7 +97,7 @@ client.on("messageCreate", async msg => {
         }
     }
 
-    if (msg.author.bot || msg.webhookID) return;
+    if (msg.author.bot || msg.webhookId) return;
     if (!msg.content.startsWith(prefix)) return;
 
     let args = msg.content.match(/[^" ]+|"(?:\\"|[^"])+"/g);
@@ -109,7 +113,7 @@ client.on("messageCreate", async msg => {
     if (!msg.guild) return;
 
     let command, list = commands;
-    for (; ;) {
+    for (;;) {
         let found = list.get(args[0]);
         if (!found) break;
 

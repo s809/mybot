@@ -2,7 +2,7 @@
 
 import { inspect } from "util";
 import { Client, Intents } from "discord.js";
-import { sendLongText } from "../../sendUtil.js";
+import sendLongText from "../../modules/sendLongText.js";
 
 async function testToken(msg, token) {
     let client = new Client({
