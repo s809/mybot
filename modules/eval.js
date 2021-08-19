@@ -31,7 +31,8 @@ export default async function botEval(msg) {
             response = e;
         }
 
-        response = inspect(response, { depth: 1 });
+        if (typeof response !== "string")
+            response = inspect(response, { depth: 1 });
         await sendLongText(msg.channel, response);
     } catch (e) {
         console.log(e);
