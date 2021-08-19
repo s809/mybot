@@ -2,7 +2,7 @@
 
 import Discord, { TextChannel } from "discord.js";
 import { pendingClones, client, messageBuffers, data } from "../../env.js";
-import { makeSubCommands, mentionToChannel, sleep } from "../../util.js";
+import { CommandManagementPermissionLevel, makeSubCommands, mentionToChannel, sleep } from "../../util.js";
 import { sendWebhookMessage } from "../../modules/sendWebhookMessage.js";
 
 import * as stop from "./stop.js";
@@ -21,8 +21,8 @@ const errorStrings = {
  * 
  * @param {Discord.Message} msg Message with this command.
  * @param {string} count Amount of messages to clone.
- * @param {Discord.TextChannel} srcChannel Source channel.
- * @param {Discord.TextChannel} destChannel Destination channel.
+ * @param {TextChannel} srcChannel Source channel.
+ * @param {TextChannel} destChannel Destination channel.
  * @returns {Promise<boolean>} Whether a command was successfully completed.
  */
 async function batchClone(msg, count, srcChannel, destChannel) {
@@ -141,7 +141,7 @@ async function batchClone(msg, count, srcChannel, destChannel) {
  * 
  * @param {Discord.Message} msg Message with this command.
  * @param {string} count Amount of messages to clone.
- * @param {Discord.TextChannel} destChannel Destination channel.
+ * @param {TextChannel} destChannel Destination channel.
  * @returns {Promise<boolean>} Whether a command was successfully completed.
  */
 async function batchCloneWrapper(msg, count, destChannel) {
@@ -192,5 +192,6 @@ export const description = "copy last <count> messages to mirror or defined chan
 export const args = "<count|\"all\"> [channel]";
 export const minArgs = 1;
 export const maxArgs = 2;
+export const managementPermissionLevel = CommandManagementPermissionLevel.SERVER_OWNER;
 export const func = batchCloneWrapper;
 export const subcommands = makeSubCommands(stop);

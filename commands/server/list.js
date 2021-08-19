@@ -21,7 +21,7 @@ async function getOwnedServers(msg) {
     return true;
 }
 
-export const name = "ownedservers";
+export const name = "list";
 export const description = "list bot test servers";
 export const minArgs = 0;
 export const maxArgs = 0;

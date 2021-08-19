@@ -1,7 +1,7 @@
 "use strict";
 
 import { Message } from "discord.js";
-import { data } from "../../../env.js";
+import { data } from "../../env.js";
 
 /**
  * @param {Message} msg

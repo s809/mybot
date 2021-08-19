@@ -24,13 +24,15 @@ export class UserDataManager {
 
         this.readSchema(this, schema, `${this.path}/`);
 
-        let onSave = () => this.saveData();
-
-        process.on("exit", onSave);
-        process.on("SIGINT", () => {
+        const onSave = () => this.saveData();
+        const saveAndExit = () => {
             onSave();
             process.exit();
-        });
+        };
+
+        process.on("exit", onSave);
+        process.on("SIGINT", saveAndExit);
+        process.on("SIGTERM", saveAndExit);
 
         setInterval(onSave, 5 * 60000);
     }
@@ -145,7 +147,7 @@ export class UserDataManager {
          * @returns {any}
          */
         let createProxy = (src, root, rootAccessor = null) => {
-            if (typeof src !== "object")
+            if (typeof src !== "object" || Array.isArray(src))
                 return src;
 
             /** @type {ProxyHandler} */
@@ -165,9 +167,7 @@ export class UserDataManager {
                 root.deleteFlag = false;
                 root.modified = true;
 
-                target[name] = typeof value === "object"
-                    ? createProxy(value, root, rootAccessor ?? proxy)
-                    : value;
+                target[name] = createProxy(value, root, rootAccessor ?? proxy);
                 src[name] = value;
                 return true;
             };

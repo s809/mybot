@@ -1,42 +1,57 @@
 "use strict";
 
-import { owner, prefix } from "../env.js";
-import commands from "../modules/commands.js";
+import { Message } from "discord.js";
+import { prefix } from "../env.js";
+import commands, { iterateCommands } from "../modules/commands.js";
+import { isCommandAllowedToUse } from "../modules/permissions.js";
+import sendLongText from "../modules/sendLongText.js";
+import { CommandManagementPermissionLevel } from "../util.js";
 
+/**
+ * @param {Message} msg
+ */
 async function help(msg) {
     let response = "";
 
-    const iterateSubcommands = (list, level = 0, fullCommand = "") => {
-        for (let command of list) {
-            if (command.ownerOnly && msg.channel.recipient?.id !== owner) continue;
+    /** @type {string[]} */
+    let fullCommand = [];
 
-            response += `${level === 0 ? prefix : "  ".repeat(level)}${fullCommand + command.name}`;
+    for (let command of iterateCommands()) {
+        if (!isCommandAllowedToUse(msg, command) ||
+            command.managementPermissionLevel === CommandManagementPermissionLevel.BOT_OWNER)
+            continue;
 
-            if (command.args)
-                response += " " + command.args;
+        const currentPath = command.path.split("/");
+        const indent = "  ".repeat(currentPath.length - 1);
 
-            if (command.description)
-                response += ` - ${command.description}.`;
-            else if (command.subcommands)
-                response += ":";
+        if (fullCommand.length >= currentPath.length)
+            fullCommand = [];
 
-            response += "\n";
+        response += indent.length
+            ? indent
+            : prefix;
+        
+        if (fullCommand.length)
+            response += prefix + fullCommand.join(" ") + " ";
+        
+        response += command.name;
 
-            if (command.subcommands) {
-                let newFullCommand = fullCommand;
-                if (newFullCommand.length > 0 || command.args || command.description) {
-                    if (level === 0)
-                        newFullCommand = prefix;
-                    newFullCommand += command.name + " ";
-                }
+        if (command.args)
+            response += " " + command.args;
 
-                iterateSubcommands(command.subcommands.values(), level + 1, newFullCommand);
-            }
+        if (command.description) {
+            response += ` - ${command.description.split("\n").join("\n  " + indent)}.`;
+            fullCommand = command.path.split("/");
         }
-    };
-    iterateSubcommands(commands.values());
+        else if (command.subcommands)
+            response += ":";
 
-    await msg.channel.send(response);
+        response += "\n";
+    }
+
+    await sendLongText(msg.channel, response, {
+        code: ""
+    });
     return true;
 }
 

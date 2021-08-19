@@ -1,8 +1,8 @@
 "use strict";
 
 import { Message } from "discord.js";
-import { data, prefix } from "../../../env.js";
-import botEval from "../../../modules/eval.js";
+import { data, prefix } from "../../env.js";
+import botEval from "../../modules/eval.js";
 
 /**
  * @param {Message} msg

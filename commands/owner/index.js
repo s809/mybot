@@ -2,9 +2,7 @@
  * @file Owner commands.
  */
 
-import { makeSubCommands } from "../../util.js";
-
-import * as script from "./script/index.js";
+import { CommandManagementPermissionLevel, makeSubCommands } from "../../util.js";
 
 import * as evalMode from "./evalmode.js";
 import * as restart from "./restart.js";
@@ -15,8 +13,6 @@ import * as testToken from "./testToken.js";
 
 export const name = "owner";
 export const subcommands = makeSubCommands(
-    script,
-    
     evalMode,
     restart,
     setupReceiverServer,
@@ -24,4 +20,4 @@ export const subcommands = makeSubCommands(
     test,
     testToken
 );
-export const ownerOnly = true;
+export const managementPermissionLevel = CommandManagementPermissionLevel.BOT_OWNER;

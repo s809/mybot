@@ -1,9 +1,10 @@
 "use strict";
 
-import { mentionToChannel, makeSubCommands } from "../../util.js";
+import { mentionToChannel, makeSubCommands, CommandManagementPermissionLevel } from "../../util.js";
 import { client, data } from "../../env.js";
 
 import * as from from "./from.js";
+import * as list from "./list.js";
 import * as remove from "./remove.js";
 import { isChannelMapped } from "../../modules/mappedChannels.js";
 import { Message } from "discord.js";
@@ -46,5 +47,10 @@ export const description = "mirror this channel to another channel";
 export const args = "<channel>";
 export const minArgs = 1;
 export const maxArgs = 1;
+export const managementPermissionLevel = CommandManagementPermissionLevel.SERVER_OWNER;
 export const func = mirror;
-export const subcommands = makeSubCommands(from, remove);
+export const subcommands = makeSubCommands(
+    from,
+    list,
+    remove
+);

@@ -18,9 +18,10 @@ import {
     isDebug
 } from "./env.js";
 import cloneChannel from "./modules/cloneChannel.js";
-import commands from "./modules/commands.js";
+import commands, { resolveCommand } from "./modules/commands.js";
 import botEval from "./modules/eval.js";
 import { getMappedChannelEntries } from "./modules/mappedChannels.js";
+import { isCommandAllowedToUse } from "./modules/permissions.js";
 import sendLongText from "./modules/sendLongText.js";
 import { sendWebhookMessageAuto } from "./modules/sendWebhookMessage.js";
 import { wrapText } from "./util.js";
@@ -36,9 +37,47 @@ client.on("ready", async () => {
 
     // Add new guilds
     for (let guild of client.guilds.cache.values()) {
-        data.guilds[guild.id] ??= {
-            mappedChannels: {}
+        data.guilds[guild.id] = {
+            mappedChannels: {},
+            roles: {},
+            members: {},
+            ...data.guilds[guild.id]
         };
+        let guildData = data.guilds[guild.id];
+
+        // Add new roles
+        for (let role of guild.roles.cache.values()) {
+            guildData.roles[role.id] = {
+                allowedCommands: [],
+                ...guildData.roles[role.id]
+            };
+        }
+
+        // Remove missing roles
+        for (let roleId of Object.getOwnPropertyNames(guildData.roles)) {
+            if (!guild.roles.resolve(roleId))
+                delete guildData.roles[roleId];
+        }
+
+        // Add users and new members
+        for (let member of (await guild.members.fetch()).values()) {
+            data.users[member.id] = {
+                allowedCommands: [],
+                flags: [],
+                ...data.users[member.id]
+            };
+
+            guildData.members[member.id] = {
+                allowedCommands: [],
+                ...guildData.members[member.id]
+            };
+        }
+
+        // Remove missing members
+        for (let memberId of Object.getOwnPropertyNames(guildData.members)) {
+            if (!guild.members.resolve(memberId))
+                delete guildData.members[memberId];
+        }
     }
 
     // Remove missing guilds
@@ -75,12 +114,43 @@ client.on("ready", async () => {
 
 client.on("guildCreate", async guild => {
     data.guilds[guild.id] ??= {
-        mappedChannels: {}
+        mappedChannels: {},
+        roles: {},
+        members: {},
     };
 });
 
 client.on("guildDelete", async guild => {
     delete data.guilds[guild.id];
+});
+
+client.on("roleCreate", async role => {
+    data.guilds[role.guild.id].roles[role.id] = {
+        allowedCommands: []
+    };
+});
+
+client.on("roleDelete", async role => {
+    delete data.guilds[role.guild.id].roles[role.id];
+});
+
+client.on("guildMemberAdd", async member => {
+    data.users[member.id] = {
+        allowedCommands: [],
+        flags: [],
+        ...data.users[member.id]
+    };
+
+    data.guilds[member.guild.id].members[member.id] = {
+        allowedCommands: []
+    };
+});
+
+client.on("guildMemberRemove", async member => {
+    if (member.id === client.user.id)
+        delete data.guilds[member.guild.id];
+    else
+        delete data.guilds[member.guild.id].members[member.id];
 });
 
 client.on("messageCreate", async msg => {
@@ -110,22 +180,10 @@ client.on("messageCreate", async msg => {
         arr[i] = str;
     });
 
-    if (!msg.guild) return;
+    let command = resolveCommand(args, true);
+    if (command && !isCommandAllowedToUse(msg, command)) return;
 
-    let command, list = commands;
-    for (;;) {
-        let found = list.get(args[0]);
-        if (!found) break;
-
-        if (found.ownerOnly && msg.author.id !== owner) return;
-        command = found;
-
-        list = command.subcommands;
-        args.shift();
-        if (!list) break;
-    }
-
-    if (command === undefined || !command.func) {
+    if (!command || !command.func) {
         if (evalModeChannels.includes(msg.channel) && msg.author.id === owner)
             await botEval(msg);
         return;

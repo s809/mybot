@@ -22,7 +22,7 @@ async function getMirroredChannels(msg) {
     return true;
 }
 
-export const name = "mirroredchannels";
+export const name = "list";
 export const description = "get channel mirrors for this server";
 export const minArgs = 0;
 export const maxArgs = 0;

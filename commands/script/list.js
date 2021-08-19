@@ -1,8 +1,8 @@
 "use strict";
 
 import { Message } from "discord.js";
-import { data } from "../../../env.js";
-import sendLongText from "../../../modules/sendLongText.js";
+import { data } from "../../env.js";
+import sendLongText from "../../modules/sendLongText.js";
 
 /**
  * @param {Message} msg

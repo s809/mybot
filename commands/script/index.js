@@ -1,4 +1,4 @@
-import { makeSubCommands } from "../../../util.js";
+import { CommandManagementPermissionLevel, makeSubCommands } from "../../util.js";
 import * as create from "./create.js";
 import * as _delete from "./delete.js";
 import * as list from "./list.js";
@@ -11,3 +11,4 @@ export const subcommands = makeSubCommands(
     list,
     run
 );
+export const managementPermissionLevel = CommandManagementPermissionLevel.BOT_OWNER;

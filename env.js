@@ -12,7 +12,10 @@ export const version = JSON.parse(readFileSync("./package.json", "utf8")).versio
 export var isDebug = false;
 export var prefix = "!";
 export const owner = "559800250924007434"; // NoNick
-export const client = new Client({ intents: Object.values(Intents.FLAGS) });
+export const client = new Client({
+    intents: Object.values(Intents.FLAGS),
+    partials: ["CHANNEL"]
+});
 export const data = new UserDataManager("./data", {
     guilds: {
         fileType: "object"

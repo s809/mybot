@@ -13,8 +13,8 @@ import Discord from "discord.js";
  * @returns {number} Clamped value.
  * @example clamp(10, 100);
  */
-export function clamp(num, max) { 
-    return num > max ? max : num; 
+export function clamp(num, max) {
+    return num > max ? max : num;
 }
 
 /**
@@ -23,8 +23,8 @@ export function clamp(num, max) {
  * @param {number} delayMs Sleep time in milliseconds.
  * @example sleep(1000);
  */
-export async function sleep(delayMs) { 
-    await new Promise(resolve => setTimeout(resolve, delayMs)); 
+export async function sleep(delayMs) {
+    await new Promise(resolve => setTimeout(resolve, delayMs));
 }
 
 /**
@@ -46,15 +46,28 @@ export function mentionToChannel(text) {
  */
 
 /**
+ * Elevation level for managing specific command.
+ * 
+ * @readonly
+ * @enum {string | import("discord.js").PermissionResolvable}
+ */
+export const CommandManagementPermissionLevel = {
+    BOT_OWNER: "BOT_OWNER",
+    SERVER_OWNER: "SERVER_OWNER"
+};
+
+/**
  * @typedef {object} Command
  * @property {string} name Name of a command.
- * @property {string} [description] Description of a command.
- * @property {string} [args] Representation of command arguments.
- * @property {number} [minArgs] Minimum number of arguments.
- * @property {number} [maxArgs] Maximum number of arguments.
- * @property {CommandHandler} [func] Handler of a command.
- * @property {Map<string, Command>} [subcommands] Child commands.
- * @property {boolean} [ownerOnly] Whether command is only for owner.
+ * @property {string?} path Slash-delimited path to command.
+ * @property {string?} [description] Description of a command.
+ * @property {string?} [args] Representation of command arguments.
+ * @property {number?} [minArgs] Minimum number of arguments.
+ * @property {number?} [maxArgs] Maximum number of arguments.
+ * @property {CommandHandler?} [func] Handler of a command.
+ * @property {Map<string, Command>?} [subcommands] Child commands.
+ * @property {CommandManagementPermissionLevel?} [managementPermissionLevel] Level of elevation required to manage command permissions.
+ * The command is given to users/members in level by default.
  */
 
 /**
@@ -62,15 +75,13 @@ export function mentionToChannel(text) {
  * 
  * @param {...Command} args Commands to be wrapped.
  * @returns {Map<string, Command>} Map containing wrapped commands.
- * @example makeSubCommands(cmd1, cmd2, cmd3);
  */
-export function makeSubCommands(...args)
-{
+export function makeSubCommands(...args) {
     let map = new Map();
 
     for (let arg of args)
         map.set(arg.name, arg);
-    
+
     return map;
 }
 
@@ -85,6 +96,6 @@ export function wrapText(title, text) {
     title = title.toUpperCase();
 
     return `----- ${title} -----\n` +
-           text + 
-           `\n----- END ${title} -----`;
+        text +
+        `\n----- END ${title} -----`;
 }
