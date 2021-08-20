@@ -16,8 +16,8 @@ export function isCommandAllowedToManage(msg, command) {
         return false;
 
     const isBotOwner = () => msg.author.id === owner;
-    const isServerOwner = () => isBotOwner() || msg.guild.ownerId === msg.author.id;
-    const hasSpecifiedPermissions = () => isServerOwner() || msg.member.permissions.has(command.managementPermissionLevel);
+    const isServerOwner = () => isBotOwner() || (msg.guild && msg.guild.ownerId === msg.author.id);
+    const hasSpecifiedPermissions = () => isServerOwner() || (msg.member && msg.member.permissions.has(command.managementPermissionLevel));
 
     switch (command.managementPermissionLevel) {
         case CommandManagementPermissionLevel.BOT_OWNER:
@@ -51,15 +51,23 @@ export function isCommandAllowedToUse(msg, command) {
     if (isCommandAllowedToManage(msg, command))
         return true;
     
-    for (let allowedCommand of [
+    /** @type {string[]} */
+    let allowedCommands = [
         // Global user
-        ...data.users[msg.author.id].allowedCommands,
-        // Server role
-        ...[...msg.member.roles.cache.values()]
-            .flatMap(role => data.guilds[msg.guildId].roles[role.id].allowedCommands),
-        // Server member
-        ...data.guilds[msg.guildId].members[msg.author.id].allowedCommands
-    ]) {
+        ...data.users[msg.author.id].allowedCommands
+    ];
+
+    if (msg.member) {
+        allowedCommands.push(
+            // Server role
+            ...[...msg.member.roles.cache.values()]
+                .flatMap(role => data.guilds[msg.guildId].roles[role.id].allowedCommands),
+            // Server member
+            ...data.guilds[msg.guildId].members[msg.author.id].allowedCommands
+        );
+    }
+    
+    for (let allowedCommand of allowedCommands) {
         if (command.path.startsWith(allowedCommand))
             return true;
     }

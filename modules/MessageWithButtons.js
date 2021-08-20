@@ -113,7 +113,8 @@ export default class MessageWithButtons {
         return {
             ...options,
             components: [
-                new MessageActionRow().addComponents(...this.buttons.values())
+                new MessageActionRow().addComponents(...this.buttons.values()),
+                ...options?.components ?? []
             ]
         };
     }
