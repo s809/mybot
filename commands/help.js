@@ -17,8 +17,11 @@ async function help(msg) {
     let fullCommand = [];
 
     for (let command of iterateCommands()) {
-        if (!isCommandAllowedToUse(msg, command) ||
-            command.managementPermissionLevel === CommandManagementPermissionLevel.BOT_OWNER)
+        if (!isCommandAllowedToUse(msg, command))
+            continue;
+        
+        if (command.managementPermissionLevel === CommandManagementPermissionLevel.BOT_OWNER &&
+            !msg.channel.recipient)
             continue;
 
         const currentPath = command.path.split("/");
