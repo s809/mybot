@@ -13,42 +13,50 @@ import { CommandManagementPermissionLevel } from "../util.js";
 async function help(msg) {
     let response = "";
 
-    /** @type {string[]} */
-    let fullCommand = [];
+    /** @type {("Short" | "FullKeepIndent" | "Full")[]} */
+    let commandGenHintChain = [];
 
-    for (let command of iterateCommands()) {
-        if (!isCommandAllowedToUse(msg, command))
+    /**
+     * @type {import("../util.js").Command}
+     */
+    let command;
+    for (command of iterateCommands()) {
+        const currentPath = command.path.split("/");
+
+        if (currentPath.length && commandGenHintChain.length >= currentPath.length)
+            commandGenHintChain = commandGenHintChain.slice(0, currentPath.length - 1);
+
+        if (!isCommandAllowedToUse(msg, command)) {
+            commandGenHintChain.push("Full");
             continue;
+        }
         
         if (command.managementPermissionLevel === CommandManagementPermissionLevel.BOT_OWNER &&
             !msg.channel.recipient)
             continue;
 
-        const currentPath = command.path.split("/");
-        const indent = "  ".repeat(currentPath.length - 1);
-
-        if (fullCommand.length >= currentPath.length)
-            fullCommand = [];
-
-        response += indent.length
-            ? indent
-            : prefix;
+        const indentLevel = Math.max(
+            commandGenHintChain.lastIndexOf("Short"),
+            commandGenHintChain.lastIndexOf("FullKeepIndent")
+        ) + 1;
+        const indent = "  ".repeat(indentLevel);
+        response += indent;
         
-        if (fullCommand.length)
-            response += prefix + fullCommand.join(" ") + " ";
+        if (!commandGenHintChain.length || commandGenHintChain[commandGenHintChain.length - 1] !== "Short")
+            response += prefix + currentPath.join(" ");
+        else
+            response += command.name;
         
-        response += command.name;
+        commandGenHintChain.push((command.args || command.description) ? "FullKeepIndent" : "Short");
 
         if (command.args)
             response += " " + command.args;
 
-        if (command.description) {
+        if (command.description)
             response += ` - ${command.description.split("\n").join("\n  " + indent)}.`;
-            fullCommand = command.path.split("/");
-        }
         else if (command.subcommands)
             response += ":";
-
+        
         response += "\n";
     }
 

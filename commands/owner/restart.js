@@ -5,6 +5,7 @@
 
 import { execSync } from "child_process";
 import { Message } from "discord.js";
+import { isDebug } from "../../env.js";
 
 /**
  * Update and restart bot.
@@ -14,7 +15,8 @@ import { Message } from "discord.js";
  * @example restart(msg);
  */
 async function restart(msg) {
-    execSync("git pull && npm install && ./mybot.sh --nokill");
+    if (!isDebug)
+        execSync("git pull && npm install && ./mybot.sh --nokill");
 
     await msg.react("✅");
     process.exit();

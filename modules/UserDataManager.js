@@ -2,7 +2,6 @@
 
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "fs";
 import { writeFile } from "fs/promises";
-import { promisify } from "util";
 
 /**
  * @typedef ItemRoot
@@ -32,11 +31,11 @@ export class UserDataManager {
             process.exit();
         };
 
-        process.on("exit", onSave);
+        process.on("exit", saveAndExit);
         process.on("SIGINT", saveAndExit);
         process.on("SIGTERM", saveAndExit);
 
-        setInterval(onSave, 5 * 60000);
+        setInterval(onSave, 60000 * 5);
     }
 
     readSchema(ref, schemaPart, pathPart) {
