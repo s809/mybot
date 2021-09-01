@@ -1,6 +1,8 @@
 "use strict";
 
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "fs";
+import { writeFile } from "fs/promises";
+import { promisify } from "util";
 
 /**
  * @typedef ItemRoot
@@ -26,7 +28,7 @@ export class UserDataManager {
 
         const onSave = () => this.saveData();
         const saveAndExit = () => {
-            onSave();
+            this.saveData(writeFileSync);
             process.exit();
         };
 
@@ -240,7 +242,7 @@ export class UserDataManager {
         });
     }
 
-    saveData() {
+    async saveData(writeFileFunction = writeFile) {
         for (let [path, root] of this.itemsToSave) {
             if (root.deleteFlag) {
                 this.itemsToSave.delete(path);
@@ -252,13 +254,13 @@ export class UserDataManager {
 
             switch (typeof root.src) {
                 case "string":
-                    writeFileSync(path, root.src);
+                    await writeFileFunction(path, root.src);
                     break;
                 case "object":
                     if (root.accessor?.deref() !== undefined)
                         root.deleteFlag = false;
                     if (root.modified) {
-                        writeFileSync(path, JSON.stringify(root.src, null, 2));
+                        await writeFileFunction(path, JSON.stringify(root.src, null, 2));
                         root.modified = false;
                     }
                     break;
