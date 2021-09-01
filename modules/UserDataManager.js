@@ -251,19 +251,22 @@ export class UserDataManager {
                 root.deleteFlag = true;
             }
 
+            let promise;
             switch (typeof root.src) {
                 case "string":
-                    await writeFileFunction(path, root.src);
+                    promise = writeFileFunction(path, root.src);
                     break;
                 case "object":
                     if (root.accessor?.deref() !== undefined)
                         root.deleteFlag = false;
                     if (root.modified) {
-                        await writeFileFunction(path, JSON.stringify(root.src, null, 2));
+                        promise = writeFileFunction(path, JSON.stringify(root.src, null, 2));
                         root.modified = false;
                     }
                     break;
             }
+            if (promise instanceof Promise)
+                await promise;
         }
     }
 }
