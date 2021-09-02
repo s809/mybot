@@ -15,7 +15,7 @@ import {
 import { awaitEvent, sleep } from "../../util.js";
 import { createDiscordJSAdapter } from "../../modules/voiceadapter.js";
 import ytdl from "ytdl-core-discord";
-import { musicPlayingGuilds } from "../../env.js";
+import { isDebug, musicPlayingGuilds } from "../../env.js";
 import { sendAlwaysLastMessage } from "../../modules/AlwaysLastMessage.js";
 import { execFile, spawn } from "child_process";
 import { promisify } from "util";
@@ -37,8 +37,7 @@ async function play(msg, url) {
 
     let entry = musicPlayingGuilds.get(voiceChannel.guild);
 
-    if (entry?.player.state.status === AudioPlayerStatus.Paused)
-    {
+    if (entry?.player.state.status === AudioPlayerStatus.Paused) {
         entry.player.unpause();
         if (!url) return true;
     }
@@ -72,8 +71,7 @@ async function play(msg, url) {
         };
     }
 
-    if (entry)
-    {
+    if (entry) {
         entry.queue.push(video);
         await entry.updateStatus("Queued!");
         return true;
@@ -95,6 +93,7 @@ async function play(msg, url) {
         await entersState(conn, VoiceConnectionStatus.Ready, 30000);
 
         const player = createAudioPlayer();
+        player.on("error", () => { /* Ignored */ });
         entry.player = player;
         conn.subscribe(player);
 
@@ -109,18 +108,31 @@ async function play(msg, url) {
             }
             else {
                 let video = spawn("youtube-dl", [
-                    "-f",
-                    "bestaudio",
-                    "-o",
-                    "-",
+                    "-f", "bestaudio",
+                    "-o", "-",
                     currentVideo.url
                 ]);
-                video.stderr.pipe(process.stderr);
+                if (isDebug)
+                    video.stderr.pipe(process.stderr);
 
-                let ffmpeg = spawn("ffmpeg -i - -f opus -", { shell: true });
-                ffmpeg.stderr.pipe(process.stderr);
+                let ffmpeg = spawn("ffmpeg", [
+                    "-i", "-",
+                    "-f", "opus",
+                    "-b:a", "384k",
+                    "-"
+                ]);
+                if (isDebug)
+                    ffmpeg.stderr.pipe(process.stderr);
 
-                video.stdout.pipe(ffmpeg.stdin);
+                video.stderr.setEncoding("utf8");
+                video.stderr.on("data", chunk => {
+                    if (chunk.includes("ERROR"))
+                        ffmpeg.stdout.destroy();
+                });
+
+                let pipe = video.stdout.pipe(ffmpeg.stdin);
+                pipe.on("error", () => { /* Ignored */ });
+
                 entry.readable = ffmpeg.stdout;
             }
             entry.resource = createAudioResource(entry.readable);
