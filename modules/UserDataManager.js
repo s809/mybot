@@ -27,11 +27,10 @@ export class UserDataManager {
 
         const onSave = () => this.saveData();
         const saveAndExit = () => {
-            this.saveData(writeFileSync);
+            this.saveDataSync();
             process.exit();
         };
 
-        process.on("exit", saveAndExit);
         process.on("SIGINT", saveAndExit);
         process.on("SIGTERM", saveAndExit);
 
@@ -241,7 +240,21 @@ export class UserDataManager {
         });
     }
 
-    async saveData(writeFileFunction = writeFile) {
+    async saveData() {
+        await this.saveDataInternal(writeFile);
+    }
+
+    saveDataSync() {
+        this.saveDataInternal(writeFileSync);
+    }
+
+    /**
+     * Saves data.
+     * 
+     * @private
+     * @param {(file: string, data: string) => void | Promise<void>} writeFileFunction Function for writing to file.
+     */
+    async saveDataInternal(writeFileFunction) {
         for (let [path, root] of this.itemsToSave) {
             if (root.deleteFlag) {
                 this.itemsToSave.delete(path);
