@@ -3,7 +3,7 @@
  */
 "use strict";
 
-import Discord from "discord.js";
+import EventEmitter from "events";
 
 /**
  * Clamps value {@link num} to max of {@link max}.
@@ -24,7 +24,20 @@ export function clamp(num, max) {
  * @example sleep(1000);
  */
 export async function sleep(delayMs) {
+    // eslint-disable-next-line promise/avoid-new
     await new Promise(resolve => setTimeout(resolve, delayMs));
+}
+
+/**
+ * Asynchronously waits for event.
+ * 
+ * @param {EventEmitter} emitter Emitter with event which type to wait.
+ * @param {string} name Name of awaited event.
+ * @returns {any} Resolved event parameters.
+ */
+export async function awaitEvent(emitter, name) {
+    // eslint-disable-next-line promise/avoid-new
+    return await new Promise(resolve => emitter.once(name, resolve));
 }
 
 /**

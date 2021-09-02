@@ -13,17 +13,17 @@ import sendLongText from "./sendLongText.js";
  */
 export default async function botEval(msg) {
     try {
-        let expr = msg.content.substr(prefix.length);
+        let expr = msg.content.slice(prefix.length);
         let response;
 
         try {
             try {
-                response = await eval(`(async () => ${expr})();`); // jshint ignore: line
+                response = await eval(`(async () => ${expr})();`);
             } catch (e) {
                 if (!(e instanceof SyntaxError))
                     throw e;
 
-                response = await eval(`(async () => {\n${expr}\n})();`); // jshint ignore: line
+                response = await eval(`(async () => {\n${expr}\n})();`);
             }
         } catch (e) {
             if (msg.channel.deleted)

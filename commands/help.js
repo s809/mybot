@@ -47,15 +47,20 @@ async function help(msg) {
         else
             response += command.name;
         
-        commandGenHintChain.push((command.args || command.description) ? "FullKeepIndent" : "Short");
+        if (command.args || command.description) {
+            commandGenHintChain.push("FullKeepIndent");
+        }
+        else {
+            commandGenHintChain.push("Short");
+            if (command.subcommands)
+                response += ":";
+        }
 
         if (command.args)
             response += " " + command.args;
 
         if (command.description)
             response += ` - ${command.description.split("\n").join("\n  " + indent)}.`;
-        else if (command.subcommands)
-            response += ":";
         
         response += "\n";
     }

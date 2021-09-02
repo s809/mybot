@@ -47,7 +47,7 @@ export default class AlwaysLastMessage {
  * 
  * @param {TextChannel} channel Channel in which to send message.
  * @param {string | MessagePayload | import("discord.js").MessageOptions} options Content to fill new message with.
- * @returns {AlwaysLastMessage} New {@link AlwaysLastMessage} instance.
+ * @returns {Promise<AlwaysLastMessage>} New {@link AlwaysLastMessage} instance.
  */
 export async function sendAlwaysLastMessage(channel, options) {
     let message = await channel.send(options);

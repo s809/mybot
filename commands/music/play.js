@@ -12,12 +12,12 @@ import {
     joinVoiceChannel,
     VoiceConnectionStatus
 } from "@discordjs/voice";
-import { sleep } from "../../util.js";
+import { awaitEvent, sleep } from "../../util.js";
 import { createDiscordJSAdapter } from "../../modules/voiceadapter.js";
 import ytdl from "ytdl-core-discord";
 import { musicPlayingGuilds } from "../../env.js";
 import { sendAlwaysLastMessage } from "../../modules/AlwaysLastMessage.js";
-import { exec } from "child_process";
+import { execFile, spawn } from "child_process";
 import { promisify } from "util";
 import { MusicPlayerEntry } from "./index.js";
 
@@ -56,11 +56,16 @@ async function play(msg, url) {
     /** @type {import("./index.js").YoutubeVideo} */
     let video;
     {
-        let { stdout } = await promisify(exec)(`youtube-dl --dump-json ${url}`);
+        let { stdout } = await promisify(execFile)("youtube-dl", [
+            "--dump-json",
+            "--default-search",
+            "ytsearch",
+            url
+        ]);
         let json = JSON.parse(stdout);
 
         video = {
-            url: url,
+            url: json.webpage_url,
             title: json.title,
             creator: json.creator,
             thumbnail: json.thumbnail,
@@ -93,15 +98,31 @@ async function play(msg, url) {
         entry.player = player;
         conn.subscribe(player);
 
-        // eslint-disable-next-line no-constant-condition
-        while (true) {
+        while (entry.queue.length) {
             let currentVideo = entry.queue.shift();
-            if (!currentVideo) return true;
-
             entry.currentVideo = currentVideo;
+
             await entry.updateStatus("Buffering...");
 
-            entry.readable = await ytdl(currentVideo.url, { highWaterMark: 1 << 30 });
+            if (currentVideo.url.match(/:\/\/(((music|www)\.)?youtube\.com|youtu\.be)\//i)) {
+                entry.readable = await ytdl(currentVideo.url, { highWaterMark: 1 << 30 });
+            }
+            else {
+                let video = spawn("youtube-dl", [
+                    "-f",
+                    "bestaudio",
+                    "-o",
+                    "-",
+                    currentVideo.url
+                ]);
+                video.stderr.pipe(process.stderr);
+
+                let ffmpeg = spawn("ffmpeg -i - -f opus -", { shell: true });
+                ffmpeg.stderr.pipe(process.stderr);
+
+                video.stdout.pipe(ffmpeg.stdin);
+                entry.readable = ffmpeg.stdout;
+            }
             entry.resource = createAudioResource(entry.readable);
 
             player.play(entry.resource);
@@ -110,7 +131,7 @@ async function play(msg, url) {
             await entry.updateStatus("Ready!");
 
             do {
-                await new Promise(resolve => player.once("stateChange", resolve));
+                await awaitEvent(player, "stateChange");
             }
             while (![AudioPlayerStatus.Idle, AudioPlayerStatus.AutoPaused].includes(player.state.status));
 
@@ -130,8 +151,11 @@ async function play(msg, url) {
 }
 
 export const name = "play";
-export const description = "play a video from YouTube by URL/unpause playback";
-export const args = "[yt_url]";
+export const description = "play a video.\n" +
+    "If no URL or query is specified, unpauses playback.\n" +
+    "Queries are searched on YouTube, but URL can be from any source.\n" +
+    "Quotes are not required for one-word queries";
+export const args = "[url|\"query\"]";
 export const minArgs = 0;
 export const maxArgs = 1;
 export const func = play;
