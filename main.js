@@ -17,15 +17,15 @@ import {
     enableDebug,
     isDebug
 } from "./env.js";
-import cloneChannel from "./modules/cloneChannel.js";
-import commands, { resolveCommand } from "./modules/commands.js";
-import { onGuildCreate, onGuildRemove, onMemberCreate, onMemberRemove, onRoleCreate, onRoleRemove } from "./modules/dataSync.js";
-import botEval from "./modules/eval.js";
-import { getMappedChannelEntries } from "./modules/mappedChannels.js";
-import { isCommandAllowedToUse } from "./modules/permissions.js";
-import sendLongText from "./modules/sendLongText.js";
-import { sendWebhookMessageAuto } from "./modules/sendWebhookMessage.js";
-import { wrapText } from "./util.js";
+import cloneChannel from "./modules/messages/cloneChannel.js";
+import { resolveCommand } from "./modules/commands/commands.js";
+import { onGuildCreate, onGuildRemove, onMemberCreate, onMemberRemove, onRoleCreate, onRoleRemove } from "./modules/data/dataSync.js";
+import botEval from "./modules/misc/eval.js";
+import { getMappedChannelEntries } from "./modules/data/mappedChannels.js";
+import { isCommandAllowedToUse } from "./modules/commands/permissions.js";
+import sendLongText from "./modules/messages/sendLongText.js";
+import { sendWebhookMessageAuto } from "./modules/messages/sendWebhookMessage.js";
+import { sanitizePaths, wrapText } from "./util.js";
 
 client.on("ready", async () => {
     console.log(`Logged in as ${client.user.tag}.`);
@@ -140,7 +140,7 @@ client.on("messageCreate", async msg => {
             ret = await command.func(msg, ...args);
         }
         catch (e) {
-            await sendLongText(msg.channel, e.stack);
+            await sendLongText(msg.channel, sanitizePaths(e.stack));
         }
 
         if (!msg.deleted) {

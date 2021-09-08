@@ -1,4 +1,4 @@
-import { makeSubCommands } from "../../util.js";
+import { makeSubCommands } from "../../modules/commands/commands.js";
 import * as changelog from "./changelog.js";
 import * as invite from "./invite.js";
 import * as uptime from "./uptime.js";

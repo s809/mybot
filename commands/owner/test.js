@@ -4,7 +4,7 @@
 "use strict";
 
 import { Message } from "discord.js";
-import sendLongText from "../../modules/sendLongText.js";
+import sendLongText from "../../modules/messages/sendLongText.js";
 
 /**
  * Runs test code.

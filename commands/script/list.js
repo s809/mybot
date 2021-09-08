@@ -2,7 +2,7 @@
 
 import { Message } from "discord.js";
 import { data } from "../../env.js";
-import sendLongText from "../../modules/sendLongText.js";
+import sendLongText from "../../modules/messages/sendLongText.js";
 
 /**
  * @param {Message} msg

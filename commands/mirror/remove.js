@@ -2,7 +2,7 @@
 
 import { TextChannel } from "discord.js";
 import { data, client } from "../../env.js";
-import { getMappedChannel, getMappedChannelByDest } from "../../modules/mappedChannels.js";
+import { getMappedChannel, getMappedChannelByDest } from "../../modules/data/mappedChannels.js";
 
 async function removeMirror(msg) {
     /** @type {TextChannel} */

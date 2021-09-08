@@ -1,8 +1,8 @@
 "use strict";
 
 import { Message } from "discord.js";
-import { data, owner } from "../env.js";
-import { CommandManagementPermissionLevel } from "../util.js";
+import { data, owner } from "../../env.js";
+import { CommandManagementPermissionLevel } from "./definitions.js";
 
 /**
  * Checks if user has required permissions to manage command in their context.
@@ -50,7 +50,7 @@ export function isCommandAllowedToUse(msg, command) {
 
     if (isCommandAllowedToManage(msg, command))
         return true;
-    
+
     /** @type {string[]} */
     let allowedCommands = [
         // Global user
@@ -66,7 +66,7 @@ export function isCommandAllowedToUse(msg, command) {
             ...data.guilds[msg.guildId].members[msg.author.id].allowedCommands
         );
     }
-    
+
     for (let allowedCommand of allowedCommands) {
         if (command.path.startsWith(allowedCommand))
             return true;

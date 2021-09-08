@@ -1,6 +1,6 @@
 "use strict";
 
-import { CommandManagementPermissionLevel } from "../util.js";
+import { CommandManagementPermissionLevel } from "../modules/commands/definitions.js";
 
 async function deleteRange(msg, start, end) {
     start = parseInt(start);
@@ -11,7 +11,7 @@ async function deleteRange(msg, start, end) {
         return false;
     }
 
-    for (; ;) {
+    while (true) {
         let messages = await msg.channel.messages.fetch({ limit: 100, before: end + 1 });
         for (let msg of messages.values()) {
             if (msg.id < start)

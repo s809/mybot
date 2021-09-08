@@ -13,10 +13,10 @@ import {
     VoiceConnectionStatus
 } from "@discordjs/voice";
 import { awaitEvent, sleep } from "../../util.js";
-import { createDiscordJSAdapter } from "../../modules/voiceadapter.js";
+import { createDiscordJSAdapter } from "../../modules/misc/voiceadapter.js";
 import ytdl from "ytdl-core-discord";
 import { isDebug, musicPlayingGuilds } from "../../env.js";
-import { sendAlwaysLastMessage } from "../../modules/AlwaysLastMessage.js";
+import { sendAlwaysLastMessage } from "../../modules/messages/AlwaysLastMessage.js";
 import { execFile, spawn } from "child_process";
 import { promisify } from "util";
 import { MusicPlayerEntry } from "./index.js";

@@ -1,13 +1,15 @@
 "use strict";
 
-import { mentionToChannel, makeSubCommands, CommandManagementPermissionLevel } from "../../util.js";
+import { mentionToChannel } from "../../util.js";
 import { client, data } from "../../env.js";
 
 import * as from from "./from.js";
 import * as list from "./list.js";
 import * as remove from "./remove.js";
-import { isChannelMapped } from "../../modules/mappedChannels.js";
+import { isChannelMapped } from "../../modules/data/mappedChannels.js";
 import { Message } from "discord.js";
+import { makeSubCommands } from "../../modules/commands/commands.js";
+import { CommandManagementPermissionLevel } from "../../modules/commands/definitions.js";
 
 /**
  * @param {Message} msg
@@ -29,7 +31,7 @@ async function mirror(msg, idArg) {
     let messages = await msg.channel.messages.fetch();
     let mappedChannels = data.guilds[msg.guild.id].mappedChannels;
 
-    /** @type {import("../../modules/mappedChannels.js").MappedChannel} */
+    /** @type {import("../../modules/data/mappedChannels.js").MappedChannel} */
     let mappedChannel = {
         id: channel.id,
         lastMessageId: messages.size > 0 ? messages.first().id : "0"

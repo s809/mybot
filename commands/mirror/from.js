@@ -2,7 +2,7 @@
 
 import { TextChannel } from "discord.js";
 import { client } from "../../env.js";
-import { isChannelMapped } from "../../modules/mappedChannels.js";
+import { isChannelMapped } from "../../modules/data/mappedChannels.js";
 import { mentionToChannel } from "../../util.js";
 import { func as addMirror } from "./index.js";
 

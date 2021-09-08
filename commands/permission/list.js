@@ -1,8 +1,7 @@
 "use strict";
 
 import { Message } from "discord.js";
-import { client, data, owner } from "../../env.js";
-import sendLongText from "../../modules/sendLongText.js";
+import { client, data } from "../../env.js";
 
 /**
  * @param {Message} msg
@@ -90,7 +89,7 @@ async function permissionList(msg, id) {
             title: `Permission list for ${resolvedItem.name ??
                 resolvedItem.user?.tag ??
                 resolvedItem.tag
-            }`,
+                }`,
             fields: fields
         }]
     });

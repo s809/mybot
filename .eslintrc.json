@@ -147,7 +147,7 @@
     "no-else-return": "off",
     "no-empty-function": "error",
     "no-eq-null": "error",
-    "no-eval": "off",
+    "no-eval": "error",
     "no-extend-native": "error",
     "no-extra-bind": "error",
     "no-extra-label": "error",
@@ -315,7 +315,7 @@
     "jsdoc/check-access": 1,
     "jsdoc/check-alignment": 1,
     "jsdoc/check-examples": 1,
-    "jsdoc/check-indentation": 1,
+    "jsdoc/check-indentation": 0,
     "jsdoc/check-line-alignment": 1,
     "jsdoc/check-param-names": 1,
     "jsdoc/check-property-names": 1,
@@ -366,7 +366,8 @@
     "promise/avoid-new": "warn",
     "promise/no-new-statics": "error",
     "promise/no-return-in-finally": "warn",
-    "promise/valid-params": "warn"
+    "promise/valid-params": "warn",
+    "typelint/typelint": "error"
   },
   "plugins": [
     "jsdoc",

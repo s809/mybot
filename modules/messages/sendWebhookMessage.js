@@ -2,7 +2,7 @@
 
 import Discord, { HTTPError } from "discord.js";
 import { inspect } from "util";
-import { client, data } from "../env.js";
+import { client, data } from "../../env.js";
 
 /**
  * Sends a message through webhook.

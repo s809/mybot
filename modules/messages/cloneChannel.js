@@ -3,8 +3,8 @@
  */
 "use strict";
 
-import Discord, { GuildChannel, TextChannel } from "discord.js";
-import { client, data, pendingClones, messageBuffers } from "../env.js";
+import Discord, { TextChannel } from "discord.js";
+import { client, data, pendingClones, messageBuffers } from "../../env.js";
 import { sendWebhookMessageAuto } from "./sendWebhookMessage.js";
 import iterateMessages from "./iterateMessages.js";
 

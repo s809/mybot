@@ -4,6 +4,7 @@
 "use strict";
 
 import EventEmitter from "events";
+import { botDirectory } from "./env.js";
 
 /**
  * Clamps value {@link num} to max of {@link max}.
@@ -11,7 +12,6 @@ import EventEmitter from "events";
  * @param {number} num Value to be clamped.
  * @param {number} max Largest allowed value.
  * @returns {number} Clamped value.
- * @example clamp(10, 100);
  */
 export function clamp(num, max) {
     return num > max ? max : num;
@@ -21,7 +21,6 @@ export function clamp(num, max) {
  * Sleeps for provided amount of time.
  * 
  * @param {number} delayMs Sleep time in milliseconds.
- * @example sleep(1000);
  */
 export async function sleep(delayMs) {
     // eslint-disable-next-line promise/avoid-new
@@ -45,57 +44,9 @@ export async function awaitEvent(emitter, name) {
  * 
  * @param {string} text Channel mention.
  * @returns {string?} Channel ID.
- * @example mentionToChannel("<#714193973509357600>");
  */
 export function mentionToChannel(text) {
     return /^<#(\d+)>$/.test(text) ? text.match(/^<#(\d+)>$/)[1] : null;
-}
-
-/**
- * @callback CommandHandler
- * @param {Discord.Message} msg Message the command was sent from.
- * @param {...string} args Command arguments.
- * @returns {Promise<boolean>} Whether execution was successful.
- */
-
-/**
- * Elevation level for managing specific command.
- * 
- * @readonly
- * @enum {string | import("discord.js").PermissionResolvable}
- */
-export const CommandManagementPermissionLevel = {
-    BOT_OWNER: "BOT_OWNER",
-    SERVER_OWNER: "SERVER_OWNER"
-};
-
-/**
- * @typedef {object} Command
- * @property {string} name Name of a command.
- * @property {string?} path Slash-delimited path to command.
- * @property {string?} [description] Description of a command.
- * @property {string?} [args] Representation of command arguments.
- * @property {number?} [minArgs] Minimum number of arguments.
- * @property {number?} [maxArgs] Maximum number of arguments.
- * @property {CommandHandler?} [func] Handler of a command.
- * @property {Map<string, Command>?} [subcommands] Child commands.
- * @property {CommandManagementPermissionLevel?} [managementPermissionLevel] Level of elevation required to manage command permissions.
- * The command is given to users/members in level by default.
- */
-
-/**
- * Wraps command objects into map with subcommands.
- * 
- * @param {...Command} args Commands to be wrapped.
- * @returns {Map<string, Command>} Map containing wrapped commands.
- */
-export function makeSubCommands(...args) {
-    let map = new Map();
-
-    for (let arg of args)
-        map.set(arg.name, arg);
-
-    return map;
 }
 
 /**
@@ -111,4 +62,14 @@ export function wrapText(title, text) {
     return `----- ${title} -----\n` +
         text +
         `\n----- END ${title} -----`;
+}
+
+/**
+ * Removes paths to bot in string.
+ * 
+ * @param {string} text Text with paths to be sanitized.
+ * @returns {string} Sanitized text.
+ */
+export function sanitizePaths(text) {
+    return text.replaceAll(botDirectory, ".").replaceAll("file://", "");
 }

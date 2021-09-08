@@ -3,7 +3,7 @@
 import { exec as _exec } from "child_process";
 import { promisify } from "util";
 const exec = promisify(_exec);
-import sendLongText from "./../../modules/sendLongText.js";
+import sendLongText from "./../../modules/messages/sendLongText.js";
 
 async function shell(msg) {
     let command = `"${[...arguments].slice(1).join("\" \"")}"`;

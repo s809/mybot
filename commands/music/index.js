@@ -5,8 +5,8 @@
 
 import { Readable } from "stream";
 import { AudioPlayer, AudioResource, VoiceConnection } from "@discordjs/voice";
-import { makeSubCommands } from "../../util.js";
-import AlwaysLastMessage from "../../modules/AlwaysLastMessage.js";
+import { makeSubCommands } from "../../modules/commands/commands.js";
+import { Message } from "discord.js";
 
 import * as play from "./play.js";
 import * as pause from "./pause.js";
@@ -22,27 +22,34 @@ import * as skip from "./skip.js";
  */
 
 /**
- * @property {AudioPlayer} player Current audio player.
- * @property {AudioResource} resource Current audio resource.
- * @property {Readable} readable Underlying youtube-dl stream. 
+ * Represents audio containing resource in queue.
  */
 export class MusicPlayerEntry {
     /**
      * Constructs MusicPlayerEntry instance.
      * 
      * @param {YoutubeVideo} firstEntry 
-     * @param {AlwaysLastMessage} statusMsg 
+     * @param {Message} statusMsg 
      * @param {VoiceConnection} conn 
      */
     constructor(firstEntry, statusMsg, conn) {
         /** @type {YoutubeVideo[]} Queued YouTube videos. */
         this.queue = [firstEntry];
 
-        /** @type {AlwaysLastMessage} Status message. */
+        /** @type {Message} Status message. */
         this.statusMessage = statusMsg;
 
         /** @type {VoiceConnection} Current voice connection. */
         this.connection = conn;
+
+        /** @type {AudioPlayer} Current audio player. */
+        this.player = undefined;
+
+        /** @type {AudioResource} Current audio resource. */
+        this.resource = undefined;
+        
+        /** @type {Readable} Underlying youtube-dl stream. */
+        this.readable = undefined;
     }
 
     async updateStatus(text = "") {

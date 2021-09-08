@@ -4,7 +4,7 @@
 "use strict";
 
 import { execSync } from "child_process";
-import sendLongText from "../../modules/sendLongText.js";
+import sendLongText from "../../modules/messages/sendLongText.js";
 import Discord from "discord.js";
 import { version as currentVersion } from "../../env.js";
 
@@ -22,29 +22,27 @@ function prepareChangelog() {
 
     for (let i = 0; i < commitCount; i++) {
         let hardVersion, packageVersion;
-        try
-        {
+        try {
             hardVersion = execSync(`git grep --only-matching "\\"v.*\\"" HEAD~${i} -- main.js env.js`, { encoding: "utf8" })
                 .split("\"")[1]
-                .substr(1);
+                .slice(1);
         }
         catch {
             hardVersion = "";
         }
-        
+
         try {
             packageVersion = execSync(`git grep --only-matching "version.*\\".*\\"" HEAD~${i} -- package.json`, { encoding: "utf8" })
                 .split("\"")[2];
         } catch {
             packageVersion = "";
         }
-        
+
         let version = hardVersion > packageVersion ? hardVersion : packageVersion;
         let msg = execSync(`git log -1 HEAD~${i} --format=%B`, { encoding: "utf8" });
 
         if (version !== lastVersion) {
-            if (lastVersion !== currentVersion)
-            {
+            if (lastVersion !== currentVersion) {
                 if (lastVersion !== "")
                     str += "\n";
 
@@ -54,9 +52,9 @@ function prepareChangelog() {
         }
 
         str += lastMessage;
-        lastMessage = msg.substr(0, msg.length - 1);
+        lastMessage = msg.slice(0, -1);
     }
-    str += `\n${lastVersion}\n${lastMessage.substr(0, lastMessage.length - 1)}`;
+    str += `\n${lastVersion}:\n${lastMessage.slice(0, -1)}`;
 
     return str;
 }

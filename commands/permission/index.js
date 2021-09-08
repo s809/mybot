@@ -2,9 +2,8 @@
 
 import { Message } from "discord.js";
 import { client, data, owner } from "../../env.js";
-import { resolveCommand } from "../../modules/commands.js";
-import { isCommandAllowedToManage } from "../../modules/permissions.js";
-import { makeSubCommands } from "../../util.js";
+import { resolveCommand, makeSubCommands } from "../../modules/commands/commands.js";
+import { isCommandAllowedToManage } from "../../modules/commands/permissions.js";
 
 import * as list from "./list.js";
 

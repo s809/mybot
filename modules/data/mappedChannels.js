@@ -1,6 +1,6 @@
 "use strict";
 
-import { data } from "../env.js";
+import { data } from "../../env.js";
 
 /**
  * @typedef MappedChannel

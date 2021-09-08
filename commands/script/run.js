@@ -2,7 +2,7 @@
 
 import { Message } from "discord.js";
 import { data, prefix } from "../../env.js";
-import botEval from "../../modules/eval.js";
+import botEval from "../../modules/misc/eval.js";
 
 /**
  * @param {Message} msg

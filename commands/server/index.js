@@ -1,4 +1,5 @@
-import { CommandManagementPermissionLevel, makeSubCommands } from "../../util.js";
+import { makeSubCommands } from "../../modules/commands/commands.js";
+import { CommandManagementPermissionLevel } from "../../modules/commands/definitions.js";
 import * as clone from "./clone.js";
 import * as create from "./create.js";
 import * as delall from "./delall.js";

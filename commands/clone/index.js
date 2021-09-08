@@ -2,12 +2,14 @@
 
 import Discord, { TextChannel } from "discord.js";
 import { pendingClones, client, messageBuffers, data } from "../../env.js";
-import { CommandManagementPermissionLevel, makeSubCommands, mentionToChannel, sleep } from "../../util.js";
-import { sendWebhookMessage } from "../../modules/sendWebhookMessage.js";
+import { makeSubCommands } from "../../modules/commands/commands.js";
+import { mentionToChannel, sleep } from "../../util.js";
+import { sendWebhookMessage } from "../../modules/messages/sendWebhookMessage.js";
 
 import * as stop from "./stop.js";
-import iterateMessages from "../../modules/iterateMessages.js";
-import { getMappedChannelByDest } from "../../modules/mappedChannels.js";
+import iterateMessages from "../../modules/messages/iterateMessages.js";
+import { getMappedChannelByDest } from "../../modules/data/mappedChannels.js";
+import { CommandManagementPermissionLevel } from "../../modules/commands/definitions.js";
 
 const errorStrings = {
     sameChannel: "Cannot clone to same channel.",

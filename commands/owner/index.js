@@ -2,7 +2,8 @@
  * @file Owner commands.
  */
 
-import { CommandManagementPermissionLevel, makeSubCommands } from "../../util.js";
+import { makeSubCommands } from "../../modules/commands/commands.js";
+import { CommandManagementPermissionLevel } from "../../modules/commands/definitions.js";
 
 import * as evalMode from "./evalmode.js";
 import * as restart from "./restart.js";

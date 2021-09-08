@@ -2,10 +2,10 @@
 
 import { Message } from "discord.js";
 import { prefix } from "../env.js";
-import commands, { iterateCommands } from "../modules/commands.js";
-import { isCommandAllowedToUse } from "../modules/permissions.js";
-import sendLongText from "../modules/sendLongText.js";
-import { CommandManagementPermissionLevel } from "../util.js";
+import { iterateCommands } from "../modules/commands/commands.js";
+import { CommandManagementPermissionLevel } from "../modules/commands/definitions.js";
+import { isCommandAllowedToUse } from "../modules/commands/permissions.js";
+import sendLongText from "../modules/messages/sendLongText.js";
 
 /**
  * @param {Message} msg
@@ -30,7 +30,7 @@ async function help(msg) {
             commandGenHintChain.push("Full");
             continue;
         }
-        
+
         if (command.managementPermissionLevel === CommandManagementPermissionLevel.BOT_OWNER &&
             !msg.channel.recipient)
             continue;
@@ -41,12 +41,12 @@ async function help(msg) {
         ) + 1;
         const indent = "  ".repeat(indentLevel);
         response += indent;
-        
+
         if (!commandGenHintChain.length || commandGenHintChain[commandGenHintChain.length - 1] !== "Short")
             response += prefix + currentPath.join(" ");
         else
             response += command.name;
-        
+
         if (command.args || command.description) {
             commandGenHintChain.push("FullKeepIndent");
         }
@@ -61,7 +61,7 @@ async function help(msg) {
 
         if (command.description)
             response += ` - ${command.description.split("\n").join("\n  " + indent)}.`;
-        
+
         response += "\n";
     }
 

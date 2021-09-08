@@ -104,6 +104,13 @@ export default async function* iterateMessages(channel, startId = null, endId = 
     else
         iterateFunc = iterateMessagesFromBottom(channel, startId, endId, count);
 
-    for await (let message of iterateFunc)
-        yield message;
+    let message;
+    try {
+        for await (message of iterateFunc)
+            yield message;
+    }
+    catch (e) {
+        e.message += `\nMessage: ${message.url}`;
+        throw e;
+    }
 }

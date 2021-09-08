@@ -4,14 +4,18 @@
 "use strict";
 
 import { readFileSync } from "fs";
-import { Channel, Client, Guild, Intents, Message } from "discord.js";
-import { UserDataManager } from "./modules/UserDataManager.js";
+import { Channel, Client, Intents, Message } from "discord.js";
+import { UserDataManager } from "./modules/data/UserDataManager.js";
+import { dirname } from "path";
 
 /** @type {string} */
 export const version = JSON.parse(readFileSync("./package.json", "utf8")).version;
+export const owner = "559800250924007434"; // NoNick
+export const botDirectory = dirname(import.meta.url).replace("file://", "");
+
 export var isDebug = false;
 export var prefix = "!";
-export const owner = "559800250924007434"; // NoNick
+
 export const client = new Client({
     intents: Object.values(Intents.FLAGS),
     partials: ["CHANNEL"]
@@ -46,16 +50,18 @@ export const evalModeChannels = [];
  * Sets a new prefix for current bot process.
  * 
  * @param {string} newPrefix New prefix.
- * @example setPrefix("t!");
  */
 export function setPrefix(newPrefix) {
     prefix = newPrefix;
 }
 
+/**
+ * Enables debug mode.
+ */
 export function enableDebug() {
     console.log("(Warn) Running in debug mode.");
     isDebug = true;
 }
 
-/** @type {Map<Guild, import("./commands/music/index.js").MusicPlayerEntry>} */
+/** @type {Map<import("discord.js").Guild, import("./commands/music/index.js").MusicPlayerEntry>} */
 export const musicPlayingGuilds = new Map();

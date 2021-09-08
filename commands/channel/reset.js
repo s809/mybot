@@ -1,8 +1,7 @@
 "use strict";
 
 import { Message } from "discord.js";
-import { data } from "../../env.js";
-import { isChannelMapped } from "../../modules/mappedChannels.js";
+import { isChannelMapped } from "../../modules/data/mappedChannels.js";
 
 /**
  * @param {Message} msg

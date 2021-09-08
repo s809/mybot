@@ -207,10 +207,10 @@ export default async function sendLongText(channel, text, {
             embeds: [{
                 ...embed,
                 ...{
-                    description: contentWrapWithCode.replace("%content%", text),
+                    description: textWrap.replace("%content%", text),
                 },
             }]
-        } : contentWrapWithCode.replace("%content%", text));
+        } : textWrap.replace("%content%", text));
         return;
     }
 

@@ -2,14 +2,15 @@
 
 import Discord from "discord.js";
 import { inspect } from "util";
-import { prefix } from "../env.js";
-import sendLongText from "./sendLongText.js";
+import { prefix } from "../../env.js";
+import { sanitizePaths } from "../../util.js";
+import sendLongText from "../messages/sendLongText.js";
 
 /**
  * Evaluate code from message content.
  * Auto-detects if evaluated code is one- or multi-statement.
  * 
- * @param {Discord.Message} msg
+ * @param {Discord.Message} msg Message with text to evaluate.
  */
 export default async function botEval(msg) {
     try {
@@ -33,7 +34,7 @@ export default async function botEval(msg) {
 
         if (typeof response !== "string")
             response = inspect(response, { depth: 1 });
-        await sendLongText(msg.channel, response);
+        await sendLongText(msg.channel, sanitizePaths(response));
     } catch (e) {
         console.log(e);
     }

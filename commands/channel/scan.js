@@ -1,9 +1,18 @@
 "use strict";
 
+import { Message, TextChannel, User } from "discord.js";
 import { client } from "../../env.js";
-import iterateMessages from "../../modules/iterateMessages.js";
-import { mentionToChannel } from "../../util.js";
+import iterateMessages from "../../modules/messages/iterateMessages.js";
+import { awaitEvent, mentionToChannel } from "../../util.js";
+import { sendAlwaysLastMessage } from "../../modules/messages/AlwaysLastMessage.js";
+import sendLongText from "../../modules/messages/sendLongText.js";
 
+/**
+ * @param {Message} msg 
+ * @param {string} mode 
+ * @param {string} fromChannel 
+ * @returns {boolean}
+ */
 async function scanChannel(msg, mode, fromChannel) {
     const inviteLink = /(https?:\/\/)?(www.)?(discord.(gg|io|me|li)|discordapp.com\/invite)\/[^\s/]+?(?=\b)/g;
     const getWeekNumber = d => {
@@ -19,7 +28,7 @@ async function scanChannel(msg, mode, fromChannel) {
     };
 
     if (mode !== "daily" && mode !== "weekly" && mode !== "monthly") {
-        await msg.channel.send("Mode is not defined!");
+        await msg.channel.send("Mode is not defined.");
         return false;
     }
 
@@ -28,48 +37,28 @@ async function scanChannel(msg, mode, fromChannel) {
     else
         fromChannel = msg.channel;
 
-    if (!fromChannel.messages || !(fromChannel.permissionsFor(client.user).has(["VIEW_CHANNEL", "READ_MESSAGE_HISTORY"]))) {
+    if (!(fromChannel instanceof TextChannel) || !(fromChannel.permissionsFor(client.user).has(["VIEW_CHANNEL", "READ_MESSAGE_HISTORY"]))) {
         await msg.channel.send("Channel is not a text channel or permissions are missing.");
         return;
     }
 
+    /** @type {Map<string, User>} */
     let authors = new Map();
+    /**
+     * @type {Map<string, {
+     *  first: Message,
+     *  last: Message,
+     *  dailyCount: Map<string, number>
+     * }>}
+     */
     let userMessages = new Map();
+    /** @type {Set<string>} */
     let invites = new Set();
 
     let totalLength = 0;
+    let counterMessage = await sendAlwaysLastMessage(msg.channel, `Fetching messages...`);
 
-    /** @type {Discord.Message} */
-    let counter;
-    /** @type {Error} */
-    let counterError = null;
-    /** @type {Promise<Discord.Message>} */
-    let counterPromise = null;
-
-    const markCounterUpdated = message => {
-        counter = message;
-        counterPromise = null;
-        return message;
-    };
-    const markCounterError = e => {
-        counterError = e;
-    };
-
-    counterPromise = msg.channel.send(`Fetching messages...`)
-        .then(markCounterUpdated)
-        .catch(markCounterError);
-
-    for await (let message of iterateMessages(fromChannel, "0"))
-    {
-        if (counterError)
-            throw counterError;
-        if (!counterPromise)
-        {
-            counterPromise = counter.edit(`Fetching messages... (${totalLength} fetched)`)
-                .then(markCounterUpdated)
-                .catch(markCounterError);
-        }
-
+    for await (let message of iterateMessages(fromChannel, "0")) {
         if (!authors.has(message.author.tag))
             authors.set(message.author.tag, message.author);
         let author = message.author.tag;
@@ -89,72 +78,110 @@ async function scanChannel(msg, mode, fromChannel) {
         if (!userMessages.has(author)) {
             userMessages.set(author, {
                 first: message,
-                last: "",
+                last: undefined,
                 dailyCount: new Map()
             });
         }
-        let entry = userMessages.get(author);
 
+        let entry = userMessages.get(author);
         entry.last = message;
 
         if (!entry.dailyCount.get(date))
             entry.dailyCount.set(date, 0);
         entry.dailyCount.set(date, entry.dailyCount.get(date) + 1);
-        
-        // Gives counter a chance to update while a new block is being added to array.
-        // Without this line it's updated only when new block is fetched.
-        await new Promise(resolve => setImmediate(resolve));
         totalLength++;
+        if (!(totalLength % 100))
+            counterMessage = await counterMessage.edit(`Fetching messages... (${totalLength} fetched)`);
     }
 
-    // Wait and delete counter.
-    if (counterPromise)
-        await counterPromise;
-    if (counterError)
-        throw counterError;
-    await counter.delete();
+    await counterMessage.edit(`Fetched ${totalLength} messages.\n` +
+        "Fetching invites...");
+    if (counterMessage.editing)
+        await awaitEvent(counterMessage, "editComplete");
 
-    let result = `Found ${invites.size} invites${invites.size ? ":\n" : "."}`;
-    counter = 0;
-    for (let invite of invites) {
-        if (counter === 10) {
-            await msg.channel.send(result);
-            result = "";
-            counter = 0;
+    {
+        let result = "";
+        let aliveInviteCount = 0;
+
+        for (let invite of invites) {
+            try {
+                let arr = invite.split("/");
+
+                let guildName = (await client.api.invites(arr[arr.length - 1]).get()).guild.name;
+                if (!invite.includes("://"))
+                    invite = "https://" + invite;
+                
+                result += `${invite} (${guildName})\n`;
+                aliveInviteCount++;
+            }
+            catch (e) { /* Skip */ }
         }
-        result += invite + "\n";
-        counter++;
+        result = `Found ${invites.size} invites, alive: ${aliveInviteCount}\n` + result;
+        await sendLongText(msg.channel, result, { code: null });
     }
-    msg.channel.send(result);
-    result = "";
 
-    for (let entry of userMessages.entries()) {
-        entry[0] = authors.get(entry[0]);
-        let data = entry[1];
+    await counterMessage.delete();
 
-        result += `\`${entry[0].tag} (${entry[0].id}):\`\n` +
-            `  First message: ${data.first.url} (${data.first.createdAt.toLocaleString()})\n` +
-            `  Last message: ${data.last.url} (${data.last.createdAt.toLocaleString()})\n` +
-            `  ${mode[0].toUpperCase() + mode.substring(1)} message count:\n`;
+    {
+        /** @type {import("discord.js").MessageEmbedOptions[]} */
+        let embeds = [];
+        /** @type {string[]} */
+        let files = [];
 
-        result += "```";
-        for (let dayEntry of data.dailyCount.entries()) {
-            result += `    ${dayEntry[0]}: ${dayEntry[1]}\n`;
+        let sendAndClean = async () => {
+            await msg.channel.send({
+                embeds: embeds,
+                files: files.map((x, i) => (x ? {
+                    name: `${i + 1}.txt`,
+                    attachment: Buffer.from(x, "utf8")
+                } : null)).filter(x => x)
+            });
+            embeds = [];
+            files = [];
+        };
+
+        for (let entry of userMessages.entries()) {
+            let author = authors.get(entry[0]);
+            let data = entry[1];
+
+            let result = "";
+            for (let dayEntry of data.dailyCount.entries())
+                result += `${dayEntry[0]}: ${dayEntry[1]}\n`;
+
+            let authorStr = `${author.tag} (${author.id})`;
+            let capitalizedMode = mode[0].toUpperCase() + mode.substring(1);
+            let statTitle = `${capitalizedMode} message statistics:\n`;
+
+            let unsanitizedResult = statTitle + "```\n" + result + "```";
+            if (unsanitizedResult.length > 4096) {
+                files.push(statTitle.replace(":", ` for ${authorStr}:`) + result);
+                result = statTitle + `*See attachment (${files.length})*`;
+            }
+            else {
+                result = unsanitizedResult;
+            }
+
+            embeds.push({
+                title: authorStr,
+                description: result,
+                fields: [
+                    {
+                        name: "First message",
+                        value: `${data.first.url} (${data.first.createdAt.toLocaleString()})`
+                    },
+                    {
+                        name: "Last message",
+                        value: `${data.last.url} (${data.last.createdAt.toLocaleString()})`
+                    },
+                ]
+            });
+
+            if (embeds.length === 10)
+                await sendAndClean();
         }
-        result += "```\n";
+        if (embeds.length)
+            await sendAndClean();
     }
-
-    let str = "";
-    for (let line of result.split('\n')) {
-        if (str.length + line.length > 2000 - 3) {
-            let block = (str.match(/```/g) || []).length % 2 ? "```" : "";
-            await msg.channel.send(str + block);
-            str = block;
-        }
-        str += line + "\n";
-    }
-    if (str !== "")
-        await msg.channel.send(str);
 
     return true;
 }
