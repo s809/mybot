@@ -14,7 +14,6 @@ import {
 } from "@discordjs/voice";
 import { awaitEvent, sleep } from "../../util.js";
 import { createDiscordJSAdapter } from "../../modules/misc/voiceadapter.js";
-import ytdl from "ytdl-core-discord";
 import { isDebug, musicPlayingGuilds } from "../../env.js";
 import { sendAlwaysLastMessage } from "../../modules/messages/AlwaysLastMessage.js";
 import { execFile, spawn } from "child_process";
@@ -73,11 +72,12 @@ async function fillMissingData(playerEntry) {
 
             playerEntry.queue[pos] = entry;
 
-            await playerEntry.updateStatus();
+            playerEntry.updateStatus();
         }
     }
     finally {
         playerEntry.isLoading = false;
+        await awaitEvent(playerEntry.statusMessage, "editComplete");
     }
 }
 
@@ -85,10 +85,16 @@ async function fillMissingData(playerEntry) {
  * Starts playback.
  * 
  * @param {Discord.Message} msg Message a command was sent from.
- * @param {string} url URL of track.
+ * @param {string} url URL of a track.
+ * @param {string} startTimeOrPos Start time of a track.
  * @returns {boolean} Whether the execution was successful.
  */
-async function play(msg, url) {
+async function play(msg, url, startTimeOrPos) {
+    if (url?.match(/(\\|'|")/)) {
+        await msg.channel.send("URL is invalid.");
+        return false;
+    }
+
     let voiceChannel = msg.member.voice.channel;
     if (!voiceChannel) {
         await msg.channel.send("Join any voice channel and try again.");
@@ -104,11 +110,6 @@ async function play(msg, url) {
 
     if (!url) {
         await msg.channel.send("No URL specified.");
-        return false;
-    }
-
-    if (url.match(/(\\|'|")/)) {
-        await msg.channel.send("URL is invalid.");
         return false;
     }
 
@@ -141,6 +142,32 @@ async function play(msg, url) {
             uploader: item.uploader,
             duration: item.duration
         }));
+    }
+
+    // Validate start time/position
+    if (videos.length < 2) {
+        if (entry) {
+            await msg.channel.send("Cannot use start time when already playing.");
+            return false;
+        }
+
+        if (startTimeOrPos?.match(/^(\d{1,2}|:\d{2}){1,3}$/) === null) {
+            await msg.channel.send("Start time is invalid.");
+            return false;
+        }
+    }
+    else if (startTimeOrPos?.match(/^\d{1,5}$/) === null || parseInt(startTimeOrPos) < 1) {
+        await msg.channel.send("Start position is invalid.");
+        return false;
+    }
+    else {
+        startTimeOrPos = parseInt(startTimeOrPos);
+        if (startTimeOrPos - 1 >= videos.length) {
+            await msg.channel.send("At least one video should be added to queue.");
+            return false;
+        }
+        videos = videos.slice(startTimeOrPos - 1);
+        startTimeOrPos = null;
     }
 
     if (entry) {
@@ -179,42 +206,38 @@ async function play(msg, url) {
 
             await entry.updateStatus("Buffering...");
 
-            if (currentVideo.url.match(/:\/\/(((music|www)\.)?youtube\.com|youtu\.be)\//i)) {
-                entry.readable = await ytdl(currentVideo.url, { highWaterMark: 1 << 30 });
-            }
-            else {
-                let video = spawn("youtube-dl", [
-                    "-f", "bestaudio/best",
-                    "-o", "-",
-                    currentVideo.url
-                ]);
-                if (isDebug)
-                    video.stderr.pipe(process.stderr);
+            let video = spawn("youtube-dl", [
+                "-f", "bestaudio/best",
+                "-o", "-",
+                currentVideo.url
+            ]);
+            if (isDebug)
+                video.stderr.pipe(process.stderr);
 
-                let ffmpeg = spawn("ffmpeg", [
-                    "-i", "-",
-                    "-f", "opus",
-                    "-b:a", "384k",
-                    "-"
-                ]);
-                if (isDebug)
-                    ffmpeg.stderr.pipe(process.stderr);
+            let ffmpeg = spawn("ffmpeg", [
+                "-ss", startTimeOrPos ?? "0",
+                "-i", "-",
+                "-f", "opus",
+                "-b:a", "384k",
+                "-"
+            ]);
+            if (isDebug)
+                ffmpeg.stderr.pipe(process.stderr);
 
-                video.stderr.setEncoding("utf8");
-                video.stderr.on("data", chunk => {
-                    if (chunk.includes("ERROR"))
-                        ffmpeg.stdout.destroy();
-                });
+            video.stderr.setEncoding("utf8");
+            video.stderr.on("data", chunk => {
+                if (chunk.includes("ERROR"))
+                    ffmpeg.stdout.destroy();
+            });
 
-                let pipe = video.stdout.pipe(ffmpeg.stdin);
-                pipe.on("error", () => { /* Ignored */ });
+            let pipe = video.stdout.pipe(ffmpeg.stdin);
+            pipe.on("error", () => { /* Ignored */ });
 
-                entry.readable = ffmpeg.stdout;
-            }
+            entry.readable = ffmpeg.stdout;
             entry.resource = createAudioResource(entry.readable);
 
             player.play(entry.resource);
-            await entersState(player, AudioPlayerStatus.Playing, 10000);
+            await entersState(player, AudioPlayerStatus.Playing, 15000);
 
             await entry.updateStatus("Ready!");
 
@@ -246,7 +269,7 @@ export const description = "play a video.\n" +
     "If no URL or query is specified, unpauses playback.\n" +
     "Queries are searched on YouTube, but URL can be from any source.\n" +
     "Quotes are not required for one-word queries";
-export const args = "[url|\"query\"]";
+export const args = "[url|\"query\"] [startPos (0-99999)|startTime (0-99:99:99)]";
 export const minArgs = 0;
-export const maxArgs = 1;
+export const maxArgs = 2;
 export const func = play;

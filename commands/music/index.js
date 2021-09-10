@@ -78,6 +78,9 @@ export class MusicPlayerEntry {
         let durationStr = this.currentVideo?.duration ? formatDuration(this.currentVideo.duration) : "unknown";
         let result = this.text + `Now playing: ${this.currentVideo?.title} (${durationStr})\n` + this.printQueue();
 
+        if (result.length > 2000)
+            result = result.slice(0, 2000 - 3) + "...";
+
         if (!text)
             await this.statusMessage.editWithoutDeleting(result);
         else
