@@ -3,7 +3,7 @@
  */
 "use strict";
 
-import Discord from "discord.js";
+import Discord, { Message } from "discord.js";
 import {
     AudioPlayerStatus,
     createAudioPlayer,
@@ -20,6 +20,66 @@ import { sendAlwaysLastMessage } from "../../modules/messages/AlwaysLastMessage.
 import { execFile, spawn } from "child_process";
 import { promisify } from "util";
 import { MusicPlayerEntry } from "./index.js";
+
+/**
+ * Loads metadata for URL.
+ * 
+ * @param {import("./index.js").QueueEntry} entry Entry with URL to load.
+ * @returns Entry with loaded metadata.
+ */
+async function loadVideo(entry) {
+    let { stdout } = await promisify(execFile)("youtube-dl", [
+        "--dump-json",
+        "--no-playlist",
+        entry.url
+    ]);
+
+    /**
+     * @type {{
+     *  url: string;
+     *  title: string;
+     *  uploader?: string;
+     *  duration?: string;
+     * }[]}
+     */
+    let json = JSON.parse(stdout);
+
+    return {
+        url: entry.url,
+        title: json.title,
+        uploader: json.uploader,
+        duration: json.duration
+    };
+}
+
+/**
+ * Fills missing data in background.
+ * 
+ * @param {MusicPlayerEntry} playerEntry
+ */
+async function fillMissingData(playerEntry) {
+    if (playerEntry.isLoading) return;
+    playerEntry.isLoading = true;
+
+    try {
+        for (let pos = 0; pos < playerEntry.queue.length; pos++) {
+            let entry = playerEntry.queue[pos];
+            if (entry.title) continue;
+
+            entry = await loadVideo(entry);
+
+            // Throw away results and exit if player is stopped.
+            if (!playerEntry.isLoading) return;
+
+            playerEntry.queue[pos] = entry;
+
+            await playerEntry.updateStatus();
+        }
+    }
+    finally {
+        playerEntry.isLoading = false;
+    }
+}
 
 /**
  * Starts playback.
@@ -52,27 +112,39 @@ async function play(msg, url) {
         return false;
     }
 
-    /** @type {import("./index.js").YoutubeVideo} */
-    let video;
+    /** @type {import("./index.js").QueueEntry[]} */
+    let videos;
     {
         let { stdout } = await promisify(execFile)("youtube-dl", [
             "--dump-json",
+            "--no-playlist",
+            "--flat-playlist",
             "--default-search",
             "ytsearch",
             url
         ]);
-        let json = JSON.parse(stdout);
 
-        video = {
-            url: json.webpage_url,
-            title: json.title,
-            creator: json.creator,
-            thumbnail: json.thumbnail,
-        };
+        /**
+         * @type {{
+         *  url?: string;
+         *  webpage_url?: string;
+         *  title?: string;
+         *  uploader?: string;
+         *  duration?: string;
+         * }[]}
+         */
+        let json = JSON.parse(`[${stdout.replaceAll("\n{", ",\n{")}]`);
+
+        videos = json.map(item => ({
+            url: item.webpage_url ?? item.url,
+            title: item.title,
+            uploader: item.uploader,
+            duration: item.duration
+        }));
     }
 
     if (entry) {
-        entry.queue.push(video);
+        entry.queue.push([...videos]);
         await entry.updateStatus("Queued!");
         return true;
     }
@@ -86,7 +158,7 @@ async function play(msg, url) {
         adapterCreator: createDiscordJSAdapter(voiceChannel)
     });
 
-    entry = new MusicPlayerEntry(video, statusMessage, conn);
+    entry = new MusicPlayerEntry(videos, statusMessage, conn);
     musicPlayingGuilds.set(voiceChannel.guild, entry);
 
     try {
@@ -99,7 +171,11 @@ async function play(msg, url) {
 
         while (entry.queue.length) {
             let currentVideo = entry.queue.shift();
+            if (!currentVideo.title)
+                currentVideo = await loadVideo(currentVideo);
             entry.currentVideo = currentVideo;
+
+            fillMissingData(entry).catch(console.log);
 
             await entry.updateStatus("Buffering...");
 
@@ -108,7 +184,7 @@ async function play(msg, url) {
             }
             else {
                 let video = spawn("youtube-dl", [
-                    "-f", "bestaudio",
+                    "-f", "bestaudio/best",
                     "-o", "-",
                     currentVideo.url
                 ]);
@@ -155,9 +231,12 @@ async function play(msg, url) {
                     return true;
             }
         }
+
+        return true;
     } finally {
         musicPlayingGuilds.delete(voiceChannel.guild);
         entry.readable?.destroy();
+        entry.isLoading = false;
         conn.destroy();
     }
 }

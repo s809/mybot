@@ -9,7 +9,7 @@ import EventEmitter from "events";
 /**
  * Wrapper for resending edited message if it's not last in channel.
  */
-class ALMessageData extends EventEmitter {
+export class ALMessageData extends EventEmitter {
     /**
      * Constructs AlwaysLastMessage instance.
      * 
@@ -62,6 +62,16 @@ class ALMessageData extends EventEmitter {
 
         this.editing = false;
         this.emit("editComplete");
+    }
+
+    /**
+     * Edits message without resending.
+     *
+     * @param {string | import("discord.js").MessagePayload | import("discord.js").MessageOptions} options Content to fill new message with.
+     */
+    async editWithoutDeleting(options) {
+        if (!this.editing)
+            this.message.edit(options);
     }
 }
 

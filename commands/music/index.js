@@ -6,19 +6,20 @@
 import { Readable } from "stream";
 import { AudioPlayer, AudioResource, VoiceConnection } from "@discordjs/voice";
 import { makeSubCommands } from "../../modules/commands/commands.js";
-import { Message } from "discord.js";
 
 import * as play from "./play.js";
 import * as pause from "./pause.js";
 import * as stop from "./stop.js";
 import * as skip from "./skip.js";
+import { formatDuration } from "../../util.js";
+import { ALMessageData } from "../../modules/messages/AlwaysLastMessage.js";
 
 /**
- * @typedef YoutubeVideo
+ * @typedef QueueEntry
  * @property {string} url
  * @property {string} title
- * @property {string} creator
- * @property {string} thumbnail
+ * @property {string} uploader
+ * @property {number} duration
  */
 
 /**
@@ -28,15 +29,15 @@ export class MusicPlayerEntry {
     /**
      * Constructs MusicPlayerEntry instance.
      * 
-     * @param {YoutubeVideo} firstEntry 
-     * @param {Message} statusMsg 
+     * @param {QueueEntry[]} initialEntries 
+     * @param {ALMessageData} statusMsg 
      * @param {VoiceConnection} conn 
      */
-    constructor(firstEntry, statusMsg, conn) {
-        /** @type {YoutubeVideo[]} Queued YouTube videos. */
-        this.queue = [firstEntry];
+    constructor(initialEntries, statusMsg, conn) {
+        /** @type {QueueEntry[]} Queued videos. */
+        this.queue = initialEntries;
 
-        /** @type {Message} Status message. */
+        /** @type {ALMessageData} Status message. */
         this.statusMessage = statusMsg;
 
         /** @type {VoiceConnection} Current voice connection. */
@@ -47,34 +48,56 @@ export class MusicPlayerEntry {
 
         /** @type {AudioResource} Current audio resource. */
         this.resource = undefined;
-        
+
         /** @type {Readable} Underlying youtube-dl stream. */
         this.readable = undefined;
+
+        /** @type {QueueEntry} Current entry. */
+        this.currentVideo = undefined;
+
+        /** @type {boolean} Whether the preloader is running. */
+        this.isLoading = false;
     }
 
-    async updateStatus(text = "") {
-        if (text)
-            text += "\n";
-        await this.statusMessage.edit(text + `Now playing: ${MusicPlayerEntry.formatTitle(this.currentVideo)}\n` + this.printQueue());
+    /**
+     * Updates status text with new text, if it's defined.
+     * 
+     * @param {string?} text Text to update status with;
+     */
+    async updateStatus(text) {
+        switch (text) {
+            case null:
+                this.text = "";
+                break;
+            case undefined:
+                break;
+            default:
+                this.text = text + "\n";
+        }
+
+        let durationStr = this.currentVideo?.duration ? formatDuration(this.currentVideo.duration) : "unknown";
+        let result = this.text + `Now playing: ${this.currentVideo?.title} (${durationStr})\n` + this.printQueue();
+
+        if (!text)
+            await this.statusMessage.editWithoutDeleting(result);
+        else
+            await this.statusMessage.edit(result);
     }
 
     printQueue() {
         if (!this.queue.length) return "";
-        return `Current queue size: ${this.queue.length}\n` +
-            this.queue.map((v, i) => `${i + 1}) ${MusicPlayerEntry.formatTitle(v)}`).join("\n");
-    }
 
-    /**
-     * Formats title of video, prepending creator name if need.
-     * 
-     * @param {YoutubeVideo} video Video which title to format.
-     * @returns {string} Formatted video title.
-     */
-    static formatTitle(video) {
-        if (video.creator)
-            return `${video.creator} - ${video.title}`;
-        else
-            return video.title;
+        let result = "";
+        let duration = 0;
+        for (let pos = 0; pos < this.queue.length; pos++) {
+            let entry = this.queue[pos];
+
+            let durationStr = entry.duration ? formatDuration(entry.duration) : "unknown";
+            result += `${pos + 1}) ${entry.title ?? `<${entry.url}>`} (${durationStr})\n`;
+            duration += entry.duration ?? 0;
+        }
+
+        return `Current queue size: ${this.queue.length} (${formatDuration(duration)})\n` + result;
     }
 }
 
