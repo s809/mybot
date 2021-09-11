@@ -145,33 +145,35 @@ async function play(msg, url, startTimeOrPos) {
     }
 
     // Validate start time/position
-    if (videos.length < 2) {
-        if (entry) {
-            await msg.channel.send("Cannot use start time when already playing.");
-            return false;
-        }
+    if (startTimeOrPos) {
+        if (videos.length < 2) {
+            if (entry) {
+                await msg.channel.send("Cannot use start time when already playing.");
+                return false;
+            }
 
-        if (startTimeOrPos?.match(/^(\d{1,2}|:\d{2}){1,3}$/) === null) {
-            await msg.channel.send("Start time is invalid.");
+            if (!startTimeOrPos.match(/^(\d{1,2}|:\d{2}){1,3}$/)) {
+                await msg.channel.send("Start time is invalid.");
+                return false;
+            }
+        }
+        else if (!startTimeOrPos.match(/^\d{1,5}$/) || parseInt(startTimeOrPos) < 1) {
+            await msg.channel.send("Start position is invalid.");
             return false;
         }
-    }
-    else if (startTimeOrPos?.match(/^\d{1,5}$/) === null || parseInt(startTimeOrPos) < 1) {
-        await msg.channel.send("Start position is invalid.");
-        return false;
-    }
-    else {
-        startTimeOrPos = parseInt(startTimeOrPos);
-        if (startTimeOrPos - 1 >= videos.length) {
-            await msg.channel.send("At least one video should be added to queue.");
-            return false;
+        else {
+            startTimeOrPos = parseInt(startTimeOrPos);
+            if (startTimeOrPos - 1 >= videos.length) {
+                await msg.channel.send("At least one video should be added to queue.");
+                return false;
+            }
+            videos = videos.slice(startTimeOrPos - 1);
+            startTimeOrPos = null;
         }
-        videos = videos.slice(startTimeOrPos - 1);
-        startTimeOrPos = null;
     }
 
     if (entry) {
-        entry.queue.push([...videos]);
+        entry.queue.push(videos.length > 1 ? [...videos] : videos[0]);
         await entry.updateStatus("Queued!");
         return true;
     }
