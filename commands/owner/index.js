@@ -10,7 +10,7 @@ import * as restart from "./restart.js";
 import * as setupReceiverServer from "./setupreceiverserver.js";
 import * as shell from "./shell.js";
 import * as test from "./test.js";
-import * as testToken from "./testToken.js";
+import * as testToken from "./testTokens.js";
 
 export const name = "owner";
 export const subcommands = makeSubCommands(
