@@ -243,6 +243,14 @@ async function play(msg, url, startTimeOrPos) {
             await entry.updateStatus("Ready!");
 
             do {
+                if (player.state.status === AudioPlayerStatus.Paused) {
+                    await Promise.any([
+                        sleep(120000),
+                        awaitEvent(player, "stateChange")
+                    ]);
+                    if (player.state.status === AudioPlayerStatus.Paused)
+                        return true;
+                }
                 await awaitEvent(player, "stateChange");
             }
             while (![AudioPlayerStatus.Idle, AudioPlayerStatus.AutoPaused].includes(player.state.status));

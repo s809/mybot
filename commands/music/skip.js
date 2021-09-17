@@ -21,6 +21,7 @@ async function skip(msg) {
 
     // Destroying current entry *always* leads to moving player to next song.
     entry.readable.destroy();
+    entry.player.unpause();
 
     return true;
 }

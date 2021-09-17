@@ -22,6 +22,7 @@ async function stop(msg) {
 
     entry.queue = [];
     entry.readable.destroy();
+    entry.player.unpause();
 
     return true;
 }

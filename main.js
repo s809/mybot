@@ -13,7 +13,8 @@ import {
     owner,
     setPrefix,
     enableDebug,
-    isDebug
+    isDebug,
+    musicPlayingGuilds
 } from "./env.js";
 import cloneChannel from "./modules/messages/cloneChannel.js";
 import { loadCommands, resolveCommand } from "./modules/commands/commands.js";
@@ -34,6 +35,7 @@ import sendLongText from "./modules/messages/sendLongText.js";
 import { sendWebhookMessageAuto } from "./modules/messages/sendWebhookMessage.js";
 import { sanitizePaths, wrapText } from "./util.js";
 import { hasFlag } from "./modules/data/flags.js";
+import { AudioPlayerStatus } from "@discordjs/voice";
 
 client.on("ready", async () => {
     console.log(`Logged in as ${client.user.tag}.`);
@@ -90,6 +92,25 @@ client.on("channelCreate", onChannelCreate);
 client.on("channelDelete", onChannelRemove);
 client.on("guildMemberAdd", onMemberCreate);
 client.on("guildMemberRemove", onMemberRemove);
+
+client.on("voiceStateUpdate", (oldState, newState) => {
+    let voiceState = newState.guild.voiceStates.resolve(client.user.id);
+    let player = musicPlayingGuilds.get(voiceState?.guild)?.player;
+
+    if (!player) return;
+    if (newState.id === client.user.id && !newState.channelId) {
+        player.unpause();
+        return;
+    }
+
+    let memberCount = voiceState.channel.members.size;
+    if (memberCount === 2 && oldState.channelId && newState.channelId !== voiceState.channelId) return;
+
+    if (memberCount === 1)
+        player.pause();
+    else if (memberCount === 2)
+        player.unpause();
+});
 
 client.on("messageCreate", async msg => {
     if (msg.guild) {
