@@ -1,7 +1,6 @@
 /**
  * @file Main bot file.
  */
-"use strict";
 
 import { inspect } from "util";
 import {
@@ -12,20 +11,29 @@ import {
     version,
     prefix,
     owner,
-    evalModeChannels,
     setPrefix,
     enableDebug,
     isDebug
 } from "./env.js";
 import cloneChannel from "./modules/messages/cloneChannel.js";
-import { resolveCommand } from "./modules/commands/commands.js";
-import { onGuildCreate, onGuildRemove, onMemberCreate, onMemberRemove, onRoleCreate, onRoleRemove } from "./modules/data/dataSync.js";
+import { loadCommands, resolveCommand } from "./modules/commands/commands.js";
+import {
+    onChannelCreate,
+    onChannelRemove,
+    onGuildCreate,
+    onGuildRemove,
+    onMemberCreate,
+    onMemberRemove,
+    onRoleCreate,
+    onRoleRemove
+} from "./modules/data/dataSync.js";
 import botEval from "./modules/misc/eval.js";
-import { getMappedChannelEntries } from "./modules/data/mappedChannels.js";
+import { getMappedChannelEntries } from "./modules/data/channelLinking.js";
 import { isCommandAllowedToUse } from "./modules/commands/permissions.js";
 import sendLongText from "./modules/messages/sendLongText.js";
 import { sendWebhookMessageAuto } from "./modules/messages/sendWebhookMessage.js";
 import { sanitizePaths, wrapText } from "./util.js";
+import { hasFlag } from "./modules/data/flags.js";
 
 client.on("ready", async () => {
     console.log(`Logged in as ${client.user.tag}.`);
@@ -78,15 +86,18 @@ client.on("guildCreate", onGuildCreate);
 client.on("guildDelete", onGuildRemove);
 client.on("roleCreate", onRoleCreate);
 client.on("roleDelete", onRoleRemove);
+client.on("channelCreate", onChannelCreate);
+client.on("channelDelete", onChannelRemove);
 client.on("guildMemberAdd", onMemberCreate);
 client.on("guildMemberRemove", onMemberRemove);
 
 client.on("messageCreate", async msg => {
     if (msg.guild) {
-        let mappedChannel = data.guilds[msg.guild.id].mappedChannels[msg.channel.id];
-        if (mappedChannel) {
+        /** @type {import("./modules/data/channelLinking.js").ChannelLink} */
+        let link = data.guilds[msg.guildId].channels[msg.channelId].link;
+        if (link) {
             let buffer = messageBuffers.get(msg.channel);
-            if (buffer && await client.channels.fetch(mappedChannel.id) === pendingClones.get(msg.channel)) {
+            if (buffer && await client.channels.fetch(link.channelId) === pendingClones.get(msg.channel)) {
                 buffer.unshift(msg);
             }
             else {
@@ -96,6 +107,16 @@ client.on("messageCreate", async msg => {
     }
 
     if (msg.author.bot || msg.webhookId) return;
+
+    if (msg.author.id !== owner) {
+        // User ban
+        if (hasFlag(data.users[msg.author.id], "banned")) return;
+
+        // Guild ban
+        if (msg.guild)
+            if (hasFlag(data.guilds[msg.guildId], "banned")) return;
+    }
+
     if (!msg.content.startsWith(prefix)) return;
 
     let args = msg.content.match(/[^" ]+|"(?:\\"|[^"])+"/g);
@@ -112,7 +133,9 @@ client.on("messageCreate", async msg => {
     if (command && !isCommandAllowedToUse(msg, command)) return;
 
     if (!command || !command.func) {
-        if (evalModeChannels.includes(msg.channel) && msg.author.id === owner)
+        if (msg.guild && !hasFlag(data.guilds[msg.guild.id].channels[msg.channel.id], "evalmode")) return;
+
+        if (isCommandAllowedToUse(msg, resolveCommand("owner/evalmode")))
             await botEval(msg);
         return;
     }
@@ -156,14 +179,15 @@ client.on("messageCreate", async msg => {
 });
 
 (async () => {
-    if (process.argv.indexOf("--debug") < 0) {
-        await client.login("NzMzMjEyMjczNjkwMTQ4OTA0.Xw_3JA.7bDfmT2CPQySe9xIYgrJAb4yEGM"); // MyBot
-    }
-    else {
+    let token = "NzMzMjEyMjczNjkwMTQ4OTA0.Xw_3JA.7bDfmT2CPQySe9xIYgrJAb4yEGM";
+    if (process.argv.indexOf("--debug") >= 0) {
+        token = "ODA5NDUxMzYzNzg0MzI3MjQ4.YCVSVA.J8BPawVSK4AgFvMQhLwiIZcVsUQ";
         enableDebug();
         setPrefix("t!");
-        await client.login("ODA5NDUxMzYzNzg0MzI3MjQ4.YCVSVA.J8BPawVSK4AgFvMQhLwiIZcVsUQ"); // TestNoise
     }
+
+    await loadCommands();
+    await client.login(token);
 
     process.on("uncaughtException", async (e, origin) => {
         let text = wrapText(origin, e.stack);

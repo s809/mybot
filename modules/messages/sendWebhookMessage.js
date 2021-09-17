@@ -1,6 +1,6 @@
 "use strict";
 
-import Discord, { HTTPError } from "discord.js";
+import Discord, { HTTPError, TextChannel } from "discord.js";
 import { inspect } from "util";
 import { client, data } from "../../env.js";
 
@@ -9,7 +9,6 @@ import { client, data } from "../../env.js";
  * 
  * @param {Discord.Message} msg Message to be sent through webhook.
  * @param {Discord.Webhook} webhook Webhook to send message through.
- * @example sendWebhookMessage(msg, webhook);
  */
 export async function sendWebhookMessage(msg, webhook) {
     for (let attempt = 1; attempt <= 3; attempt++) {
@@ -44,29 +43,29 @@ export async function sendWebhookMessage(msg, webhook) {
  * Sends a message through auto-selected webhook.
  * 
  * @param {Discord.Message} msg Message to be sent through webhook.
- * @example sendWebhookMessageAuto(msg, webhook);
  */
 export async function sendWebhookMessageAuto(msg) {
-    let mappedChannels = data.guilds[msg.guild.id].mappedChannels;
-    let mChannel = await client.channels.fetch(mappedChannels[msg.channel.id].id);
+    /** @type {import("../data/channelLinking.js").ChannelLink} */
+    let link = data.guilds[msg.guild.id].channels[msg.channelId].link;
+    /** @type {TextChannel} */
+    let destChannel = await client.channels.fetch(link.channelId);
 
-    if (msg.channel === mChannel) {
-        if (msg.webhookID) return;
+    if (msg.channel === destChannel) {
+        if (msg.webhookId) return;
         await msg.delete();
     }
 
     try {
-        let webhooks = await mChannel.fetchWebhooks();
+        let webhooks = await destChannel.fetchWebhooks();
 
-        let webhook = webhooks.find(webhook => webhook.name === "ChannelLink");
-        if (webhook === undefined)
-            webhook = await mChannel.createWebhook("ChannelLink");
+        let webhook = webhooks.find(webhook => webhook.name === "ChannelLink") ??
+            await destChannel.createWebhook("ChannelLink");
 
         await sendWebhookMessage(msg, webhook);
 
-        mappedChannels[msg.channel.id].lastMessageId = msg.id;
+        link[msg.channel.id].lastMessageId = msg.id;
     }
     catch (e) {
-        mappedChannels[msg.channel.id] = undefined;
+        link[msg.channel.id] = undefined;
     }
 }

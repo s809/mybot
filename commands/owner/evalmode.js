@@ -1,12 +1,23 @@
-"use strict";
+import assert from "assert";
+import { data } from "../../env.js";
+import { toggleFlag } from "../../modules/data/flags.js";
 
-import { evalModeChannels } from "../../env.js";
-
+/**
+ * 
+ * @param {import("discord.js").Message} msg 
+ * @returns 
+ */
 async function evalMode(msg) {
-    if (!evalModeChannels.includes(msg.channel))
-        evalModeChannels.push(msg.channel);
-    else
-        evalModeChannels.splice(evalModeChannels.indexOf(msg.channel));
+    if (!msg.guild) {
+        msg.channel.send("Eval mode is enabled by default in DMs.");
+        return false;
+    }
+
+    let channel = data.guilds[msg.guild.id].channels[msg.channel.id];
+    assert(channel);
+
+    toggleFlag(channel, "evalmode");
+
     return true;
 }
 

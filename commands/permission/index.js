@@ -2,10 +2,9 @@
 
 import { Message } from "discord.js";
 import { client, data, owner } from "../../env.js";
-import { resolveCommand, makeSubCommands } from "../../modules/commands/commands.js";
+import { resolveCommand } from "../../modules/commands/commands.js";
+import { importCommands } from "../../modules/commands/importHelper.js";
 import { isCommandAllowedToManage } from "../../modules/commands/permissions.js";
-
-import * as list from "./list.js";
 
 /**
  * @param {Message} msg
@@ -71,4 +70,4 @@ export const args = "<id> <permission>";
 export const minArgs = 2;
 export const maxArgs = 2;
 export const func = permission;
-export const subcommands = makeSubCommands(list);
+export const subcommands = await importCommands(import.meta.url);

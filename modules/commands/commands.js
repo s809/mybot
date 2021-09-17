@@ -2,59 +2,32 @@
  * @file Module for importing all commands.
  */
 
-import * as bot from "../../commands/bot/index.js";
-import * as channel from "../../commands/channel/index.js";
-import * as clone from "../../commands/clone/index.js";
-import * as mirror from "../../commands/mirror/index.js";
-import * as music from "../../commands/music/index.js";
-import * as owner from "../../commands/owner/index.js";
-import * as permission from "../../commands/permission/index.js";
-import * as script from "../../commands/script/index.js";
-import * as server from "../../commands/server/index.js";
-
-import * as delrange from "../../commands/delrange.js";
-import * as timer from "../../commands/timer.js";
-
-import * as help from "../../commands/help.js";
+import { pathToFileURL } from "url";
+import { botDirectory } from "../../env.js";
+import { importCommands } from "./importHelper.js";
 
 /**
- * Wraps command objects into map with subcommands.
- * 
- * @param {...Command} args Commands to be wrapped.
- * @returns {Map<string, Command>} Map containing wrapped commands.
+ * @typedef {import("./definitions.js").Command} Command
+ * @private
  */
-export function makeSubCommands(...args) {
-    let map = new Map();
 
-    for (let arg of args)
-        map.set(arg.name, arg);
+var commands;
 
-    return map;
+/**
+ * Loads commands to internal cache.
+ */
+export async function loadCommands() {
+    commands ??= await importCommands(pathToFileURL(botDirectory + "/commands/foo").toString());
 }
 
-const commands = makeSubCommands(
-    bot,
-    channel,
-    clone,
-    mirror,
-    music,
-    owner,
-    permission,
-    script,
-    server,
-
-    delrange,
-    timer,
-
-    help,
-);
+export const makeSubCommands = () => undefined;
 
 /**
  * Resolves command by its path.
  * 
  * @param {string | string[]} path Path to command.
  * @param {boolean} allowPartialResolve Whether to allow resolving to closest match.
- * @returns {import("../../util.js").Command?} Command, if it was found.
+ * @returns {Command?} Command, if it was found.
  */
 export function resolveCommand(path, allowPartialResolve = false) {
     if (!Array.isArray(path))
@@ -113,7 +86,7 @@ function* iterateSubcommands(list, inheritedOptions) {
         };
         if (command.managementPermissionLevel)
             options.managementPermissionLevel = command.managementPermissionLevel;
-        
+
         yield {
             ...options,
             ...command

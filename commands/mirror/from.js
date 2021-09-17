@@ -2,9 +2,8 @@
 
 import { TextChannel } from "discord.js";
 import { client } from "../../env.js";
-import { isChannelMapped } from "../../modules/data/mappedChannels.js";
+import { isChannelMapped } from "../../modules/data/channelLinking.js";
 import { mentionToChannel } from "../../util.js";
-import { func as addMirror } from "./index.js";
 
 async function addMirrorFrom(msg, idArg, isSilentArg) {
     if (isSilentArg !== undefined && isSilentArg !== "silent") {
@@ -34,7 +33,10 @@ async function addMirrorFrom(msg, idArg, isSilentArg) {
         return false;
     }
 
-    return await addMirror({ channel: channel, guild: channel.guild }, msg.channel.toString());
+    return await (await import("./index.js")).func({
+        channel: channel,
+        guild: channel.guild
+    }, msg.channel.toString());
 }
 
 export const name = "from";

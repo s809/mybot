@@ -1,5 +1,30 @@
-import { Guild, GuildMember, Role, User } from "discord.js";
+import { Guild, GuildChannel, GuildMember, Role, User } from "discord.js";
 import { data } from "../../env.js";
+import { unlinkChannel } from "./channelLinking.js";
+
+/** @typedef {import("discord.js").Snowflake} Snowflake */
+
+/**
+ * @param {GuildChannel} channel
+ */
+export function onChannelCreate(channel) {
+    data.guilds[channel.guildId].channels[channel.id] = {
+        link: null,
+        flags: [],
+        ...data.guilds[channel.guildId].channels[channel.id]
+    };
+}
+
+/**
+ * @param {GuildChannel | {
+ *  id: Snowflake;
+ *  guildId: Snowflake;
+ * }} channel
+ */
+export function onChannelRemove(channel) {
+    unlinkChannel(channel);
+    delete data.guilds[channel.guildId].channels[channel.id];
+}
 
 /**
  * @param {Role} role
@@ -12,7 +37,12 @@ export function onRoleCreate(role) {
 }
 
 /**
- * @param {Role} role
+ * @param {Role | {
+ *  id: Snowflake;
+ *  guild: {
+ *   id: Snowflake;
+ *  }
+ * }} role
  */
 export function onRoleRemove(role) {
     delete data.guilds[role.guild.id].roles[role.id];
@@ -41,7 +71,12 @@ export function onMemberCreate(member) {
 }
 
 /**
- * @param {GuildMember} member
+ * @param {GuildMember | {
+ *  id: Snowflake;
+ *  guild: {
+ *   id: Snowflake;
+ *  }
+ * }} member
  */
 export function onMemberRemove(member) {
     delete data.guilds[member.guild.id].members[member.id];
@@ -52,12 +87,28 @@ export function onMemberRemove(member) {
  */
 export async function onGuildCreate(guild) {
     data.guilds[guild.id] = {
+        /** @deprecated */
         mappedChannels: {},
         roles: {},
         members: {},
+        channels: {},
+        flags: [],
         ...data.guilds[guild.id]
     };
     let guildData = data.guilds[guild.id];
+
+    // Add new channels
+    for (let channel of guild.channels.cache.values())
+        onChannelCreate(channel);
+    
+    // Remove missing channels
+    for (let channelId of Object.getOwnPropertyNames(guildData.channels)) {
+        if (!guild.channels.resolve(channelId))
+            onChannelRemove({
+                id: channelId,
+                guild: guild
+            });
+    }
 
     // Add new roles
     for (let role of guild.roles.cache.values())
@@ -72,22 +123,32 @@ export async function onGuildCreate(guild) {
             });
     }
 
+    // Add new members
     for (let member of (await guild.members.fetch()).values())
         onMemberCreate(member);
 
     // Remove missing members
     for (let memberId of Object.getOwnPropertyNames(guildData.members)) {
-        if (!guild.members.resolve(memberId))
+        if (!guild.members.resolve(memberId)) {
             onMemberRemove({
                 id: memberId,
                 guild: guild
             });
+        }
     }
 }
 
 /**
- * @param {Guild} guild
+ * @param {Guild | {
+ *  id: Snowflake
+ * }} guild
  */
 export function onGuildRemove(guild) {
+    for (let channel of Object.getOwnPropertyNames(data.guilds[guild.id].channels))
+        unlinkChannel({
+            id: channel,
+            guildId: guild.id
+        });
+    
     delete data.guilds[guild.id];
 }

@@ -5,14 +5,10 @@
 
 import { Readable } from "stream";
 import { AudioPlayer, AudioResource, VoiceConnection } from "@discordjs/voice";
-import { makeSubCommands } from "../../modules/commands/commands.js";
 
-import * as play from "./play.js";
-import * as pause from "./pause.js";
-import * as stop from "./stop.js";
-import * as skip from "./skip.js";
 import { formatDuration } from "../../util.js";
 import { ALMessageData } from "../../modules/messages/AlwaysLastMessage.js";
+import { importCommands } from "../../modules/commands/importHelper.js";
 
 /**
  * @typedef QueueEntry
@@ -105,4 +101,4 @@ export class MusicPlayerEntry {
 }
 
 export const name = "music";
-export const subcommands = makeSubCommands(play, pause, skip, stop);
+export const subcommands = await importCommands(import.meta.url);

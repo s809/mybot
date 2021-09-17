@@ -1,7 +1,7 @@
 "use strict";
 
 import { client } from "../../env.js";
-import { getMappedChannelEntries } from "../../modules/data/mappedChannels.js";
+import { getMappedChannelEntries } from "../../modules/data/channelLinking.js";
 
 async function getMirroredChannels(msg) {
     let resp = "";

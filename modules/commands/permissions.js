@@ -1,14 +1,17 @@
-"use strict";
-
 import { Message } from "discord.js";
 import { data, owner } from "../../env.js";
 import { CommandManagementPermissionLevel } from "./definitions.js";
 
 /**
+ * @typedef {import("./definitions.js").Command} Command
+ * @private
+ */
+
+/**
  * Checks if user has required permissions to manage command in their context.
  *
  * @param {Message} msg Context message.
- * @param {import("../util").Command} command Command to check.
+ * @param {Command} command Command to check.
  * @returns {boolean} Whether the execution of command is allowed.
  */
 export function isCommandAllowedToManage(msg, command) {
@@ -41,7 +44,7 @@ export function isCommandAllowedToManage(msg, command) {
  * Checks if user has required permissions to execute command in their context.
  *
  * @param {Message} msg Context message.
- * @param {import("../util").Command} command Command to check.
+ * @param {Command} command Command to check.
  * @returns {boolean} Whether the management of command is allowed.
  */
 export function isCommandAllowedToUse(msg, command) {

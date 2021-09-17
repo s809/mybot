@@ -1,5 +1,6 @@
 "use strict";
 
+import assert from "assert";
 import { Message } from "discord.js";
 import { client, data } from "../../env.js";
 
@@ -29,8 +30,7 @@ async function permissionList(msg, id) {
                 resolvedType = "user";
         }
 
-        if (!resolvedType)
-            throw new Error();
+        assert(resolvedType);
     }
     catch (e) {
         await msg.channel.send("Invalid ID was provided.");

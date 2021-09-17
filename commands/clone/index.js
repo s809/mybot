@@ -2,14 +2,13 @@
 
 import Discord, { TextChannel } from "discord.js";
 import { pendingClones, client, messageBuffers, data } from "../../env.js";
-import { makeSubCommands } from "../../modules/commands/commands.js";
 import { mentionToChannel, sleep } from "../../util.js";
 import { sendWebhookMessage } from "../../modules/messages/sendWebhookMessage.js";
 
-import * as stop from "./stop.js";
 import iterateMessages from "../../modules/messages/iterateMessages.js";
-import { getMappedChannelByDest } from "../../modules/data/mappedChannels.js";
+import { getMappedChannelByDest } from "../../modules/data/channelLinking.js";
 import { CommandManagementPermissionLevel } from "../../modules/commands/definitions.js";
+import { importCommands } from "../../modules/commands/importHelper.js";
 
 const errorStrings = {
     sameChannel: "Cannot clone to same channel.",
@@ -196,4 +195,4 @@ export const minArgs = 1;
 export const maxArgs = 2;
 export const managementPermissionLevel = CommandManagementPermissionLevel.SERVER_OWNER;
 export const func = batchCloneWrapper;
-export const subcommands = makeSubCommands(stop);
+export const subcommands = await importCommands(import.meta.url);

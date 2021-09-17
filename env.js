@@ -4,14 +4,15 @@
 "use strict";
 
 import { readFileSync } from "fs";
-import { Channel, Client, Intents, Message } from "discord.js";
+import { TextChannel, Client, Intents, Message } from "discord.js";
 import { UserDataManager } from "./modules/data/UserDataManager.js";
 import { dirname } from "path";
+import { fileURLToPath } from "url";
 
 /** @type {string} */
 export const version = JSON.parse(readFileSync("./package.json", "utf8")).version;
 export const owner = "559800250924007434"; // NoNick
-export const botDirectory = dirname(import.meta.url).replace("file://", "");
+export const botDirectory = fileURLToPath(dirname(import.meta.url));
 
 export var isDebug = false;
 export var prefix = "!";
@@ -37,14 +38,11 @@ export const data = new UserDataManager("./data", {
     }
 });
 
-/** @type {Map<Channel, Channel>} */
+/** @type {Map<TextChannel, TextChannel>} */
 export const pendingClones = new Map();
 
-/** @type {Map<Channel, Message[]>} */
+/** @type {Map<TextChannel, Message[]>} */
 export const messageBuffers = new Map();
-
-/** @type {Channel[]} */
-export const evalModeChannels = [];
 
 /**
  * Sets a new prefix for current bot process.

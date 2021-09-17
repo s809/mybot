@@ -3,7 +3,7 @@
  */
 "use strict";
 
-import Discord, { Message } from "discord.js";
+import Discord from "discord.js";
 import {
     AudioPlayerStatus,
     createAudioPlayer,
@@ -18,7 +18,6 @@ import { isDebug, musicPlayingGuilds } from "../../env.js";
 import { sendAlwaysLastMessage } from "../../modules/messages/AlwaysLastMessage.js";
 import { execFile, spawn } from "child_process";
 import { promisify } from "util";
-import { MusicPlayerEntry } from "./index.js";
 
 /**
  * Loads metadata for URL.
@@ -54,7 +53,7 @@ async function loadVideo(entry) {
 /**
  * Fills missing data in background.
  * 
- * @param {MusicPlayerEntry} playerEntry
+ * @param {Mimport("./index.js").MusicPlayerEntry} playerEntry
  */
 async function fillMissingData(playerEntry) {
     if (playerEntry.isLoading) return;
@@ -187,7 +186,7 @@ async function play(msg, url, startTimeOrPos) {
         adapterCreator: createDiscordJSAdapter(voiceChannel)
     });
 
-    entry = new MusicPlayerEntry(videos, statusMessage, conn);
+    entry = new (await import("./index.js")).MusicPlayerEntry(videos, statusMessage, conn);
     musicPlayingGuilds.set(voiceChannel.guild, entry);
 
     try {

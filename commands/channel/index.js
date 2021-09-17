@@ -1,11 +1,6 @@
-import { makeSubCommands } from "../../modules/commands/commands.js";
 import { CommandManagementPermissionLevel } from "../../modules/commands/definitions.js";
-import * as reset from "./reset.js";
-import * as scan from "./scan.js";
+import { importCommands } from "../../modules/commands/importHelper.js";
 
 export const name = "channel";
-export const subcommands = makeSubCommands(
-    reset,
-    scan
-);
 export const managementPermissionLevel = CommandManagementPermissionLevel.SERVER_OWNER;
+export const subcommands = await importCommands(import.meta.url);

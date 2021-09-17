@@ -147,7 +147,7 @@ export class UserDataManager {
          * @returns {any}
          */
         let createProxy = (src, root, rootAccessor = null) => {
-            if (typeof src !== "object" || Array.isArray(src))
+            if (typeof src !== "object" || src === null || Array.isArray(src))
                 return src;
 
             /** @type {ProxyHandler} */
