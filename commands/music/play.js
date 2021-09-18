@@ -208,7 +208,7 @@ async function play(msg, url, startTimeOrPos) {
             await entry.updateStatus("Buffering...");
 
             let video = spawn("youtube-dl", [
-                "-f", "bestaudio/best",
+                "-f", "338/251/250/249/bestaudio/best",
                 "-o", "-",
                 currentVideo.url
             ]);
