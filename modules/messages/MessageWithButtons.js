@@ -47,12 +47,10 @@ export default class MessageWithButtons {
             });
 
             this.collector.on("end", async () => {
-                for (let button of this.buttons.values())
-                    button.setDisabled(true);
-
-                await this.edit({
+                await this.message.edit({
                     content: this.message.content.length ? this.message.content : undefined,
-                    embeds: this.message.embeds.length ? this.message.embeds : undefined
+                    embeds: this.message.embeds.length ? this.message.embeds : undefined,
+                    components: []
                 });
             });
         }
