@@ -1,9 +1,10 @@
-"use strict";
-
-import { GuildChannel } from "discord.js";
+import { TextChannel } from "discord.js";
 import { data } from "../../env.js";
 
-/** @typedef {import("discord.js").Snowflake} Snowflake */
+/**
+ * @typedef {import("discord.js").Snowflake} Snowflake
+ * @private
+ */
 
 /** @enum {"SOURCE" | "DESTINATION"} */
 export const ChannelLinkRole = {
@@ -21,16 +22,16 @@ export const ChannelLinkRole = {
 
 /**
  * 
- * @param {GuildChannel} src
- * @param {GuildChannel} dest
+ * @param {TextChannel} src
+ * @param {TextChannel} dest
  */
-export function linkChannel(src, dest) {
+export async function linkChannel(src, dest) {
     /** @type {ChannelLink} */
     let srcToDestLink = {
         channelId: dest.id,
-        guild: dest.guildId,
+        guildId: dest.guildId,
         role: "SOURCE",
-        lastMessageId: null
+        lastMessageId: (await src.messages.fetch({ limit: 1 })).firstKey() ?? null
     };
 
     /** @type {ChannelLink} */
@@ -45,8 +46,7 @@ export function linkChannel(src, dest) {
 }
 
 /**
- * 
- * @param {GuildChannel | {
+ * @param {import("discord.js").TextChannel | {
  *  id: Snowflake;
  *  guildId: Snowflake;
  * }} channel
@@ -61,38 +61,25 @@ export function unlinkChannel(channel) {
 }
 
 /**
- * @deprecated
- * @typedef MappedChannel
- * @property {import("discord.js").Snowflake} id
- * @property {import("discord.js").Snowflake} lastMessageId
+ * @param {Snowflake} guildId
+ * @param {ChannelLinkRole?} role
+ * @returns {[Snowflake, ChannelLink][]}
  */
-
-/**
- * @param {import("discord.js").Snowflake} guildId
- * @returns {import("discord.js").Snowflake[]}
- */
-function getKeys(guildId) {
-    return Object.keys(data.guilds[guildId].mappedChannels);
+export function getLinks(guildId, role) {
+    return Object.entries(data.guilds[guildId].channels)
+        .filter(([, channelData]) => channelData.link)
+        .map(([id, channelData]) => ([id, channelData.link]))
+        .filter(([, link]) => !role || link.role === role);
 }
 
 /**
- * @param {import("discord.js").Snowflake} guildId
- * @returns {MappedChannel[]}
+ * 
+ * @param {Snowflake} guildId
+ * @param {Snowflake} channelId
+ * @returns {ChannelLink}
  */
-function getValues(guildId) {
-    let keys = getKeys(guildId);
-    let mappedChannels = data.guilds[guildId].mappedChannels;
-    return keys.map(key => mappedChannels[key].id);
-}
-
-/**
- * @param {import("discord.js").Snowflake} guildId
- * @returns {[import("discord.js").Snowflake, MappedChannel][]}
- */
-export function getMappedChannelEntries(guildId) {
-    let keys = getKeys(guildId);
-    let mappedChannels = data.guilds[guildId].mappedChannels;
-    return keys.map(key => [key, mappedChannels[key]]);
+export function getLinkedChannel(guildId, channelId) {
+    return data.guilds[guildId].channels[channelId].link;
 }
 
 /**
@@ -100,25 +87,7 @@ export function getMappedChannelEntries(guildId) {
  * @param {import("discord.js").Snowflake} channelId
  * @returns {boolean}
  */
-export function isChannelMapped(guildId, channelId) {
-    return channelId in data.guilds[guildId].mappedChannels ||
-        getValues(guildId).includes(channelId);
+export function isChannelLinked(guildId, channelId) {
+    return Boolean(getLinkedChannel(guildId, channelId));
 }
 
-/**
- * @param {import("discord.js").Snowflake} guildId
- * @param {import("discord.js").Snowflake} channelId
- * @returns {MappedChannel}
- */
-export function getMappedChannel(guildId, channelId) {
-    return data.guilds[guildId].mappedChannels[channelId];
-}
-
-/**
- * @param {import("discord.js").Snowflake} guildId
- * @param {import("discord.js").Snowflake} channelId
- * @returns {[import("discord.js").Snowflake, MappedChannel]?}
- */
-export function getMappedChannelByDest(guildId, channelId) {
-    return getMappedChannelEntries(guildId).find(x => x[1].id === channelId);
-}

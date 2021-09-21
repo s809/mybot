@@ -1,10 +1,9 @@
 /**
  * @file Keeps global bot state.
  */
-"use strict";
 
 import { readFileSync } from "fs";
-import { TextChannel, Client, Intents, Message } from "discord.js";
+import { Client, Intents, Message } from "discord.js";
 import { UserDataManager } from "./modules/data/UserDataManager.js";
 import { dirname } from "path";
 import { fileURLToPath } from "url";
@@ -37,12 +36,6 @@ export const data = new UserDataManager("./data", {
         }
     }
 });
-
-/** @type {Map<TextChannel, TextChannel>} */
-export const pendingClones = new Map();
-
-/** @type {Map<TextChannel, Message[]>} */
-export const messageBuffers = new Map();
 
 /**
  * Sets a new prefix for current bot process.

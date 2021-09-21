@@ -1,8 +1,5 @@
-"use strict";
-
-import Discord, { HTTPError, TextChannel } from "discord.js";
+import Discord, { HTTPError, MessageActionRow, TextChannel } from "discord.js";
 import { inspect } from "util";
-import { client, data } from "../../env.js";
 
 /**
  * Sends a message through webhook.
@@ -19,15 +16,21 @@ export async function sendWebhookMessage(msg, webhook) {
                 content = msg.type;
             }
 
-            await webhook.send({
-                username: msg.author.username,
+            return await webhook.send({
+                username: `${msg.member?.nickname ? msg.member.nickname + " aka " : ""}${msg.author.tag} (${msg.author.id})`,
                 avatarURL: msg.author.displayAvatarURL(),
                 content: content.length ? content : undefined,
                 embeds: msg.embeds.filter(embed => !embed.provider),
-                files: Array.from(msg.attachments.values(), att => att.url),
+                files: [...msg.attachments.values()].map(att => att.url),
+                components: msg.components.map(x =>
+                    new MessageActionRow({
+                        components: x.components.map(y =>
+                            y.setDisabled(true)
+                        )
+                    })
+                ),
                 disableMentions: "all"
             });
-            break;
         }
         catch (e) {
             if (!(e instanceof HTTPError)) {
@@ -40,32 +43,15 @@ export async function sendWebhookMessage(msg, webhook) {
 }
 
 /**
- * Sends a message through auto-selected webhook.
+ * Creates or finds suitable webhook and returns it.
  * 
- * @param {Discord.Message} msg Message to be sent through webhook.
+ * @param {TextChannel} channel
+ * @returns
  */
-export async function sendWebhookMessageAuto(msg) {
-    /** @type {import("../data/channelLinking.js").ChannelLink} */
-    let link = data.guilds[msg.guild.id].channels[msg.channelId].link;
-    /** @type {TextChannel} */
-    let destChannel = await client.channels.fetch(link.channelId);
+export async function getOrCreateWebhook(channel) {
+    const webhookName = "ChannelLink";
 
-    if (msg.channel === destChannel) {
-        if (msg.webhookId) return;
-        await msg.delete();
-    }
-
-    try {
-        let webhooks = await destChannel.fetchWebhooks();
-
-        let webhook = webhooks.find(webhook => webhook.name === "ChannelLink") ??
-            await destChannel.createWebhook("ChannelLink");
-
-        await sendWebhookMessage(msg, webhook);
-
-        link[msg.channel.id].lastMessageId = msg.id;
-    }
-    catch (e) {
-        link[msg.channel.id] = undefined;
-    }
+    let webhooks = await channel.fetchWebhooks();
+    return webhooks.find(webhook => webhook.name === webhookName) ??
+        await channel.createWebhook(webhookName);
 }

@@ -1,7 +1,6 @@
 /**
  * @file Provides functions for iterating by messages.
  */
-"use strict";
 
 import Discord from "discord.js";
 
@@ -33,7 +32,7 @@ async function* iterateMessagesFromTop(channel, oldestId, latestId, count) {
         firstMessageId = messages[0].id;
 
         for (let message of messages.reverse()) {
-            if (parseInt(message.id) > parseInt(latestId)) return;
+            if (BigInt(message.id) > BigInt(latestId)) return;
             yield message;
         }
 
@@ -51,7 +50,7 @@ async function* iterateMessagesFromTop(channel, oldestId, latestId, count) {
  * @yields Messages from a channel.
  */
 async function* iterateMessagesFromBottom(channel, latestId, oldestId, count) {
-    let lastMessageId = latestId ?? channel.lastMessageId;
+    let lastMessageId = (BigInt(latestId ?? channel.lastMessageId) + 1n).toString();
 
     // eslint-disable-next-line no-unmodified-loop-condition
     for (let collectedCount = 0; collectedCount < count || count === null; collectedCount += maxFetchMessages) {
@@ -67,7 +66,7 @@ async function* iterateMessagesFromBottom(channel, latestId, oldestId, count) {
         lastMessageId = messages[messages.length - 1].id;
 
         for (let message of messages) {
-            if (parseInt(message.id) < parseInt(oldestId)) return;
+            if (BigInt(message.id) <= BigInt(oldestId)) return;
             yield message;
         }
 
@@ -96,17 +95,17 @@ export default async function* iterateMessages(channel, startId = null, endId = 
     if (count !== null && (typeof count !== "number" || count < 1))
         throw new Error("Invalid count parameter.");
 
-    let iterateFunc;
+    let iterable;
     if (parseInt(startId) < parseInt(endId) || (startId && !endId))
-        iterateFunc = iterateMessagesFromTop(channel, startId, endId, count);
+        iterable = iterateMessagesFromTop(channel, startId, endId, count);
     else if (!startId && endId)
-        iterateFunc = iterateMessagesFromBottom(channel, endId, startId, count);
+        iterable = iterateMessagesFromBottom(channel, endId, startId, count);
     else
-        iterateFunc = iterateMessagesFromBottom(channel, startId, endId, count);
+        iterable = iterateMessagesFromBottom(channel, startId, endId, count);
 
     let message;
     try {
-        for await (message of iterateFunc)
+        for await (message of iterable)
             yield message;
     }
     catch (e) {

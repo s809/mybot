@@ -208,28 +208,37 @@ async function play(msg, url, startTimeOrPos) {
             await entry.updateStatus("Buffering...");
 
             let video = spawn("youtube-dl", [
-                "-f", "338/251/250/249/bestaudio/best",
+                "-f", "bestaudio/best",
                 "-o", "-",
                 currentVideo.url
             ]);
-            if (isDebug)
-                video.stderr.pipe(process.stderr);
-
+            
             let ffmpeg = spawn("ffmpeg", [
                 "-ss", startTimeOrPos ?? "0",
                 "-i", "-",
-                "-f", "opus",
-                "-b:a", "384k",
+                "-f", "matroska",
+                "-vn",
+                "-c:a", "copy",
                 "-"
             ]);
-            if (isDebug)
-                ffmpeg.stderr.pipe(process.stderr);
 
+            let videoStderr = "";
             video.stderr.setEncoding("utf8");
-            video.stderr.on("data", chunk => {
-                if (chunk.includes("ERROR"))
+            video.stderr.on("data", async chunk => {
+                videoStderr += chunk;
+                if (chunk.includes("ERROR")) {
                     ffmpeg.stdout.destroy();
+                    if (isDebug)
+                        throw new Error("Download failed.");
+                    else
+                        console.log(videoStderr);
+                }
             });
+
+            if (isDebug) {
+                video.stderr.pipe(process.stderr);
+                ffmpeg.stderr.pipe(process.stderr);
+            }
 
             let pipe = video.stdout.pipe(ffmpeg.stdin);
             pipe.on("error", () => { /* Ignored */ });

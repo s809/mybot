@@ -1,15 +1,22 @@
-"use strict";
+import { Message } from "discord.js";
+import { ChannelLinkRole, getLinkedChannel } from "../../modules/data/channelLinking.js";
+import { isCopying, stopCopying } from "../../modules/messages/messageCopying.js";
 
-import { pendingClones } from "../../env.js";
-
+/**
+ * 
+ * @param {Message} msg
+ * @returns
+ */
 async function stopBatchClone(msg) {
-    if (!pendingClones.has(msg.channel)) {
-        msg.channel.send("Clone is not pending.");
+    let link = getLinkedChannel(msg.guildId, msg.channelId);
+
+    if (!isCopying(link.channelId)) {
+        await msg.channel.send("Clone is not pending.");
         return false;
     }
 
-    pendingClones.delete(pendingClones.get(msg.channel));
-    pendingClones.delete(msg.channel);
+    stopCopying(link.role === ChannelLinkRole.DESTINATION ? msg.channelId : link.channelId);
+
     return true;
 }
 

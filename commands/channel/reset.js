@@ -1,14 +1,12 @@
-"use strict";
-
 import { Message } from "discord.js";
-import { isChannelMapped } from "../../modules/data/channelLinking.js";
+import { isChannelLinked } from "../../modules/data/channelLinking.js";
 
 /**
  * @param {Message} msg
  */
 async function resetChannel(msg) {
-    if (isChannelMapped(msg.guild.id, msg.channel.id)) {
-        await msg.channel.send("Unmirror channel first.");
+    if (isChannelLinked(msg.guild.id, msg.channel.id)) {
+        await msg.channel.send("Disable channel linking first.");
         return false;
     }
 

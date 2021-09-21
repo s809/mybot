@@ -1,7 +1,6 @@
-"use strict";
-
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "fs";
 import { writeFile } from "fs/promises";
+import { isDebug } from "../../env.js";
 
 /**
  * @typedef ItemRoot
@@ -20,14 +19,20 @@ export class UserDataManager {
         this.path = path;
         /** @type {any} Defines directory structure. */
         this.schema = schema;
-        /** @type {Map<string, ItemRoot>} */
-        this.itemsToSave = new Map();
+        
+        /**
+         * @type {Map<string, ItemRoot>}
+         * @private
+         */
+        this.cache = new Map();
+        /** @private */
+        this.saveLock = 0;
 
         this.readSchema(this, schema, `${this.path}/`);
 
         const onSave = () => this.saveData();
         const saveAndExit = () => {
-            this.saveDataSync();
+            this.saveDataSync(true);
             process.exit();
         };
 
@@ -70,14 +75,14 @@ export class UserDataManager {
      */
     ownKeys(path, extension) {
         let files = readdirSync(path).map(name => name.slice(0, -extension.length));
-        let cacheKeys = [...this.itemsToSave.keys()]
+        let cacheKeys = [...this.cache.keys()]
             .filter(x => x.startsWith(path))
             .map(x => x.slice(path.length, -extension.length));
         return [...new Set([...files, ...cacheKeys]).values()];
     }
 
     has(filepath) {
-        return this.itemsToSave.has(filepath) || existsSync(filepath);
+        return this.cache.has(filepath) || existsSync(filepath);
     }
 
     /**
@@ -90,8 +95,8 @@ export class UserDataManager {
             get: (target, name) => {
                 let filepath = `${path}${name}.txt`;
 
-                if (this.itemsToSave.has(filepath)) {
-                    let data = this.itemsToSave.get(filepath);
+                if (this.cache.has(filepath)) {
+                    let data = this.cache.get(filepath);
                     data.deleteFlag = false;
                     return data.src;
                 }
@@ -106,7 +111,7 @@ export class UserDataManager {
                         return undefined;
                     }
 
-                    this.itemsToSave.set(filepath, {
+                    this.cache.set(filepath, {
                         src: str,
                         deleteFlag: false
                     });
@@ -117,7 +122,7 @@ export class UserDataManager {
             set: (target, name, value) => {
                 let filepath = `${path}${name}.txt`;
 
-                this.itemsToSave.set(filepath, {
+                this.cache.set(filepath, {
                     src: value,
                     deleteFlag: false
                 });
@@ -126,7 +131,7 @@ export class UserDataManager {
             },
             deleteProperty: (_target, name) => {
                 let filepath = `${path}${name}.txt`;
-                this.itemsToSave.delete(filepath);
+                this.cache.delete(filepath);
                 rmSync(filepath, { force: true });
                 return true;
             },
@@ -161,9 +166,15 @@ export class UserDataManager {
                 ownKeys: () => Object.keys(src),
                 has: (_target, name) => name in src
             };
-            let proxy = new Proxy({}, handler);
+
+            let proxy = new Proxy({
+                _getSrc: () => src
+            }, handler);
 
             handler.set = (target, name, value) => {
+                // Restore source object from data proxy
+                value = value?._getSrc?.() ?? value;
+
                 root.deleteFlag = false;
                 root.modified = true;
 
@@ -183,14 +194,14 @@ export class UserDataManager {
                 let filepath = `${path}${name}.json`;
 
                 // If object is cached, return it and update flag
-                if (this.itemsToSave.has(filepath)) {
-                    let root = this.itemsToSave.get(filepath);
-                    root.deleteFlag = false;
+                if (this.cache.has(filepath)) {
+                    let item = this.cache.get(filepath);
+                    item.deleteFlag = false;
 
-                    let proxy = root.accessor?.deref();
+                    let proxy = item.accessor?.deref();
                     if (proxy === undefined) {
-                        proxy = createProxy(root.src, root);
-                        root.accessor = new WeakRef(proxy);
+                        proxy = createProxy(item.src, item);
+                        item.accessor = new WeakRef(proxy);
                     }
 
                     return proxy;
@@ -199,7 +210,8 @@ export class UserDataManager {
                 let str;
                 try {
                     str = readFileSync(filepath, "utf8");
-                } catch (e) {
+                }
+                catch (e) {
                     if (e.code !== "ENOENT")
                         throw e;
                     return undefined;
@@ -213,7 +225,7 @@ export class UserDataManager {
                 let proxy = createProxy(root.src, root);
                 root.accessor = new WeakRef(proxy);
 
-                this.itemsToSave.set(filepath, root);
+                this.cache.set(filepath, root);
                 return proxy;
             },
             set: (_target, name, value) => {
@@ -226,12 +238,12 @@ export class UserDataManager {
                     modified: true
                 };
 
-                this.itemsToSave.set(filepath, root);
+                this.cache.set(filepath, root);
                 return true;
             },
             deleteProperty: (_target, name) => {
                 let filepath = `${path}${name}.json`;
-                this.itemsToSave.delete(filepath);
+                this.cache.delete(filepath);
                 rmSync(filepath, { force: true });
                 return true;
             },
@@ -241,10 +253,26 @@ export class UserDataManager {
     }
 
     async saveData() {
+        if (this.saveLock !== 0) {
+            this.saveLock++;
+            return;
+        }
+
+        let saveLock = this.saveLock;
         await this.saveDataInternal(writeFile);
+
+        while (saveLock !== this.saveLock) {
+            saveLock = this.saveLock;
+            await this.saveDataInternal(writeFile, false);
+        }
     }
 
-    saveDataSync() {
+    saveDataSync(exiting = false) {
+        if (this.saveLock !== 0 && !exiting) {
+            this.saveLock++;
+            return;
+        }
+
         this.saveDataInternal(writeFileSync);
     }
 
@@ -252,34 +280,43 @@ export class UserDataManager {
      * Saves data.
      * 
      * @private
-     * @param {(file: string, data: string) => void | Promise<void>} writeFileFunction Function for writing to file.
+     * @param {(file: string, data: string) => (void | Promise<void>)} writeFileFunction Function for writing to file.
+     * @param {boolean} markAndDelete Whether to mark and delete items from cache.
      */
-    async saveDataInternal(writeFileFunction) {
-        for (let [path, root] of this.itemsToSave) {
-            if (root.deleteFlag) {
-                this.itemsToSave.delete(path);
-                continue;
-            }
-            else {
-                root.deleteFlag = true;
+    async saveDataInternal(writeFileFunction, markAndDelete = true) {
+        if (isDebug)
+            console.log(`Saving data... (${writeFileFunction.name})`);
+
+        for (let [path, item] of this.cache) {
+            if (markAndDelete) {
+                if (item.deleteFlag) {
+                    this.cache.delete(path);
+                    continue;
+                }
+                else {
+                    item.deleteFlag = true;
+                }
             }
 
             let promise;
-            switch (typeof root.src) {
+            switch (typeof item.src) {
                 case "string":
-                    promise = writeFileFunction(path, root.src);
+                    promise = writeFileFunction(path, item.src);
                     break;
                 case "object":
-                    if (root.accessor?.deref() !== undefined)
-                        root.deleteFlag = false;
-                    if (root.modified) {
-                        promise = writeFileFunction(path, JSON.stringify(root.src, null, 2));
-                        root.modified = false;
+                    if (item.accessor?.deref() !== undefined)
+                        item.deleteFlag = false;
+                    if (item.modified) {
+                        promise = writeFileFunction(path, JSON.stringify(item.src, null, 2));
+                        item.modified = false;
                     }
                     break;
             }
             if (promise instanceof Promise)
                 await promise;
         }
+
+        if (isDebug)
+            console.log("Saved.");
     }
 }

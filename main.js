@@ -6,8 +6,6 @@ import { inspect } from "util";
 import {
     client,
     data,
-    messageBuffers,
-    pendingClones,
     version,
     prefix,
     owner,
@@ -16,7 +14,7 @@ import {
     isDebug,
     musicPlayingGuilds
 } from "./env.js";
-import cloneChannel from "./modules/messages/cloneChannel.js";
+import fetchAndCopyMessages from "./modules/messages/fetchAndCopyMessages.js";
 import { loadCommands, resolveCommand } from "./modules/commands/commands.js";
 import {
     onChannelCreate,
@@ -29,13 +27,12 @@ import {
     onRoleRemove
 } from "./modules/data/dataSync.js";
 import botEval from "./modules/misc/eval.js";
-import { getMappedChannelEntries } from "./modules/data/channelLinking.js";
+import { ChannelLinkRole, getLinks } from "./modules/data/channelLinking.js";
 import { isCommandAllowedToUse } from "./modules/commands/permissions.js";
 import sendLongText from "./modules/messages/sendLongText.js";
-import { sendWebhookMessageAuto } from "./modules/messages/sendWebhookMessage.js";
 import { sanitizePaths, wrapText } from "./util.js";
 import { hasFlag } from "./modules/data/flags.js";
-import { AudioPlayerStatus } from "@discordjs/voice";
+import { copyMessageToLinkedChannel, initBuffer } from "./modules/messages/messageCopying.js";
 
 client.on("ready", async () => {
     console.log(`Logged in as ${client.user.tag}.`);
@@ -46,10 +43,14 @@ client.on("ready", async () => {
         }]
     });
 
+    // Initialize buffers to get real time messages stay there until launch copy is started
+    Object.getOwnPropertyNames(data.guilds)
+        .flatMap(guildId => getLinks(guildId, ChannelLinkRole.DESTINATION))
+        .forEach(([id]) => initBuffer(id));
+
     // Add new guilds
-    for (let guild of client.guilds.cache.values()) {
+    for (let guild of client.guilds.cache.values())
         await onGuildCreate(guild);
-    }
 
     // Remove missing guilds
     for (let guildId of Object.keys(data.guilds)) {
@@ -77,11 +78,13 @@ client.on("ready", async () => {
         });
     }
 
-    console.log("Syncing channels...");
+    console.log("Pre-fetching linked messages...");
     await Promise.all(
-        Object.keys(data.guilds).flatMap(guildId => getMappedChannelEntries(data.guilds[guildId]))
-            .map(entry => cloneChannel(entry[0], entry[1].lastMessageId)));
-    console.log("All channels are synced.");
+        Object.getOwnPropertyNames(data.guilds)
+            .flatMap(guildId => getLinks(guildId, ChannelLinkRole.SOURCE))
+            .map(([id, link]) => fetchAndCopyMessages(id, link))
+    );
+    console.log("Started copying channels.");
 });
 
 client.on("guildCreate", onGuildCreate);
@@ -104,11 +107,9 @@ client.on("voiceStateUpdate", (oldState, newState) => {
     }
 
     let memberCount = voiceState.channel.members.size;
-    if (memberCount === 2 && oldState.channelId && newState.channelId !== voiceState.channelId) return;
-
     if (memberCount === 1)
         player.pause();
-    else if (memberCount === 2)
+    else if (memberCount === 2 && (!oldState.channelId || newState.channelId === voiceState.channelId))
         player.unpause();
 });
 
@@ -116,15 +117,9 @@ client.on("messageCreate", async msg => {
     if (msg.guild) {
         /** @type {import("./modules/data/channelLinking.js").ChannelLink} */
         let link = data.guilds[msg.guildId].channels[msg.channelId].link;
-        if (link) {
-            let buffer = messageBuffers.get(msg.channel);
-            if (buffer && await client.channels.fetch(link.channelId) === pendingClones.get(msg.channel)) {
-                buffer.unshift(msg);
-            }
-            else {
-                await sendWebhookMessageAuto(msg);
-            }
-        }
+
+        if (link?.role === ChannelLinkRole.SOURCE)
+            await copyMessageToLinkedChannel(msg);
     }
 
     if (msg.author.bot || msg.webhookId) return;
@@ -154,7 +149,7 @@ client.on("messageCreate", async msg => {
     if (command && !isCommandAllowedToUse(msg, command)) return;
 
     if (!command || !command.func) {
-        if (msg.guild && !hasFlag(data.guilds[msg.guild.id].channels[msg.channel.id], "evalmode")) return;
+        if (msg.guild && !hasFlag(data.guilds[msg.guildId].channels[msg.channelId], "evalmode")) return;
 
         if (isCommandAllowedToUse(msg, resolveCommand("owner/evalmode")))
             await botEval(msg);
@@ -177,21 +172,29 @@ client.on("messageCreate", async msg => {
 
     try {
         let reaction = await msg.react("🔄");
-        /** @type {boolean} */
+        /** @type {boolean | string} */
         let ret;
 
         try {
             ret = await command.func(msg, ...args);
+
+            // TODO
+            // if (["string", "undefined"].includes(typeof ret))
+            //     throw new Error("todo");
+
+            if (!msg.deleted) {
+                await Promise.allSettled([
+                    msg.react(typeof ret !== "string" && ret ? "✅" : "❌"),
+                    reaction.users.remove(),
+                    (async () => {
+                        if (typeof ret === "string")
+                            await msg.channel.send(ret);
+                    })()
+                ]);
+            }
         }
         catch (e) {
             await sendLongText(msg.channel, sanitizePaths(e.stack));
-        }
-
-        if (!msg.deleted) {
-            await Promise.allSettled([
-                msg.react(ret ? "✅" : "❌"),
-                reaction.users.remove()
-            ]);
         }
     }
     catch (e) {
@@ -201,6 +204,7 @@ client.on("messageCreate", async msg => {
 
 (async () => {
     let token = "NzMzMjEyMjczNjkwMTQ4OTA0.Xw_3JA.7bDfmT2CPQySe9xIYgrJAb4yEGM";
+
     if (process.argv.indexOf("--debug") >= 0) {
         token = "ODA5NDUxMzYzNzg0MzI3MjQ4.YCVSVA.J8BPawVSK4AgFvMQhLwiIZcVsUQ";
         enableDebug();

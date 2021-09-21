@@ -2,7 +2,10 @@ import { Guild, GuildChannel, GuildMember, Role, User } from "discord.js";
 import { data } from "../../env.js";
 import { unlinkChannel } from "./channelLinking.js";
 
-/** @typedef {import("discord.js").Snowflake} Snowflake */
+/**
+ * @typedef {import("discord.js").Snowflake} Snowflake
+ * @private
+ */
 
 /**
  * @param {GuildChannel} channel
@@ -66,7 +69,8 @@ export function onMemberCreate(member) {
     createUser(member.user);
 
     data.guilds[member.guild.id].members[member.id] = {
-        allowedCommands: []
+        allowedCommands: [],
+        ...data.guilds[member.guild.id].members[member.id]
     };
 }
 
@@ -87,8 +91,6 @@ export function onMemberRemove(member) {
  */
 export async function onGuildCreate(guild) {
     data.guilds[guild.id] = {
-        /** @deprecated */
-        mappedChannels: {},
         roles: {},
         members: {},
         channels: {},
@@ -106,7 +108,7 @@ export async function onGuildCreate(guild) {
         if (!guild.channels.resolve(channelId))
             onChannelRemove({
                 id: channelId,
-                guild: guild
+                guildId: guild.id
             });
     }
 
@@ -149,6 +151,4 @@ export function onGuildRemove(guild) {
             id: channel,
             guildId: guild.id
         });
-    
-    delete data.guilds[guild.id];
 }
