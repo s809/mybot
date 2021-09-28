@@ -20,8 +20,6 @@ export async function loadCommands() {
     commands ??= await importCommands(pathToFileURL(botDirectory + "/commands/foo").toString());
 }
 
-export const makeSubCommands = () => undefined;
-
 /**
  * Resolves command by its path.
  * 

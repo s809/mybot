@@ -32,7 +32,7 @@ async function* iterateMessagesFromTop(channel, oldestId, latestId, count) {
         firstMessageId = messages[0].id;
 
         for (let message of messages.reverse()) {
-            if (BigInt(message.id) > BigInt(latestId)) return;
+            if (BigInt(message.id) > BigInt(latestId ?? Number.MAX_SAFE_INTEGER)) return;
             yield message;
         }
 
@@ -66,7 +66,7 @@ async function* iterateMessagesFromBottom(channel, latestId, oldestId, count) {
         lastMessageId = messages[messages.length - 1].id;
 
         for (let message of messages) {
-            if (BigInt(message.id) <= BigInt(oldestId)) return;
+            if (BigInt(message.id) <= BigInt(oldestId ?? 0)) return;
             yield message;
         }
 
@@ -109,7 +109,7 @@ export default async function* iterateMessages(channel, startId = null, endId = 
             yield message;
     }
     catch (e) {
-        e.message += `\nMessage: ${message.url}`;
+        e.message += `\nMessage: ${message?.url}`;
         throw e;
     }
 }

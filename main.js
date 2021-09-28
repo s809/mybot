@@ -89,10 +89,16 @@ client.on("ready", async () => {
 
 client.on("guildCreate", onGuildCreate);
 client.on("guildDelete", onGuildRemove);
+
 client.on("roleCreate", onRoleCreate);
 client.on("roleDelete", onRoleRemove);
+
 client.on("channelCreate", onChannelCreate);
 client.on("channelDelete", onChannelRemove);
+
+client.on("threadCreate", onChannelCreate);
+client.on("threadDelete", onChannelRemove);
+
 client.on("guildMemberAdd", onMemberCreate);
 client.on("guildMemberRemove", onMemberRemove);
 

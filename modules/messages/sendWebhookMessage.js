@@ -52,6 +52,6 @@ export async function getOrCreateWebhook(channel) {
     const webhookName = "ChannelLink";
 
     let webhooks = await channel.fetchWebhooks();
-    return webhooks.find(webhook => webhook.name === webhookName) ??
-        await channel.createWebhook(webhookName);
+    return webhooks.find(webhook => webhook.name.startsWith(webhookName) && webhook.token) ??
+        await channel.createWebhook(`${webhookName}_${Date.now()}`);
 }
