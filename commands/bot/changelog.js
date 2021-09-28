@@ -26,6 +26,9 @@ function prepareChangelog() {
             hardVersion = execSync(`git grep --only-matching "\\"v.*\\"" HEAD~${i} -- main.js env.js`, { encoding: "utf8" })
                 .split("\"")[1]
                 .slice(1);
+            
+            if (!hardVersion.match(/\d(\.\d)+/))
+                hardVersion = undefined;
         }
         catch {
             hardVersion = "";
