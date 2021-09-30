@@ -17,8 +17,11 @@ import { data, isDebug } from "../../env.js";
  */
 async function restart(msg) {
     data.saveDataSync();
+
     if (!isDebug)
-        execSync("git pull && npm install && ./mybot.sh --nokill");
+        execSync("git pull && npm install");
+    if (process.argv.includes("--started-by-script"))
+        execSync("./mybot.sh --nokill");
 
     await msg.react("✅");
     process.exit();
