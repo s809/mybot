@@ -14,16 +14,12 @@ import { musicPlayingGuilds } from "../../env.js";
  */
 async function skip(msg) {
     let entry = musicPlayingGuilds.get(msg.guild);
-    if (!entry) {
-        await msg.channel.send("Nothing is not playing here.");
-        return false;
-    }
+    if (!entry)
+        return "Nothing is not playing here.";
 
     // Destroying current entry *always* leads to moving player to next song.
     entry.readable.destroy();
     entry.player.unpause();
-
-    return true;
 }
 
 export const name = "skip";

@@ -15,14 +15,12 @@ async function getLinkedChannels(msg) {
 
         if (ids.has(fromChannel.id)) continue;
         ids.add(fromChannel.id);
-        
+
         response += `${fromChannel} (${fromChannel.guild}) => ${toChannel} (${toChannel.guild})\n`;
     }
 
     if (response !== "")
         await msg.channel.send(response);
-
-    return true;
 }
 
 export const name = "list";

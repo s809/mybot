@@ -25,7 +25,6 @@ async function createServer(msg) {
     let channel = [...guild.channels.cache.values()].find(channel => channel instanceof TextChannel);
     let invite = await channel.createInvite();
     await msg.channel.send(invite.url);
-    return true;
 }
 
 export const name = "create";

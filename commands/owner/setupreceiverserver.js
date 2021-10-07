@@ -27,7 +27,6 @@ async function setupReceiverServer(msg) {
     "toGuild": "${msg.guild.id}",
     "maxInitMessages": 0
 }\`\`\``);
-    return true;
 }
 
 export const name = "setupreceiverserver";

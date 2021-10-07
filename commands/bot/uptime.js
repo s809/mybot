@@ -3,8 +3,7 @@
 import os from "os";
 import { client } from "../../env.js";
 
-function getUptimeStr(diff)
-{
+function getUptimeStr(diff) {
     var days = Math.floor(diff / (1000 * 60 * 60 * 24));
     diff -= days * (1000 * 60 * 60 * 24);
 
@@ -25,7 +24,6 @@ async function uptime(msg) {
     let host = new Date(os.uptime() * 1000);
 
     await msg.channel.send(`Bot uptime: ${getUptimeStr(bot)}\nHost uptime: ${getUptimeStr(host)}`);
-    return true;
 }
 
 export const name = "uptime";

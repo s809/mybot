@@ -9,23 +9,16 @@ import { data } from "../../env.js";
  * @param {string} name
  */
 async function createScript(msg, type, name) {
-    if (!(type in data.scripts)) {
-        await msg.channel.send("Invalid script type.");
-        return false;
-    }
+    if (!(type in data.scripts))
+        return "Invalid script type.";
 
-    if (name.match(/[/\\]/)) {
-        await msg.channel.send("Invalid script name.");
-        return false;
-    }
+    if (name.match(/[/\\]/))
+        return "Invalid script name.";
 
-    if (name in data.scripts[type]) {
-        await msg.channel.send("Script with this name already exists.");
-        return false;
-    }
+    if (name in data.scripts[type])
+        return "Script with this name already exists.";
 
     data.scripts[type][name] = msg.content.slice(msg.content.indexOf(name, msg.content.indexOf(type) + type.length) + name.length).trimStart();
-    return true;
 }
 
 export const name = "create";

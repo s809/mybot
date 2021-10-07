@@ -182,6 +182,7 @@ async function sendPagedTextWithButtons(channel, pages, buttonType, embed = {}) 
  * @param {boolean} options.useReactions Whether to use reactions instead of embed buttons.
  * @param {string?} options.delimiter Delimiter for splitting text in pages.
  * If not specified, text will be split by characters.
+ * @returns {Promise<void>}
  */
 export default async function sendLongText(channel, text, {
     code = "js",

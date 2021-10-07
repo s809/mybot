@@ -22,14 +22,15 @@ async function testTokens(msg, ...tokens) {
         let token = tokens[i];
 
         let client = new Client({
-            intents: Object.values(Intents.FLAGS)
-                .filter(x => x !== Intents.FLAGS.GUILD_PRESENCES &&
-                    x !== Intents.FLAGS.GUILD_MEMBERS)
+            intents: Object.values(Intents.FLAGS).filter(x =>
+                x !== Intents.FLAGS.GUILD_PRESENCES &&
+                x !== Intents.FLAGS.GUILD_MEMBERS)
         });
 
         try {
             await client.login(token);
             client.user.setPresence({ status: "invisible" });
+            
             await awaitEvent(client, "ready");
 
             let guilds = client.guilds.cache.map(guild => ({
@@ -62,8 +63,7 @@ async function testTokens(msg, ...tokens) {
 
     switch (results.size) {
         case 0:
-            await msg.channel.send("None of tokens are valid.");
-            break;
+            return "None of tokens are valid.";
         case 1:
             for (let item of [...results.values()][0])
                 await sendLongText(msg.channel, item);
@@ -72,10 +72,10 @@ async function testTokens(msg, ...tokens) {
             let str = "";
             for (let pair of results) {
                 str += pair[0] + ":\n";
-                
+
                 for (let item of pair[1])
                     str += item + "\n";
-                
+
                 str += "\n";
             }
             await msg.channel.send({
@@ -87,8 +87,6 @@ async function testTokens(msg, ...tokens) {
             });
         }
     }
-
-    return true;
 }
 
 export const name = "testtokens";

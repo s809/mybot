@@ -5,10 +5,8 @@ import { isChannelLinked } from "../../modules/data/channelLinking.js";
  * @param {Message} msg
  */
 async function resetChannel(msg) {
-    if (isChannelLinked(msg.guild.id, msg.channel.id)) {
-        await msg.channel.send("Disable channel linking first.");
-        return false;
-    }
+    if (isChannelLinked(msg.guild.id, msg.channel.id))
+        return "Disable channel linking first.";
 
     await Promise.all([
         (async () => {
@@ -17,8 +15,6 @@ async function resetChannel(msg) {
         })(),
         msg.channel.delete()
     ]);
-    
-    return true;
 }
 
 export const name = "reset";

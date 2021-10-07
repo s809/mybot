@@ -8,18 +8,17 @@ import sendLongText from "../../modules/messages/sendLongText.js";
  * @param {Message} msg
  */
 async function listScripts(msg) {
-    let str = "";
+    let result = "";
 
     for (let type of Object.keys(data.scripts)) {
-        str += `${type}:\n`;
+        result += `${type}:\n`;
 
         for (let name of Object.getOwnPropertyNames(data.scripts[type])) {
-            str += `- ${name}\n`;
+            result += `- ${name}\n`;
         }
     }
 
-    await sendLongText(msg.channel, str.slice(0, -1));
-    return true;
+    await sendLongText(msg.channel, result.slice(0, -1));
 }
 
 export const name = "list";

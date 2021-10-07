@@ -14,7 +14,6 @@ import sendLongText from "../../modules/messages/sendLongText.js";
  */
 async function test(msg) {
     await sendLongText(msg.channel, "ab".repeat(1500) + "\n" + "cd".repeat(2500));
-    return true;
 }
 
 export const name = "test";

@@ -33,8 +33,7 @@ async function permissionList(msg, id) {
         assert(resolvedType);
     }
     catch (e) {
-        await msg.channel.send("Invalid ID was provided.");
-        return false;
+        return "Invalid ID was provided.";
     }
 
     /** @type {string[]} */
@@ -93,8 +92,6 @@ async function permissionList(msg, id) {
             fields: fields
         }]
     });
-
-    return true;
 }
 
 export const name = "list";

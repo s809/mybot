@@ -9,7 +9,7 @@
     "better-sqlite3": "^7.4.1",
     "discord.js": "^13.0.0-dev.4206e35.1626350625",
     "node-fetch": "^2.6.1",
-    "sodium": "^3.0.2"
+    "tweetnacl": "^1.0.3"
   },
   "devDependencies": {
     "eslint": "^7.30.0",

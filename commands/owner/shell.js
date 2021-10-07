@@ -5,12 +5,17 @@ import { promisify } from "util";
 const exec = promisify(_exec);
 import sendLongText from "./../../modules/messages/sendLongText.js";
 
+/**
+ * @param {import("discord.js").Message} msg 
+ */
 async function shell(msg) {
-    let command = `"${[...arguments].slice(1).join("\" \"")}"`;
+    let command = msg.content.slice(msg.content.indexOf(name) + name.length).trimStart();
     let { stdout, stderr } = await exec(command, { encoding: "utf8" });
-    await sendLongText(msg.channel, "--- stdout ---\n" + stdout);
-    await sendLongText(msg.channel, "--- stderr ---\n" + stderr);
-    return true;
+    
+    if (stdout.length)
+        await sendLongText(msg.channel, "--- stdout ---\n" + stdout);
+    if (stderr.length)
+        await sendLongText(msg.channel, "--- stderr ---\n" + stderr);
 }
 
 export const name = "shell";

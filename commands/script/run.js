@@ -1,32 +1,26 @@
 "use strict";
 
 import { Message } from "discord.js";
-import { data, prefix } from "../../env.js";
-import botEval from "../../modules/misc/eval.js";
+import { data } from "../../env.js";
+import { botEval } from "../../modules/misc/eval.js";
+import { sanitizePaths } from "../../util.js";
+import sendLongText from "../../modules/messages/sendLongText.js";
 
 /**
  * @param {Message} msg
  * @param {string} name
  */
 async function runScript(msg, name) {
-    if (name.match(/[/\\]/)) {
-        await msg.channel.send("Invalid script name.");
-        return false;
-    }
+    if (name.match(/[/\\]/))
+        return "Invalid script name.";
 
-    if (!(name in data.scripts.callable)) {
-        await msg.channel.send("Script with this name does not exist.");
-        return;
-    }
+    if (!(name in data.scripts.callable))
+        return "Script with this name does not exist.";
 
-    await botEval({
-        content: prefix + data.scripts.callable[name],
-        delete: msg.delete,
-        channel: msg.channel,
-        guild: msg.guild,
-        client: msg.client,
-    });
-    return true;
+    await sendLongText(msg.channel, sanitizePaths(await botEval(data.scripts.callable[name], {
+        msg: msg,
+        client: msg.client
+    })));
 }
 
 export const name = "run";

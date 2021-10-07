@@ -26,10 +26,10 @@ function makeSubCommands(modules) {
  * @returns Imported commands.
  */
 export async function importCommands(modulePath) {
-    let dir = fileURLToPath(dirname(modulePath));
+    let dir = dirname(modulePath);
     let modules = [];
 
-    for (let entry of (await readdir(dir, { withFileTypes: true }))
+    for (let entry of (await readdir(fileURLToPath(dir), { withFileTypes: true }))
         .filter(entry => entry.name !== "index.js")) {
         if (isDebug)
             console.log(`${dir}/${entry.name}${entry.isDirectory() ? `/index.js` : ""}`);

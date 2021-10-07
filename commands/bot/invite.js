@@ -8,7 +8,6 @@ async function botInvite(msg) {
         scopes: ["bot"],
         permissions: Permissions.ALL
     }));
-    return true;
 }
 
 export const name = "invite";

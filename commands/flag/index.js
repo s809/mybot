@@ -13,14 +13,10 @@ import { resolveItem, toggleFlag } from "../../modules/data/flags.js";
 async function flag(msg, id, flag) {
     let resolvedItem = await resolveItem(msg, id);
 
-    if (!resolvedItem) {
-        await msg.channel.send("Unknown item.");
-        return false;
-    }
+    if (!resolvedItem)
+        return "Unknown item.";
 
     toggleFlag(resolvedItem.dataEntry, flag);
-    
-    return true;
 }
 
 export const name = "flag";

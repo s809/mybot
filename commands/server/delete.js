@@ -2,7 +2,6 @@
 
 async function deleteServer(msg) {
     await msg.guild.delete();
-    return true;
 }
 
 export const name = "delete";

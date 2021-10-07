@@ -13,15 +13,11 @@ import { musicPlayingGuilds } from "../../env.js";
  * @returns {boolean} Whether the execution was successful.
  */
 async function pause(msg) {
-    if (!musicPlayingGuilds.has(msg.guild)) {
-        await msg.channel.send("Nothing is not playing here.");
-        return false;
-    }
+    if (!musicPlayingGuilds.has(msg.guild))
+        return "Nothing is not playing here.";
 
     let entry = musicPlayingGuilds.get(msg.guild);
     entry.player.pause();
-
-    return true;
 }
 
 export const name = "pause";

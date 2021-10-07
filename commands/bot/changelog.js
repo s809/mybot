@@ -6,7 +6,7 @@
 import { execSync } from "child_process";
 import sendLongText from "../../modules/messages/sendLongText.js";
 import Discord from "discord.js";
-import { version as currentVersion } from "../../env.js";
+import { version as currentVersion, isDebug } from "../../env.js";
 
 /**
  * Prepares bot changelog based on Git commits.
@@ -14,6 +14,11 @@ import { version as currentVersion } from "../../env.js";
  * @returns {string} Changelog text.
  */
 function prepareChangelog() {
+    if (isDebug)
+        return "*Not loaded in debug mode*";
+    
+    console.log("Preparing changelog...");
+
     let commitCount = parseInt(execSync("git rev-list --count HEAD", { encoding: "utf8" }));
 
     let str = `${currentVersion}:\n`;
@@ -59,6 +64,7 @@ function prepareChangelog() {
     }
     str += `\n${lastVersion}:\n${lastMessage.slice(0, -1)}`;
 
+    console.log("Finished.");
     return str;
 }
 
@@ -75,7 +81,6 @@ async function changelog(msg) {
         code: null,
         splitByLines: true
     });
-    return true;
 }
 
 export const name = "changelog";

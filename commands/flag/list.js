@@ -9,10 +9,8 @@ import { resolveItem } from "../../modules/data/flags.js";
 async function flagList(msg, id) {
     let resolvedItem = await resolveItem(msg, id);
 
-    if (!resolvedItem) {
-        await msg.channel.send("Unknown item.");
-        return false;
-    }
+    if (!resolvedItem)
+        return "Unknown item.";
 
     let flagStr = resolvedItem.dataEntry.flags.join("\n");
     if (!flagStr.length)
@@ -24,8 +22,6 @@ async function flagList(msg, id) {
             description: flagStr
         }]
     });
-
-    return true;
 }
 
 export const name = "list";

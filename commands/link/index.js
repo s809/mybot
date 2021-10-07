@@ -22,16 +22,14 @@ async function createLink(msg, idArg) {
         return "Unknown channel.";
     
     if (isChannelLinked(channel.guildId, channel.id))
-        return "Cannot mirror to mirror channel.";
+        return "Cannot link to a linked channel.";
     if (isChannelLinked(msg.guildId, msg.channel.id))
-        return "Channel is already mirrored.";
+        return "Channel is already linked.";
 
     await linkChannel(msg.channel, channel);
 
     if (msg.channel !== channel)
         await channel.send(`${msg.channel} is linked here.`);
-
-    return true;
 }
 
 export const name = "link";

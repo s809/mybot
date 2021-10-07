@@ -12,10 +12,8 @@ import { isCommandAllowedToManage } from "../../modules/commands/permissions.js"
  * @param {string} commandPath
  */
 async function permission(msg, id, commandPath) {
-    if (!isCommandAllowedToManage(msg, resolveCommand(commandPath))) {
-        await msg.channel.send("You don't have permission to manage this command.");
-        return false;
-    }
+    if (!isCommandAllowedToManage(msg, resolveCommand(commandPath)))
+        return "You don't have permission to manage this command.";
 
     /** @type {"user" | "role" | "member"} */
     let resolvedType;
@@ -30,8 +28,7 @@ async function permission(msg, id, commandPath) {
             resolvedType = "user";
     }
     catch (e) {
-        await msg.channel.send("Invalid ID was provided.");
-        return false;
+        return "Invalid ID was provided.";
     }
 
     /** @type {{ allowedCommands: string[] }} */
@@ -39,10 +36,8 @@ async function permission(msg, id, commandPath) {
     switch (resolvedType) {
         case "user":
             // Users can only be managed by bot owner.
-            if (msg.author.id !== owner) {
-                await msg.channel.send("You don't have permission to manage this type of target.");
-                return false;
-            }
+            if (msg.author.id !== owner)
+                return "You don't have permission to manage this type of target.";
 
             data.users[id] ??= {
                 allowedCommands: []
@@ -61,7 +56,6 @@ async function permission(msg, id, commandPath) {
         resolvedItem.allowedCommands.push(commandPath);
     else
         resolvedItem.allowedCommands.splice(resolvedItem.allowedCommands.indexOf(commandPath));
-    return true;
 }
 
 export const name = "permission";

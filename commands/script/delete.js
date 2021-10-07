@@ -9,23 +9,16 @@ import { data } from "../../env.js";
  * @param {string} name
  */
 async function deleteScript(msg, type, name) {
-    if (!(type in data.scripts)) {
-        await msg.channel.send("Invalid script type.");
-        return;
-    }
+    if (!(type in data.scripts))
+        return "Invalid script type.";
 
-    if (name.match(/[/\\]/)) {
-        await msg.channel.send("Invalid script name.");
-        return false;
-    }
+    if (name.match(/[/\\]/))
+        return "Invalid script name.";
 
-    if (!(name in data.scripts[type])) {
-        await msg.channel.send("Script with this name does not exist.");
-        return;
-    }
+    if (!(name in data.scripts[type]))
+        return "Script with this name does not exist.";
 
     delete data.scripts[type][name];
-    return true;
 }
 
 export const name = "delete";

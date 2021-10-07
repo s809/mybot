@@ -108,8 +108,6 @@ async function cloneServer(msg, fromGuild, mode) {
 
     if (didSkipChannels)
         await msg.channel.send("Some channels were skipped as this server is not community-enabled.");
-
-    return true;
 }
 
 export const name = "clone";

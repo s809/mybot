@@ -12,7 +12,6 @@
                 "<node_internals>/**"
             ],
             "program": "${workspaceFolder}/main.js",
-            "args": ["--debug"],
             "console": "integratedTerminal"
         }
     ]

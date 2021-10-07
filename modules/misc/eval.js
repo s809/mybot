@@ -1,41 +1,39 @@
 "use strict";
 
-import Discord from "discord.js";
 import { inspect } from "util";
-import { prefix } from "../../env.js";
-import { sanitizePaths } from "../../util.js";
-import sendLongText from "../messages/sendLongText.js";
+import { Client, Message } from "discord.js";
 
 /**
- * Evaluate code from message content.
+ * Evaluate code from text.
  * Auto-detects if evaluated code is one- or multi-statement.
  * 
- * @param {Discord.Message} msg Message with text to evaluate.
+ * @param {string} code Text to evaluate.
+ * @param {{
+ *  msg: Message;
+ *  client: Client;
+ * }} context Context to use.
  */
-export default async function botEval(msg) {
+export async function botEval(code, { msg, client }) {
+    let response;
+
+    // Ignore unused variables
+    void (msg, client);
+
     try {
-        let expr = msg.content.slice(prefix.length);
-        let response;
-
         try {
-            try {
-                response = await eval(`(async () => ${expr})();`);
-            } catch (e) {
-                if (!(e instanceof SyntaxError))
-                    throw e;
-
-                response = await eval(`(async () => {\n${expr}\n})();`);
-            }
+            response = await eval(`(async () => ${code})();`);
         } catch (e) {
-            if (msg.channel.deleted)
+            if (!(e instanceof SyntaxError))
                 throw e;
-            response = e;
-        }
 
-        if (typeof response !== "string")
-            response = inspect(response, { depth: 1 });
-        await sendLongText(msg.channel, sanitizePaths(response));
+            response = await eval(`(async () => {\n${code}\n})();`);
+        }
     } catch (e) {
-        console.log(e);
+        response = e;
     }
+
+    if (typeof response !== "string")
+        response = inspect(response, { depth: 1 });
+
+    return response;
 }

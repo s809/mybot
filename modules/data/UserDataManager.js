@@ -11,9 +11,27 @@ import { isDebug } from "../../env.js";
  */
 
 /**
+ * @typedef {{
+ *  [children: string]: UserDataSchemaNode;
+ *  fileType?: string;
+ * }} UserDataSchemaNode
+ */
+
+/**
+ * @typedef {{
+ *  [nodes: string]: UserDataSchemaNode;
+ *  fileType: never;
+ * }} UserDataSchema
+ */
+
+/**
  * Provides automatic saving and serialization of data.
  */
 export class UserDataManager {
+    /**
+     * @param {string} path 
+     * @param {UserDataSchema} schema 
+     */
     constructor(path, schema) {
         /** @type {string} Path to data root directory. */
         this.path = path;

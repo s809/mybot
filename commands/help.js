@@ -68,7 +68,6 @@ async function help(msg) {
     await sendLongText(msg.channel, response, {
         code: ""
     });
-    return true;
 }
 
 export const name = "help";

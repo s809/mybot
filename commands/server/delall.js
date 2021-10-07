@@ -8,7 +8,6 @@ async function delAllServers() {
 
         await guild.delete();
     }
-    return true;
 }
 
 export const name = "delall";

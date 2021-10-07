@@ -27,20 +27,16 @@ async function scanChannel(msg, mode, fromChannel) {
         return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
     };
 
-    if (mode !== "daily" && mode !== "weekly" && mode !== "monthly") {
-        await msg.channel.send("Mode is not defined.");
-        return false;
-    }
+    if (mode !== "daily" && mode !== "weekly" && mode !== "monthly")
+        return "Mode is not defined.";
 
     if (fromChannel !== undefined)
         fromChannel = await client.channels.fetch(mentionToChannel(fromChannel));
     else
         fromChannel = msg.channel;
 
-    if (!(fromChannel instanceof TextChannel) || !(fromChannel.permissionsFor(client.user).has(["VIEW_CHANNEL", "READ_MESSAGE_HISTORY"]))) {
-        await msg.channel.send("Channel is not a text channel or permissions are missing.");
-        return;
-    }
+    if (!(fromChannel instanceof TextChannel) || !(fromChannel.permissionsFor(client.user).has(["VIEW_CHANNEL", "READ_MESSAGE_HISTORY"])))
+        return "Channel is not a text channel or permissions are missing.";
 
     /** @type {Map<string, User>} */
     let authors = new Map();
@@ -182,8 +178,6 @@ async function scanChannel(msg, mode, fromChannel) {
         if (embeds.length)
             await sendAndClean();
     }
-
-    return true;
 }
 
 export const name = "scan";

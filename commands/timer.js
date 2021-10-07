@@ -6,30 +6,22 @@ async function timer(msg, date, time, countstr, endstr) {
     date = date.split(".");
     for (let i = 0; i < date.length; i++) {
         date[i] = parseInt(date[i]);
-        if (date[i] === undefined || date.length !== 3) {
-            msg.channel.send("Invalid date format");
-            return false;
-        }
+        if (date[i] === undefined || date.length !== 3)
+            return "Invalid date format";
     }
 
     time = time.split(":");
     for (let i = 0; i < time.length; i++) {
         time[i] = parseInt(time[i]);
-        if (time[i] === undefined || time.length !== 2) {
-            msg.channel.send("Invalid time format");
-            return false;
-        }
+        if (time[i] === undefined || time.length !== 2)
+            return "Invalid time format";
     }
 
-    if (!countstr) {
-        msg.channel.send("Countstr is empty.");
-        return;
-    }
+    if (!countstr)
+        return "Countstr is empty.";
 
-    if (!endstr) {
-        msg.channel.send("Endstr is empty.");
-        return;
-    }
+    if (!endstr)
+        return "Endstr is empty.";
 
     let goal = new Date(date[2], date[1] - 1, date[0], time[0], time[1]);
     let current;
@@ -47,7 +39,6 @@ async function timer(msg, date, time, countstr, endstr) {
     while (goal > current);
 
     await res.edit(endstr);
-    return true;
 }
 
 export const name = "timer";

@@ -2,10 +2,9 @@ import { isChannelLinked, unlinkChannel } from "../../modules/data/channelLinkin
 
 async function removeMirror(msg) {
     if (!isChannelLinked(msg.guildId, msg.channelId))
-        return "Channel is not mirrored nor any channel is mirroring to it.";
+        return "Channel is not linked.";
 
     unlinkChannel(msg.channel);
-    return true;
 }
 
 export const name = "remove";

@@ -10,14 +10,10 @@ import { isCopying, stopCopying } from "../../modules/messages/messageCopying.js
 async function stopBatchClone(msg) {
     let link = getLinkedChannel(msg.guildId, msg.channelId);
 
-    if (!isCopying(link.channelId)) {
-        await msg.channel.send("Clone is not pending.");
-        return false;
-    }
+    if (!isCopying(link.channelId))
+        return "Clone is not pending.";
 
     stopCopying(link.role === ChannelLinkRole.DESTINATION ? msg.channelId : link.channelId);
-
-    return true;
 }
 
 export const name = "stop";

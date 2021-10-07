@@ -2,17 +2,15 @@
  * @file Main bot file.
  */
 
-import { inspect } from "util";
 import {
     client,
     data,
     version,
     prefix,
     owner,
-    setPrefix,
-    enableDebug,
     isDebug,
-    musicPlayingGuilds
+    musicPlayingGuilds,
+    token
 } from "./env.js";
 import fetchAndCopyMessages from "./modules/messages/fetchAndCopyMessages.js";
 import { loadCommands, resolveCommand } from "./modules/commands/commands.js";
@@ -26,7 +24,7 @@ import {
     onRoleCreate,
     onRoleRemove
 } from "./modules/data/dataSync.js";
-import botEval from "./modules/misc/eval.js";
+import { botEval } from "./modules/misc/eval.js";
 import { ChannelLinkRole, getLinks } from "./modules/data/channelLinking.js";
 import { isCommandAllowedToUse } from "./modules/commands/permissions.js";
 import sendLongText from "./modules/messages/sendLongText.js";
@@ -37,12 +35,15 @@ import { copyMessageToLinkedChannel, initBuffer } from "./modules/messages/messa
 client.on("ready", async () => {
     console.log(`Logged in as ${client.user.tag}.`);
 
-    client.user.setPresence({
-        activities: [{
-            name: `v${version}${isDebug ? "-dev" : ""}`
-        }]
-    });
+    client.user.setActivity(`v${version}${isDebug ? "-dev" : ""}`);
 
+    // Remove missing guilds
+    for (let guildId of Object.keys(data.guilds)) {
+        if (!client.guilds.resolve(guildId))
+            onGuildRemove({ id: guildId });
+    }
+
+    // Do NOT await anything before this statement or some messages may leak before copying.
     // Initialize buffers to get real time messages stay there until launch copy is started
     Object.getOwnPropertyNames(data.guilds)
         .flatMap(guildId => getLinks(guildId, ChannelLinkRole.DESTINATION))
@@ -52,30 +53,12 @@ client.on("ready", async () => {
     for (let guild of client.guilds.cache.values())
         await onGuildCreate(guild);
 
-    // Remove missing guilds
-    for (let guildId of Object.keys(data.guilds)) {
-        if (!await client.guilds.fetch(guildId))
-            onGuildRemove({ id: guildId });
-    }
-
     data.saveData();
 
     // Execute startup scripts
     for (let scriptName of Object.getOwnPropertyNames(data.scripts.startup)) {
-        await botEval({
-            content: prefix + data.scripts.startup[scriptName],
-            channel: {
-                deleted: false,
-                send: content => {
-                    console.log(inspect(content));
-                    return {
-                        createReactionCollector: () => { /* ignored */ },
-                        createMessageComponentCollector: () => { /* ignored */ }
-                    };
-                }
-            },
-            client: client
-        });
+        let result = await botEval(data.scripts.startup[scriptName], { client: client });
+        console.log(`Executed ${scriptName}:\n${result}`);
     }
 
     console.log("Pre-fetching linked messages...");
@@ -154,53 +137,44 @@ client.on("messageCreate", async msg => {
     let command = resolveCommand(args, true);
     if (command && !isCommandAllowedToUse(msg, command)) return;
 
-    if (!command || !command.func) {
-        if (msg.guild && !hasFlag(data.guilds[msg.guildId].channels[msg.channelId], "evalmode")) return;
-
-        if (isCommandAllowedToUse(msg, resolveCommand("owner/evalmode")))
-            await botEval(msg);
-        return;
-    }
+    if (!command || !command.func) return;
 
     const minArgs = command.minArgs ?? 0;
     const maxArgs = command.maxArgs ?? 0;
 
     if (args.length < minArgs) {
-        await msg.channel.send(`Provided arguments less than expected (need at least ${minArgs})`);
+        await msg.channel.send(`Provided arguments less than expected (need at least ${minArgs}`);
         await msg.react("❌");
         return;
     }
     else if (args.length > maxArgs) {
-        await msg.channel.send(`Provided arguments more than expected (need at most ${maxArgs})`);
+        await msg.channel.send(`Provided arguments more than expected (need at most ${maxArgs}`);
         await msg.react("❌");
         return;
     }
 
     try {
         let reaction = await msg.react("🔄");
-        /** @type {boolean | string} */
-        let ret;
 
+        /** @type {string | undefined} */
+        let result;
         try {
-            ret = await command.func(msg, ...args);
-
-            // TODO
-            // if (["string", "undefined"].includes(typeof ret))
-            //     throw new Error("todo");
-
-            if (!msg.deleted) {
-                await Promise.allSettled([
-                    msg.react(typeof ret !== "string" && ret ? "✅" : "❌"),
-                    reaction.users.remove(),
-                    (async () => {
-                        if (typeof ret === "string")
-                            await msg.channel.send(ret);
-                    })()
-                ]);
-            }
+            result = await command.func(msg, ...args);
         }
         catch (e) {
+            console.log(e.stack);
             await sendLongText(msg.channel, sanitizePaths(e.stack));
+        }
+
+        if (!msg.deleted) {
+            await Promise.allSettled([
+                msg.react(typeof result !== "string" ? "✅" : "❌"),
+                reaction.users.remove(),
+                (async () => {
+                    if (typeof result === "string")
+                        await msg.channel.send(result);
+                })()
+            ]);
         }
     }
     catch (e) {
@@ -209,14 +183,6 @@ client.on("messageCreate", async msg => {
 });
 
 (async () => {
-    let token = "NzMzMjEyMjczNjkwMTQ4OTA0.Xw_3JA.7bDfmT2CPQySe9xIYgrJAb4yEGM";
-
-    if (process.argv.indexOf("--debug") >= 0) {
-        token = "ODA5NDUxMzYzNzg0MzI3MjQ4.YCVSVA.J8BPawVSK4AgFvMQhLwiIZcVsUQ";
-        enableDebug();
-        setPrefix("t!");
-    }
-
     await loadCommands();
     await client.login(token);
 
@@ -226,8 +192,7 @@ client.on("messageCreate", async msg => {
         if (client.user) {
             try {
                 let user = await client.users.fetch(owner);
-                let channel = await user.createDM();
-                await channel.send({ content: text, split: true });
+                await user.send({ content: text, split: true });
             }
             catch { /* Do nothing */ }
         }

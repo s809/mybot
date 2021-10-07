@@ -19,6 +19,17 @@ import { sendAlwaysLastMessage } from "../../modules/messages/AlwaysLastMessage.
 import { execFile, spawn } from "child_process";
 import { promisify } from "util";
 
+const timeouts = {...(!isDebug ? {
+    voiceReady: 5000,
+    playerPlaying: 10000,
+} : {
+    voiceReady: 15000,
+    playerPlaying: 30000,
+}), ...{
+    playerIdle: 3000,
+    paused: 120000
+}};
+
 /**
  * Loads metadata for URL.
  * 
@@ -53,7 +64,7 @@ async function loadVideo(entry) {
 /**
  * Fills missing data in background.
  * 
- * @param {Mimport("./index.js").MusicPlayerEntry} playerEntry
+ * @param {import("./index.js").MusicPlayerEntry} playerEntry
  */
 async function fillMissingData(playerEntry) {
     if (playerEntry.isLoading) return;
@@ -89,28 +100,22 @@ async function fillMissingData(playerEntry) {
  * @returns {boolean} Whether the execution was successful.
  */
 async function play(msg, url, startTimeOrPos) {
-    if (url?.match(/(\\|'|")/)) {
-        await msg.channel.send("URL is invalid.");
-        return false;
-    }
+    if (url?.match(/(\\|'|")/))
+        return "URL is invalid.";
 
     let voiceChannel = msg.member.voice.channel;
-    if (!voiceChannel) {
-        await msg.channel.send("Join any voice channel and try again.");
-        return false;
-    }
+    if (!voiceChannel)
+        return "Join any voice channel and try again.";
 
     let entry = musicPlayingGuilds.get(voiceChannel.guild);
 
     if (entry?.player.state.status === AudioPlayerStatus.Paused) {
         entry.player.unpause();
-        if (!url) return true;
+        if (!url) return;
     }
 
-    if (!url) {
-        await msg.channel.send("No URL specified.");
-        return false;
-    }
+    if (!url)
+        return "No URL specified.";
 
     /** @type {import("./index.js").QueueEntry[]} */
     let videos;
@@ -119,8 +124,7 @@ async function play(msg, url, startTimeOrPos) {
             "--dump-json",
             "--no-playlist",
             "--flat-playlist",
-            "--default-search",
-            "ytsearch",
+            "--default-search", "ytsearch",
             url
         ]);
 
@@ -146,26 +150,20 @@ async function play(msg, url, startTimeOrPos) {
     // Validate start time/position
     if (startTimeOrPos) {
         if (videos.length < 2) {
-            if (entry) {
-                await msg.channel.send("Cannot use start time when already playing.");
-                return false;
-            }
+            if (entry)
+                return "Cannot use start time when already playing.";
 
-            if (!startTimeOrPos.match(/^(\d{1,2}|:\d{2}){1,3}$/)) {
-                await msg.channel.send("Start time is invalid.");
-                return false;
-            }
+            if (!startTimeOrPos.match(/^(\d{1,2}|:\d{2}){1,3}$/))
+                return "Start time is invalid.";
         }
         else if (!startTimeOrPos.match(/^\d{1,5}$/) || parseInt(startTimeOrPos) < 1) {
-            await msg.channel.send("Start position is invalid.");
-            return false;
+            return "Start position is invalid.";
         }
         else {
             startTimeOrPos = parseInt(startTimeOrPos);
-            if (startTimeOrPos - 1 >= videos.length) {
-                await msg.channel.send("At least one video should be added to queue.");
-                return false;
-            }
+            if (startTimeOrPos - 1 >= videos.length)
+                return "At least one video should be added to queue.";
+
             videos = videos.slice(startTimeOrPos - 1);
             startTimeOrPos = null;
         }
@@ -174,7 +172,7 @@ async function play(msg, url, startTimeOrPos) {
     if (entry) {
         entry.queue.push(videos.length > 1 ? [...videos] : videos[0]);
         await entry.updateStatus("Queued!");
-        return true;
+        return;
     }
 
     const statusMessage = await sendAlwaysLastMessage(msg.channel, "Initializing player...");
@@ -190,7 +188,7 @@ async function play(msg, url, startTimeOrPos) {
     musicPlayingGuilds.set(voiceChannel.guild, entry);
 
     try {
-        await entersState(conn, VoiceConnectionStatus.Ready, 30000);
+        await entersState(conn, VoiceConnectionStatus.Ready, timeouts.voiceReady);
 
         const player = createAudioPlayer();
         player.on("error", () => { /* Ignored */ });
@@ -212,28 +210,40 @@ async function play(msg, url, startTimeOrPos) {
                 "-o", "-",
                 currentVideo.url
             ]);
-            
+
             let ffmpeg = spawn("ffmpeg", [
                 "-ss", startTimeOrPos ?? "0",
                 "-i", "-",
-                "-f", "matroska",
                 "-vn",
-                "-c:a", "copy",
+                "-f", "opus",
+                "-b:a", "384k",
                 "-"
             ]);
 
             let videoStderr = "";
+            /** @type {Error} */
+            let error = null;
             video.stderr.setEncoding("utf8");
             video.stderr.on("data", async chunk => {
                 videoStderr += chunk;
+                
                 if (chunk.includes("ERROR")) {
                     ffmpeg.stdout.destroy();
-                    if (isDebug)
-                        throw new Error("Download failed.");
-                    else
-                        console.log(videoStderr);
+
+                    error = new Error("Download failed");
+                    console.log(videoStderr);
                 }
             });
+
+            const throwOnError = async () => {
+                if (error) {
+                    if (isDebug)
+                        throw error;
+                    else
+                        await msg.channel.send(`Unable to play this track: ${error.message}.`);
+                    error = null;
+                }
+            };
 
             if (isDebug) {
                 video.stderr.pipe(process.stderr);
@@ -246,34 +256,45 @@ async function play(msg, url, startTimeOrPos) {
             entry.readable = ffmpeg.stdout;
             entry.resource = createAudioResource(entry.readable);
 
-            player.play(entry.resource);
-            await entersState(player, AudioPlayerStatus.Playing, 15000);
+            try {
+                player.play(entry.resource);
+                await entersState(player, AudioPlayerStatus.Playing, timeouts.playerPlaying);
+            }
+            catch (e) {
+                if (error) {
+                    await throwOnError();
+                    continue;
+                }
+                else {
+                    throw e;
+                }
+            }
 
             await entry.updateStatus("Ready!");
 
             do {
                 if (player.state.status === AudioPlayerStatus.Paused) {
                     await Promise.any([
-                        sleep(120000),
+                        sleep(timeouts.paused),
                         awaitEvent(player, "stateChange")
                     ]);
                     if (player.state.status === AudioPlayerStatus.Paused)
-                        return true;
+                        return;
                 }
                 await awaitEvent(player, "stateChange");
             }
             while (![AudioPlayerStatus.Idle, AudioPlayerStatus.AutoPaused].includes(player.state.status));
 
+            await throwOnError();
+
             switch (player.state.status) {
                 case AudioPlayerStatus.Idle:
-                    await sleep(3000);
+                    await sleep(timeouts.playerIdle);
                     break;
                 case AudioPlayerStatus.AutoPaused:
-                    return true;
+                    return;
             }
         }
-
-        return true;
     } finally {
         musicPlayingGuilds.delete(voiceChannel.guild);
         entry.readable?.destroy();
