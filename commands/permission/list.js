@@ -8,7 +8,7 @@ import { client, data } from "../../env.js";
  * @param {Message} msg
  * @param {string} id
  */
-async function permissionList(msg, id) {
+async function permissionList(msg, id = msg.author.id) {
     /** @type {"user" | "role" | "member"} */
     let resolvedType;
     let resolvedItem;
@@ -51,7 +51,10 @@ async function permissionList(msg, id) {
             break;
         case "member":
             userCommands = data.users[id].allowedCommands;
-            roleCommands = (await msg.guild.members.fetch(id)).roles.cache.map(role => data.guilds[msg.guildId].roles[role.id].allowedCommands).flat();
+            roleCommands = (await msg.guild.members.fetch(id)).roles.cache
+                .map(role => data.guilds[msg.guildId].roles[role.id].allowedCommands
+                    .map(x => `${role.toString()} - ${x}`)
+            ).flat();
             memberCommands = data.guilds[msg.guildId].members[id].allowedCommands;
             break;
     }
@@ -97,6 +100,5 @@ async function permissionList(msg, id) {
 export const name = "list";
 export const description = "get permissions of specific item";
 export const args = "<id>";
-export const minArgs = 1;
 export const maxArgs = 1;
 export const func = permissionList;

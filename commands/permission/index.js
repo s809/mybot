@@ -12,7 +12,10 @@ import { isCommandAllowedToManage } from "../../modules/commands/permissions.js"
  * @param {string} commandPath
  */
 async function permission(msg, id, commandPath) {
-    if (!isCommandAllowedToManage(msg, resolveCommand(commandPath)))
+    let command = resolveCommand(commandPath);
+    if (!command)
+        return "Unknown command.";
+    if (!isCommandAllowedToManage(msg, command))
         return "You don't have permission to manage this command.";
 
     /** @type {"user" | "role" | "member"} */

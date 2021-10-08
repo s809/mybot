@@ -10,12 +10,7 @@ import { sanitizePaths } from "../util.js";
 async function _eval(msg) {
     const cleanCode = msg.content.slice(msg.content.indexOf(name) + name.length).trimStart();
 
-    await sendLongText(msg.channel, sanitizePaths(
-        await botEval(cleanCode, {
-            msg: msg,
-            client: msg.client
-        })
-    ));
+    await sendLongText(msg.channel, sanitizePaths(await botEval(cleanCode, msg)));
 }
 
 export const name = "eval";

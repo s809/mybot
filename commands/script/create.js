@@ -6,19 +6,21 @@ import { data } from "../../env.js";
 /**
  * @param {Message} msg
  * @param {string} type
- * @param {string} name
+ * @param {string} scriptName
  */
-async function createScript(msg, type, name) {
+async function createScript(msg, type, scriptName) {
     if (!(type in data.scripts))
         return "Invalid script type.";
 
-    if (name.match(/[/\\]/))
+    if (scriptName.match(/[/\\]/))
         return "Invalid script name.";
 
-    if (name in data.scripts[type])
+    if (scriptName in data.scripts[type])
         return "Script with this name already exists.";
 
-    data.scripts[type][name] = msg.content.slice(msg.content.indexOf(name, msg.content.indexOf(type) + type.length) + name.length).trimStart();
+    data.scripts[type][scriptName] = msg.content
+        .slice(msg.content.indexOf(type) + type.length).trimStart()
+        .slice(scriptName.length).trimStart();
 }
 
 export const name = "create";

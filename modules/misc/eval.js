@@ -8,16 +8,13 @@ import { Client, Message } from "discord.js";
  * Auto-detects if evaluated code is one- or multi-statement.
  * 
  * @param {string} code Text to evaluate.
- * @param {{
- *  msg: Message;
- *  client: Client;
- * }} context Context to use.
+ * @param {Message} msg Context message, if present.
  */
-export async function botEval(code, { msg, client }) {
+export async function botEval(code, msg) {
     let response;
 
-    // Ignore unused variables
-    void (msg, client);
+    const { client, data } = await import("../../env.js");
+    void (client, data);
 
     try {
         try {

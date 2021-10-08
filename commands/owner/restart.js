@@ -12,8 +12,7 @@ import { data, isDebug } from "../../env.js";
  * Update and restart bot.
  * 
  * @param {Message} msg Message a command was sent from.
- * @returns {boolean} Whether the execution was successful.
- * @example restart(msg);
+ * @returns {Promise<never>}
  */
 async function restart(msg) {
     data.saveDataSync();
