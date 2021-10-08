@@ -33,7 +33,7 @@ async function createLink(msg, idArg) {
 }
 
 export const name = "link";
-export const description = "enable copying of messages in this channel to another.";
+export const description = "enable copying of messages in this channel to another";
 export const args = "<channel>";
 export const minArgs = 1;
 export const maxArgs = 1;

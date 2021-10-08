@@ -1,7 +1,6 @@
 import {
     client,
     data,
-    prefix,
     owner
 } from "../env.js";
 import { resolveCommand } from "../modules/commands/commands.js";
@@ -11,6 +10,7 @@ import sendLongText from "../modules/messages/sendLongText.js";
 import { sanitizePaths } from "../util.js";
 import { hasFlag } from "../modules/data/flags.js";
 import { copyMessageToLinkedChannel } from "../modules/messages/messageCopying.js";
+import { getPrefix } from "../modules/commands/getPrefix.js";
 
 client.on("messageCreate", async msg => {
     if (msg.guild) {
@@ -32,6 +32,8 @@ client.on("messageCreate", async msg => {
             if (hasFlag(data.guilds[msg.guildId], "banned")) return;
     }
 
+    /** @type {string} */
+    const prefix = getPrefix(msg.guildId);
     if (!msg.content.startsWith(prefix)) return;
 
     let args = msg.content.match(/[^"\s]+|"(?:\\"|[^"])+"/g);
@@ -41,7 +43,7 @@ client.on("messageCreate", async msg => {
         if (str.charAt(0) === "\"")
             str = str.slice(1, -1);
 
-        arr[i] = str;
+        arr[i] = str.replace("\\\"", "\"").replace("\\\\", "\\");
     });
 
     let command = resolveCommand(args, true);

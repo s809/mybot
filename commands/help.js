@@ -1,9 +1,9 @@
 "use strict";
 
 import { Message } from "discord.js";
-import { prefix } from "../env.js";
 import { iterateCommands } from "../modules/commands/commands.js";
 import { CommandManagementPermissionLevel } from "../modules/commands/definitions.js";
+import { getPrefix } from "../modules/commands/getPrefix.js";
 import { isCommandAllowedToUse } from "../modules/commands/permissions.js";
 import sendLongText from "../modules/messages/sendLongText.js";
 
@@ -43,7 +43,7 @@ async function help(msg) {
         response += indent;
 
         if (!commandGenHintChain.length || commandGenHintChain[commandGenHintChain.length - 1] !== "Short")
-            response += prefix + currentPath.join(" ");
+            response += getPrefix(msg.guildId) + currentPath.join(" ");
         else
             response += command.name;
 

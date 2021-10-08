@@ -2,6 +2,8 @@
 
 import { Message } from "discord.js";
 import { data } from "../../env.js";
+import { getPrefix } from "../../modules/commands/getPrefix.js";
+import { skipStringAfter, wrapInQuotesIfNeed } from "../../util.js";
 
 /**
  * @param {Message} msg
@@ -17,10 +19,12 @@ async function createScript(msg, type, scriptName) {
 
     if (scriptName in data.scripts[type])
         return "Script with this name already exists.";
-
-    data.scripts[type][scriptName] = msg.content
-        .slice(msg.content.indexOf(type) + type.length).trimStart()
-        .slice(scriptName.length).trimStart();
+    
+    data.scripts[type][scriptName] = skipStringAfter(msg.content,
+        getPrefix(msg.guildId),
+        type,
+        wrapInQuotesIfNeed(scriptName)
+    );
 }
 
 export const name = "create";

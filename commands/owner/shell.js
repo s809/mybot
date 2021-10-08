@@ -9,7 +9,10 @@ import sendLongText from "./../../modules/messages/sendLongText.js";
  * @param {import("discord.js").Message} msg 
  */
 async function shell(msg) {
-    let command = msg.content.slice(msg.content.indexOf(name) + name.length).trimStart();
+    let command = skipStringAfter(msg.content,
+        getPrefix(msg.guildId),
+        name
+    );
     let { stdout, stderr } = await exec(command, { encoding: "utf8" });
     
     if (stdout.length)

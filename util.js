@@ -94,3 +94,30 @@ export function formatDuration(duration) {
     
     return (hours ? hours : "") + minutes + ":" + seconds;
 }
+
+/**
+ * Skips string past specified parts and removes leading whitespace.
+ * 
+ * @param {string} text String to skip in.
+ * @param {...string} parts Parts to skip.
+ * @returns String with skipped parts.
+ */
+export function skipStringAfter(text, ...parts) {
+    for (let part of parts)
+        text = text.slice(text.indexOf(part) + part.length).trimStart();
+    
+    return text;
+}
+
+/**
+ * Wraps string in quotes if it has whitespace in it.
+ * 
+ * @param {string} text Text to wrap.
+ * @returns Wrapped text.
+ */
+export function wrapInQuotesIfNeed(text) {
+    if (text.match(/\s/))
+        return `"${text}"`;
+    else
+        return text;
+}

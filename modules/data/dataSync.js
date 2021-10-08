@@ -1,5 +1,5 @@
 import { Guild, GuildChannel, GuildMember, Role, User } from "discord.js";
-import { data } from "../../env.js";
+import { data, defaultPrefix } from "../../env.js";
 import { unlinkChannel } from "./channelLinking.js";
 
 /**
@@ -95,6 +95,7 @@ export async function onGuildCreate(guild) {
         members: {},
         channels: {},
         flags: [],
+        prefix: defaultPrefix,
         ...data.guilds[guild.id]
     };
     let guildData = data.guilds[guild.id];
@@ -102,7 +103,7 @@ export async function onGuildCreate(guild) {
     // Add new channels
     for (let channel of guild.channels.cache.values())
         onChannelCreate(channel);
-    
+
     // Remove missing channels
     for (let channelId of Object.getOwnPropertyNames(guildData.channels)) {
         if (!guild.channels.resolve(channelId))

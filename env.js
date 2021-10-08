@@ -18,7 +18,7 @@ export const {
     isDebug,
     token,
     owner,
-    prefix
+    prefix: defaultPrefix
 } = config;
 
 export const client = new Client({
