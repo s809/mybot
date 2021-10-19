@@ -1,8 +1,6 @@
 /**
  * @file Command for starting playback.
  */
-"use strict";
-
 import Discord from "discord.js";
 import {
     AudioPlayerStatus,
@@ -15,10 +13,10 @@ import {
 import { createDiscordJSAdapter } from "../../modules/misc/voiceadapter.js";
 import { isDebug, musicPlayingGuilds } from "../../env.js";
 import { sendAlwaysLastMessage } from "../../modules/messages/AlwaysLastMessage.js";
-import { execFile, spawn } from "child_process";
-import { promisify } from "util";
 import { once } from "events";
 import { setTimeout } from "timers/promises";
+import { fetchVideoByUrl, fetchVideoOrPlaylist, getDownloadStream } from "../../modules/music/youtubeDl.js";
+import { makeOpusStream } from "../../modules/music/ffmpeg.js";
 
 const timeouts = {
     ...(!isDebug
@@ -36,37 +34,6 @@ const timeouts = {
 };
 
 /**
- * Loads metadata for URL.
- * 
- * @param {import("./index.js").QueueEntry} entry Entry with URL to load.
- * @returns Entry with loaded metadata.
- */
-async function loadVideo(entry) {
-    let { stdout } = await promisify(execFile)("youtube-dl", [
-        "--dump-json",
-        "--no-playlist",
-        entry.url
-    ]);
-
-    /**
-     * @type {{
-     *  url: string;
-     *  title: string;
-     *  uploader?: string;
-     *  duration?: string;
-     * }[]}
-     */
-    let json = JSON.parse(stdout);
-
-    return {
-        url: entry.url,
-        title: json.title,
-        uploader: json.uploader,
-        duration: json.duration
-    };
-}
-
-/**
  * Fills missing data in background.
  * 
  * @param {import("./index.js").MusicPlayerEntry} playerEntry
@@ -80,7 +47,7 @@ async function fillMissingData(playerEntry) {
             let entry = playerEntry.queue[pos];
             if (entry.title) continue;
 
-            entry = await loadVideo(entry);
+            entry = await fetchVideoByUrl(entry.url);
 
             // Throw away results and exit if player is stopped.
             if (!playerEntry.isLoading) return;
@@ -123,34 +90,7 @@ async function play(msg, url, startPosition) {
         return "No URL specified.";
 
     /** @type {import("./index.js").QueueEntry[]} */
-    let videos;
-    {
-        let { stdout } = await promisify(execFile)("youtube-dl", [
-            "--dump-json",
-            "--no-playlist",
-            "--flat-playlist",
-            "--default-search", "ytsearch",
-            url
-        ]);
-
-        /**
-         * @type {{
-         *  url?: string;
-         *  webpage_url?: string;
-         *  title?: string;
-         *  uploader?: string;
-         *  duration?: string;
-         * }[]}
-         */
-        let json = JSON.parse(`[${stdout.replaceAll("\n{", ",\n{")}]`);
-
-        videos = json.map(item => ({
-            url: item.webpage_url ?? item.url,
-            title: item.title,
-            uploader: item.uploader,
-            duration: item.duration
-        }));
-    }
+    let videos = await fetchVideoOrPlaylist(url);
 
     // Validate start time/position
     if (startPosition) {
@@ -195,110 +135,22 @@ async function play(msg, url, startPosition) {
         while (entry.queue.length) {
             let currentVideo = entry.queue.shift();
             if (!currentVideo.title)
-                currentVideo = await loadVideo(currentVideo);
+                currentVideo = await fetchVideoByUrl(currentVideo.url);
             entry.currentVideo = currentVideo;
 
             fillMissingData(entry).catch(console.log);
 
             await entry.updateStatus("Buffering...");
 
-            let video = spawn("youtube-dl", [
-                "--no-playlist",
-                "-f", "bestaudio/best",
-                "-o", "-",
-                currentVideo.url
-            ]);
-            if (isDebug)
-                video.stderr.pipe(process.stderr);
+            let video = await getDownloadStream(currentVideo.url);
+            let ffmpeg = await makeOpusStream(video);
+            ffmpeg.on("close", () => video.destroy());
 
-            let isOpus = false;
-            {
-                let ffprobe = spawn("ffprobe", [
-                    "-hide_banner",
-                    "-i", "-"
-                ]);
-                if (isDebug)
-                    ffprobe.stderr.pipe(process.stderr);
-
-                const chunks = [];
-                const addChunk = chunk => chunks.push(chunk);
-
-                video.stdout.on("data", addChunk);
-                video.stdout.pipe(ffprobe.stdin);
-
-                ffprobe.stderr.setEncoding("utf8");
-                ffprobe.stderr.on("data", output => {
-                    if (output.includes("opus"))
-                        isOpus = true;
-                });
-
-                await once(ffprobe.stdin, "close");
-
-                video.stdout.off("data", addChunk);
-                video.stdout.unshift(Buffer.concat(chunks));
-            }
-            
-            if (isDebug)
-                console.log(`Is opus: ${isOpus}`);
-
-            let ffmpeg = spawn("ffmpeg", [
-                "-hide_banner",
-                "-i", "-",
-                "-vn",
-                "-f", "opus",
-                ...(isOpus
-                    ? ["-c:a", "copy"]
-                    : ["-b:a", "384k"]
-                ),
-                "-"
-            ]);
-            if (isDebug)
-                ffmpeg.stderr.pipe(process.stderr);
-
-            let videoStderr = "";
-            /** @type {Error} */
-            let error = null;
-            video.stderr.setEncoding("utf8");
-            video.stderr.on("data", async chunk => {
-                videoStderr += chunk;
-
-                if (chunk.includes("ERROR")) {
-                    ffmpeg.stdout.destroy();
-
-                    error = new Error("Download failed");
-                    console.log(videoStderr);
-                }
-            });
-
-            const throwOnError = async () => {
-                if (error) {
-                    if (isDebug)
-                        throw error;
-                    else
-                        await msg.channel.send(`Unable to play this track: ${error.message}.`);
-                    error = null;
-                }
-            };
-
-            video.stdout.pipe(ffmpeg.stdin);
-            ffmpeg.on("close", () => video.kill());
-
-            entry.readable = ffmpeg.stdout;
+            entry.readable = ffmpeg;
             entry.resource = createAudioResource(entry.readable);
-
-            try {
-                player.play(entry.resource);
-                await entersState(player, AudioPlayerStatus.Playing, timeouts.playerPlaying);
-            }
-            catch (e) {
-                if (error) {
-                    await throwOnError();
-                    continue;
-                }
-                else {
-                    throw e;
-                }
-            }
+            
+            player.play(entry.resource);
+            await entersState(player, AudioPlayerStatus.Playing, timeouts.playerPlaying);
 
             await entry.updateStatus("Ready!");
 
@@ -315,8 +167,8 @@ async function play(msg, url, startPosition) {
             }
             while (![AudioPlayerStatus.Idle, AudioPlayerStatus.AutoPaused].includes(player.state.status));
 
-            //ffmpeg.kill();
-            await throwOnError();
+            video.destroy();
+            ffmpeg.destroy();
 
             switch (player.state.status) {
                 case AudioPlayerStatus.Idle:
