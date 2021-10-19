@@ -12,23 +12,28 @@ import {
     joinVoiceChannel,
     VoiceConnectionStatus
 } from "@discordjs/voice";
-import { awaitEvent, sleep } from "../../util.js";
 import { createDiscordJSAdapter } from "../../modules/misc/voiceadapter.js";
 import { isDebug, musicPlayingGuilds } from "../../env.js";
 import { sendAlwaysLastMessage } from "../../modules/messages/AlwaysLastMessage.js";
 import { execFile, spawn } from "child_process";
 import { promisify } from "util";
+import { once } from "events";
+import { setTimeout } from "timers/promises";
 
-const timeouts = {...(!isDebug ? {
-    voiceReady: 5000,
-    playerPlaying: 10000,
-} : {
-    voiceReady: 15000,
-    playerPlaying: 30000,
-}), ...{
+const timeouts = {
+    ...(!isDebug
+        ? {
+            voiceReady: 5000,
+            playerPlaying: 10000,
+        }
+        : {
+            voiceReady: 15000,
+            playerPlaying: 30000,
+        }
+    ),
     playerIdle: 3000,
     paused: 120000
-}};
+};
 
 /**
  * Loads metadata for URL.
@@ -87,7 +92,7 @@ async function fillMissingData(playerEntry) {
     }
     finally {
         playerEntry.isLoading = false;
-        await awaitEvent(playerEntry.statusMessage, "editComplete");
+        await once(playerEntry.statusMessage, "editComplete");
     }
 }
 
@@ -96,10 +101,10 @@ async function fillMissingData(playerEntry) {
  * 
  * @param {Discord.Message} msg Message a command was sent from.
  * @param {string} url URL of a track.
- * @param {string} startTimeOrPos Start time of a track.
+ * @param {string} startPosition Start position in playlist.
  * @returns {boolean} Whether the execution was successful.
  */
-async function play(msg, url, startTimeOrPos) {
+async function play(msg, url, startPosition) {
     if (url?.match(/(\\|'|")/))
         return "URL is invalid.";
 
@@ -148,24 +153,16 @@ async function play(msg, url, startTimeOrPos) {
     }
 
     // Validate start time/position
-    if (startTimeOrPos) {
-        if (videos.length < 2) {
-            if (entry)
-                return "Cannot use start time when already playing.";
-
-            if (!startTimeOrPos.match(/^(\d{1,2}|:\d{2}){1,3}$/))
-                return "Start time is invalid.";
-        }
-        else if (!startTimeOrPos.match(/^\d{1,5}$/) || parseInt(startTimeOrPos) < 1) {
+    if (startPosition) {
+        if (!startPosition.match(/^\d{1,2}$/) || parseInt(startPosition) < 1) {
             return "Start position is invalid.";
         }
         else {
-            startTimeOrPos = parseInt(startTimeOrPos);
-            if (startTimeOrPos - 1 >= videos.length)
+            startPosition = parseInt(startPosition);
+            if (startPosition - 1 >= videos.length)
                 return "At least one video should be added to queue.";
 
-            videos = videos.slice(startTimeOrPos - 1);
-            startTimeOrPos = null;
+            videos = videos.slice(startPosition - 1);
         }
     }
 
@@ -206,19 +203,57 @@ async function play(msg, url, startTimeOrPos) {
             await entry.updateStatus("Buffering...");
 
             let video = spawn("youtube-dl", [
+                "--no-playlist",
                 "-f", "bestaudio/best",
                 "-o", "-",
                 currentVideo.url
             ]);
+            if (isDebug)
+                video.stderr.pipe(process.stderr);
+
+            let isOpus = false;
+            {
+                let ffprobe = spawn("ffprobe", [
+                    "-hide_banner",
+                    "-i", "-"
+                ]);
+                if (isDebug)
+                    ffprobe.stderr.pipe(process.stderr);
+
+                const chunks = [];
+                const addChunk = chunk => chunks.push(chunk);
+
+                video.stdout.on("data", addChunk);
+                video.stdout.pipe(ffprobe.stdin);
+
+                ffprobe.stderr.setEncoding("utf8");
+                ffprobe.stderr.on("data", output => {
+                    if (output.includes("opus"))
+                        isOpus = true;
+                });
+
+                await once(ffprobe.stdin, "close");
+
+                video.stdout.off("data", addChunk);
+                video.stdout.unshift(Buffer.concat(chunks));
+            }
+            
+            if (isDebug)
+                console.log(`Is opus: ${isOpus}`);
 
             let ffmpeg = spawn("ffmpeg", [
-                "-ss", startTimeOrPos ?? "0",
+                "-hide_banner",
                 "-i", "-",
                 "-vn",
                 "-f", "opus",
-                "-b:a", "384k",
+                ...(isOpus
+                    ? ["-c:a", "copy"]
+                    : ["-b:a", "384k"]
+                ),
                 "-"
             ]);
+            if (isDebug)
+                ffmpeg.stderr.pipe(process.stderr);
 
             let videoStderr = "";
             /** @type {Error} */
@@ -226,7 +261,7 @@ async function play(msg, url, startTimeOrPos) {
             video.stderr.setEncoding("utf8");
             video.stderr.on("data", async chunk => {
                 videoStderr += chunk;
-                
+
                 if (chunk.includes("ERROR")) {
                     ffmpeg.stdout.destroy();
 
@@ -245,13 +280,8 @@ async function play(msg, url, startTimeOrPos) {
                 }
             };
 
-            if (isDebug) {
-                video.stderr.pipe(process.stderr);
-                ffmpeg.stderr.pipe(process.stderr);
-            }
-
-            let pipe = video.stdout.pipe(ffmpeg.stdin);
-            pipe.on("error", () => { /* Ignored */ });
+            video.stdout.pipe(ffmpeg.stdin);
+            ffmpeg.on("close", () => video.kill());
 
             entry.readable = ffmpeg.stdout;
             entry.resource = createAudioResource(entry.readable);
@@ -275,21 +305,22 @@ async function play(msg, url, startTimeOrPos) {
             do {
                 if (player.state.status === AudioPlayerStatus.Paused) {
                     await Promise.any([
-                        sleep(timeouts.paused),
-                        awaitEvent(player, "stateChange")
+                        setTimeout(timeouts.paused),
+                        once(player, "stateChange")
                     ]);
                     if (player.state.status === AudioPlayerStatus.Paused)
                         return;
                 }
-                await awaitEvent(player, "stateChange");
+                await once(player, "stateChange");
             }
             while (![AudioPlayerStatus.Idle, AudioPlayerStatus.AutoPaused].includes(player.state.status));
 
+            //ffmpeg.kill();
             await throwOnError();
 
             switch (player.state.status) {
                 case AudioPlayerStatus.Idle:
-                    await sleep(timeouts.playerIdle);
+                    await setTimeout(timeouts.playerIdle);
                     break;
                 case AudioPlayerStatus.AutoPaused:
                     return;
@@ -308,7 +339,7 @@ export const description = "play a video.\n" +
     "If no URL or query is specified, unpauses playback.\n" +
     "Queries are searched on YouTube, but URL can be from any source.\n" +
     "Quotes are not required for one-word queries";
-export const args = "[url|\"query\"] [startPos (0-99999)|startTime (0-99:99:99)]";
+export const args = "[url|\"query\"] [startPos (0-99)]";
 export const minArgs = 0;
 export const maxArgs = 2;
 export const func = play;
