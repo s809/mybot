@@ -6,7 +6,7 @@ import { botEval } from "../modules/misc/eval.js";
 import { sanitizePaths, skipStringAfter } from "../util.js";
 
 /**
- * @param {Message} msg 
+ * @param {Message} msg
  */
 async function _eval(msg) {
     await sendLongText(msg.channel, sanitizePaths(

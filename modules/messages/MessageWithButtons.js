@@ -1,8 +1,6 @@
 /**
  * @file Wrapper for message with customizable button type.
  */
-"use strict";
-
 import { MessageButton, MessageActionRow, Message } from "discord.js";
 
 /**

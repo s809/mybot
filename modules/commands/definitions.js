@@ -1,8 +1,6 @@
 /**
  * @file Contains definitions for commands.
  */
-"use strict";
-
 /**
  * @typedef {object} Command
  * @property {string} name Name of a command.

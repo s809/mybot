@@ -1,5 +1,3 @@
-"use strict";
-
 import { Message } from "discord.js";
 import { data } from "../../env.js";
 import { getPrefix } from "../../modules/commands/getPrefix.js";
@@ -19,7 +17,7 @@ async function createScript(msg, type, scriptName) {
 
     if (scriptName in data.scripts[type])
         return "Script with this name already exists.";
-    
+
     data.scripts[type][scriptName] = skipStringAfter(msg.content,
         getPrefix(msg.guildId),
         type,

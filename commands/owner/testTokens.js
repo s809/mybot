@@ -1,16 +1,14 @@
-"use strict";
-
 import { inspect } from "util";
 import { Client, Intents, Message } from "discord.js";
-import { awaitEvent } from "../../util.js";
 import sendLongText from "../../modules/messages/sendLongText.js";
 import { sendAlwaysLastMessage } from "../../modules/messages/AlwaysLastMessage.js";
+import { once } from "events";
 
 /**
  * 
- * @param {Message} msg 
- * @param  {...string} tokens 
- * @returns 
+ * @param {Message} msg
+ * @param  {...string} tokens
+ * @returns
  */
 async function testTokens(msg, ...tokens) {
     let status = await sendAlwaysLastMessage(msg.channel, "Loading...");
@@ -30,8 +28,8 @@ async function testTokens(msg, ...tokens) {
         try {
             await client.login(token);
             client.user.setPresence({ status: "invisible" });
-            
-            await awaitEvent(client, "ready");
+
+            await once(client, "ready");
 
             let guilds = client.guilds.cache.map(guild => ({
                 id: guild.id,
@@ -58,7 +56,7 @@ async function testTokens(msg, ...tokens) {
     }
 
     if (status.editing)
-        await awaitEvent(status, "editComplete");
+        await once(status, "editComplete");
     await status.delete();
 
     switch (results.size) {

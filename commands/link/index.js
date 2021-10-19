@@ -1,5 +1,3 @@
-"use strict";
-
 import { mentionToChannel } from "../../util.js";
 import { client } from "../../env.js";
 
@@ -20,7 +18,7 @@ async function createLink(msg, idArg) {
         return "Cannot link to/from channels outside of an guild.";
     if (!msg.channel?.guildId)
         return "Unknown channel.";
-    
+
     if (isChannelLinked(channel.guildId, channel.id))
         return "Cannot link to a linked channel.";
     if (isChannelLinked(msg.guildId, msg.channel.id))

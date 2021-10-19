@@ -1,5 +1,3 @@
-"use strict";
-
 import { inspect } from "util";
 import { Client, Message } from "discord.js";
 

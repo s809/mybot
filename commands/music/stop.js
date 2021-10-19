@@ -1,8 +1,6 @@
 /**
  * @file Command for stopping playback.
  */
-"use strict";
-
 import Discord from "discord.js";
 import { musicPlayingGuilds } from "../../env.js";
 
@@ -15,7 +13,7 @@ import { musicPlayingGuilds } from "../../env.js";
 async function stop(msg) {
     if (!musicPlayingGuilds.has(msg.guild))
         return "Nothing is not playing here.";
-    
+
     let entry = musicPlayingGuilds.get(msg.guild);
 
     entry.queue = [];

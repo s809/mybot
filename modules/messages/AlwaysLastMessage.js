@@ -1,8 +1,6 @@
 /**
  * @file Module for syncing cloned channels.
  */
-"use strict";
-
 import { Message, TextChannel } from "discord.js";
 import EventEmitter from "events";
 

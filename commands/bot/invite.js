@@ -1,5 +1,3 @@
-"use strict";
-
 import { Permissions } from "discord.js";
 import { client } from "../../env.js";
 

@@ -1,5 +1,3 @@
-"use strict";
-
 import { client } from "../../env.js";
 
 async function delAllServers() {

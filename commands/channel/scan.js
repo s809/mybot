@@ -1,16 +1,15 @@
-"use strict";
-
 import { Message, TextChannel, User } from "discord.js";
 import { client } from "../../env.js";
 import iterateMessages from "../../modules/messages/iterateMessages.js";
-import { awaitEvent, mentionToChannel } from "../../util.js";
+import { mentionToChannel } from "../../util.js";
 import { sendAlwaysLastMessage } from "../../modules/messages/AlwaysLastMessage.js";
 import sendLongText from "../../modules/messages/sendLongText.js";
+import { once } from "events";
 
 /**
- * @param {Message} msg 
- * @param {string} mode 
- * @param {string} fromChannel 
+ * @param {Message} msg
+ * @param {string} mode
+ * @param {string} fromChannel
  * @returns {boolean}
  */
 async function scanChannel(msg, mode, fromChannel) {
@@ -93,7 +92,7 @@ async function scanChannel(msg, mode, fromChannel) {
     await counterMessage.edit(`Fetched ${totalLength} messages.\n` +
         "Fetching invites...");
     if (counterMessage.editing)
-        await awaitEvent(counterMessage, "editComplete");
+        await once(counterMessage, "editComplete");
 
     {
         let result = "";
@@ -106,7 +105,7 @@ async function scanChannel(msg, mode, fromChannel) {
                 let guildName = (await client.api.invites(arr[arr.length - 1]).get()).guild.name;
                 if (!invite.includes("://"))
                     invite = "https://" + invite;
-                
+
                 result += `${invite} (${guildName})\n`;
                 aliveInviteCount++;
             }

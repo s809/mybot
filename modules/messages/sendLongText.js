@@ -1,8 +1,6 @@
 /**
  * @file Provides utility functions for sending messages.
  */
-"use strict";
-
 import MessageWithButtons, { MessageButtonType } from "./MessageWithButtons.js";
 
 const title = "Page %page% of %pagecount%";
@@ -61,7 +59,7 @@ function splitTextByDelimiter(text, textWrap, delimiter) {
         throw new Error("Cannot split by delimiter longer than 1 character");
 
     const maxMessageLengthWithWrap = maxMessageLength - (textWrap.length - "%content%".length);
-    
+
     let result = [""];
 
     for (let chunk of text.split(delimiter)) {
@@ -98,7 +96,7 @@ function splitTextByDelimiter(text, textWrap, delimiter) {
 
     if (result[result.length - 1].length === 0)
         result.pop();
-    
+
     for (let page = 0; page < result.length; page++)
         result[page] = textWrap.replace("%content%", result[page]);
 
@@ -198,7 +196,7 @@ export default async function sendLongText(channel, text, {
     if (embed === null) {
         if (delimiter !== null)
             throw new Error("Cannot give accurate enough page count when splitting by delimiter outside embed");
-        
+
         textWrap = title + separator + textWrap;
     }
 

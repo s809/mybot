@@ -1,8 +1,6 @@
 /**
  * @file Command for pausing playback.
  */
-"use strict";
-
 import Discord from "discord.js";
 import { musicPlayingGuilds } from "../../env.js";
 

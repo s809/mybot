@@ -1,6 +1,4 @@
-"use strict";
-
-import { sleep } from "../util.js";
+import { setTimeout } from "timers/promises";
 
 async function timer(msg, date, time, countstr, endstr) {
     date = date.split(".");
@@ -32,7 +30,7 @@ async function timer(msg, date, time, countstr, endstr) {
         let diff = new Date(goal - Date.now() + 60000);
 
         await res.edit(countstr.replace("%s", `${diff.getUTCHours().toString().padStart(2, "0")}:${diff.getUTCMinutes().toString().padStart(2, "0")}`));
-        await sleep(60000 - Date.now() % 60000);
+        await setTimeout(60000 - Date.now() % 60000);
 
         current = new Date(Date.now());
     }

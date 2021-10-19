@@ -1,9 +1,6 @@
 /**
  * @file Some useful functions.
  */
-"use strict";
-
-import EventEmitter from "events";
 import { botDirectory } from "./env.js";
 
 /**
@@ -15,28 +12,6 @@ import { botDirectory } from "./env.js";
  */
 export function clamp(num, max) {
     return num > max ? max : num;
-}
-
-/**
- * Sleeps for provided amount of time.
- * 
- * @param {number} delayMs Sleep time in milliseconds.
- */
-export async function sleep(delayMs) {
-    // eslint-disable-next-line promise/avoid-new
-    await new Promise(resolve => setTimeout(resolve, delayMs));
-}
-
-/**
- * Asynchronously waits for event.
- * 
- * @param {EventEmitter} emitter Emitter with event which type to wait.
- * @param {string} name Name of awaited event.
- * @returns {any} Resolved event parameters.
- */
-export async function awaitEvent(emitter, name) {
-    // eslint-disable-next-line promise/avoid-new
-    return await new Promise(resolve => emitter.once(name, resolve));
 }
 
 /**

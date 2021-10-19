@@ -1,5 +1,3 @@
-"use strict";
-
 import { CategoryChannel, Guild, GuildChannel, Message, MessageActionRow, MessageButton, Role, ThreadChannel } from "discord.js";
 import { client } from "../../env.js";
 

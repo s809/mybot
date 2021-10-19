@@ -1,5 +1,3 @@
-"use strict";
-
 import { Message } from "discord.js";
 import { data } from "../../env.js";
 

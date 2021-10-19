@@ -1,5 +1,3 @@
-"use strict";
-
 import { CommandManagementPermissionLevel } from "../modules/commands/definitions.js";
 
 async function deleteRange(msg, start, end) {

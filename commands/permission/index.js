@@ -1,5 +1,3 @@
-"use strict";
-
 import { Message } from "discord.js";
 import { client, data, owner } from "../../env.js";
 import { resolveCommand } from "../../modules/commands/commands.js";

@@ -1,5 +1,3 @@
-"use strict";
-
 async function deleteServer(msg) {
     await msg.guild.delete();
 }

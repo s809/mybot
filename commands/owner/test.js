@@ -1,15 +1,13 @@
 /**
  * @file Test code file.
  */
-"use strict";
-
 import { Message } from "discord.js";
 import sendLongText from "../../modules/messages/sendLongText.js";
 
 /**
  * Runs test code.
  * 
- * @param {Message} msg Message. 
+ * @param {Message} msg Message.
  * @returns {boolean} Whether execution was successful.
  */
 async function test(msg) {

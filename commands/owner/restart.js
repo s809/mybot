@@ -1,8 +1,6 @@
 /**
  * @file Restart command.
  */
-"use strict";
-
 import { execSync } from "child_process";
 import { Message } from "discord.js";
 import { writeFileSync } from "fs";

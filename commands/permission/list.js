@@ -1,5 +1,3 @@
-"use strict";
-
 import assert from "assert";
 import { Message } from "discord.js";
 import { client, data } from "../../env.js";
@@ -54,7 +52,7 @@ async function permissionList(msg, id = msg.author.id) {
             roleCommands = (await msg.guild.members.fetch(id)).roles.cache
                 .map(role => data.guilds[msg.guildId].roles[role.id].allowedCommands
                     .map(x => `${role.toString()} - ${x}`)
-            ).flat();
+                ).flat();
             memberCommands = data.guilds[msg.guildId].members[id].allowedCommands;
             break;
     }

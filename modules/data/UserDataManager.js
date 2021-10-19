@@ -29,15 +29,15 @@ import { isDebug } from "../../env.js";
  */
 export class UserDataManager {
     /**
-     * @param {string} path 
-     * @param {UserDataSchema} schema 
+     * @param {string} path
+     * @param {UserDataSchema} schema
      */
     constructor(path, schema) {
         /** @type {string} Path to data root directory. */
         this.path = path;
         /** @type {any} Defines directory structure. */
         this.schema = schema;
-        
+
         /**
          * @type {Map<string, ItemRoot>}
          * @private

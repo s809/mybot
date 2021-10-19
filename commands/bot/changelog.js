@@ -1,8 +1,6 @@
 /**
  * @file Changelog command.
  */
-"use strict";
-
 import { execSync } from "child_process";
 import sendLongText from "../../modules/messages/sendLongText.js";
 import Discord from "discord.js";
@@ -16,7 +14,7 @@ import { version as currentVersion, isDebug } from "../../env.js";
 function prepareChangelog() {
     if (isDebug)
         return "*Not loaded in debug mode*";
-    
+
     console.log("Preparing changelog...");
 
     let commitCount = parseInt(execSync("git rev-list --count HEAD", { encoding: "utf8" }));
@@ -31,7 +29,7 @@ function prepareChangelog() {
             hardVersion = execSync(`git grep --only-matching "\\"v.*\\"" HEAD~${i} -- main.js env.js`, { encoding: "utf8" })
                 .split("\"")[1]
                 .slice(1);
-            
+
             if (!hardVersion.match(/\d(\.\d)+/))
                 hardVersion = undefined;
         }

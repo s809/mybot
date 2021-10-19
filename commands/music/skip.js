@@ -1,8 +1,6 @@
 /**
  * @file Command for skipping current song.
  */
-"use strict";
-
 import Discord from "discord.js";
 import { musicPlayingGuilds } from "../../env.js";
 

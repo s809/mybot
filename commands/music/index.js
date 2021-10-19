@@ -1,8 +1,6 @@
 /**
  * @file Music commands.
  */
-"use strict";
-
 import { Readable } from "stream";
 import { AudioPlayer, AudioResource, VoiceConnection } from "@discordjs/voice";
 
@@ -25,9 +23,9 @@ export class MusicPlayerEntry {
     /**
      * Constructs MusicPlayerEntry instance.
      * 
-     * @param {QueueEntry[]} initialEntries 
-     * @param {ALMessageData} statusMsg 
-     * @param {VoiceConnection} conn 
+     * @param {QueueEntry[]} initialEntries
+     * @param {ALMessageData} statusMsg
+     * @param {VoiceConnection} conn
      */
     constructor(initialEntries, statusMsg, conn) {
         /** @type {QueueEntry[]} Queued videos. */

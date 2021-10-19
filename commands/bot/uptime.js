@@ -1,5 +1,3 @@
-"use strict";
-
 import os from "os";
 import { client } from "../../env.js";
 

@@ -1,5 +1,3 @@
-"use strict";
-
 import { Message } from "discord.js";
 import { CommandManagementPermissionLevel } from "../../modules/commands/definitions.js";
 import { importCommands } from "../../modules/commands/importHelper.js";
