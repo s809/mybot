@@ -15,10 +15,7 @@ async function runScript(msg, name) {
     if (!(name in data.scripts.callable))
         return "Script with this name does not exist.";
 
-    await sendLongText(msg.channel, sanitizePaths(await botEval(data.scripts.callable[name], {
-        msg: msg,
-        client: msg.client
-    })));
+    await sendLongText(msg.channel, sanitizePaths(await botEval(data.scripts.callable[name], msg)));
 }
 
 export const name = "run";

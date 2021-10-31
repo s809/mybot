@@ -138,6 +138,9 @@ export class UserDataManager {
                 }
             },
             set: (target, name, value) => {
+                if (typeof value !== "string")
+                    return false;
+
                 let filepath = `${path}${name}.txt`;
 
                 this.cache.set(filepath, {
@@ -154,6 +157,10 @@ export class UserDataManager {
                 return true;
             },
             ownKeys: () => this.ownKeys(path, ".txt"),
+            // eslint-disable-next-line func-names
+            getOwnPropertyDescriptor: function (target, key) {
+                return { value: this.get(target, key), enumerable: true, configurable: true };
+            },
             has: (_target, name) => this.has(`${path}${name}.txt`)
         });
     }
@@ -182,16 +189,22 @@ export class UserDataManager {
                     return true;
                 },
                 ownKeys: () => Object.keys(src),
+                // eslint-disable-next-line func-names
+                getOwnPropertyDescriptor: function (target, key) {
+                    return { value: this.get(target, key), enumerable: true, configurable: true };
+                },
                 has: (_target, name) => name in src
             };
 
-            let proxy = new Proxy({
-                _getSrc: () => src
-            }, handler);
+            let obj = {};
+            obj[Symbol("getSrc")] = () => src;
+            let proxy = new Proxy(obj, handler);
 
             handler.set = (target, name, value) => {
                 // Restore source object from data proxy
-                value = value?._getSrc?.() ?? value;
+                if (value)
+                    value = Object.getOwnPropertySymbols(value)
+                        .find(symbol => symbol.description === "getSrc")?.() ?? value;
 
                 root.deleteFlag = false;
                 root.modified = true;
@@ -247,6 +260,9 @@ export class UserDataManager {
                 return proxy;
             },
             set: (_target, name, value) => {
+                if (typeof value !== "object")
+                    return false;
+                
                 let filepath = `${path}${name}.json`;
 
                 /** @type {ItemRoot} */
@@ -266,6 +282,10 @@ export class UserDataManager {
                 return true;
             },
             ownKeys: () => this.ownKeys(path, ".json"),
+            // eslint-disable-next-line func-names
+            getOwnPropertyDescriptor: function (target, key) {
+                return { value: this.get(target, key), enumerable: true, configurable: true };
+            },
             has: (_target, name) => this.has(`${path}${name}.json`)
         });
     }
