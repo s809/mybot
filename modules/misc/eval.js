@@ -1,5 +1,8 @@
+/* eslint-disable no-void */
+/* eslint-disable no-eval */
 import { inspect } from "util";
-import { Client, Message } from "discord.js";
+import { Message } from "discord.js";
+import { getSrc } from "../data/UserDataManager.js";
 
 /**
  * Evaluate code from text.
@@ -7,12 +10,13 @@ import { Client, Message } from "discord.js";
  * 
  * @param {string} code Text to evaluate.
  * @param {Message} msg Context message, if present.
+ * @returns
  */
 export async function botEval(code, msg) {
     let response;
 
     const { client, data } = await import("../../env.js");
-    void (client, data);
+    void (msg, client, data, getSrc);
 
     try {
         try {

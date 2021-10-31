@@ -25,6 +25,20 @@ import { isDebug } from "../../env.js";
  */
 
 /**
+ * Gets source data object from proxied object.
+ * 
+ * @param {any} obj Proxied object.
+ * @returns Restored source object.
+ */
+export function getSrc(obj) {
+    if (!obj)
+        return obj;
+    
+    let symbol = Object.getOwnPropertySymbols(obj).find(symbol => symbol.description === "getSrc");
+    return obj[symbol]?.() ?? obj;
+}
+
+/**
  * Provides automatic saving and serialization of data.
  */
 export class UserDataManager {
@@ -188,7 +202,7 @@ export class UserDataManager {
                     delete target[name];
                     return true;
                 },
-                ownKeys: () => Object.keys(src),
+                ownKeys: target => [...Object.getOwnPropertySymbols(target), ...Object.keys(src)],
                 // eslint-disable-next-line func-names
                 getOwnPropertyDescriptor: function (target, key) {
                     return { value: this.get(target, key), enumerable: true, configurable: true };
@@ -202,9 +216,7 @@ export class UserDataManager {
 
             handler.set = (target, name, value) => {
                 // Restore source object from data proxy
-                if (value)
-                    value = Object.getOwnPropertySymbols(value)
-                        .find(symbol => symbol.description === "getSrc")?.() ?? value;
+                value = getSrc(value);
 
                 root.deleteFlag = false;
                 root.modified = true;
@@ -262,7 +274,7 @@ export class UserDataManager {
             set: (_target, name, value) => {
                 if (typeof value !== "object")
                     return false;
-                
+
                 let filepath = `${path}${name}.json`;
 
                 /** @type {ItemRoot} */
