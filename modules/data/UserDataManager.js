@@ -35,6 +35,8 @@ export function getSrc(obj) {
         return obj;
     
     let symbol = Object.getOwnPropertySymbols(obj).find(symbol => symbol.description === "getSrc");
+    if (!symbol)
+        return obj;
     return obj[symbol]?.() ?? obj;
 }
 
