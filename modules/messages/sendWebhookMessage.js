@@ -29,7 +29,9 @@ export async function sendWebhookMessage(msg, webhook) {
                         )
                     })
                 ),
-                disableMentions: "all"
+                allowedMentions: {
+                    parse: []
+                }
             });
         }
         catch (e) {
