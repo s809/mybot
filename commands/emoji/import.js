@@ -19,7 +19,7 @@ async function importEmoji(msg, guildId, emojiName, newEmojiName = emojiName) {
     if (!emoji)
         return "Unknown emoji.";
 
-    if (msg.guild.emojis.cache.some(x => x.name === emojiName))
+    if (msg.guild.emojis.cache.some(x => x.name === newEmojiName))
         return "Emoji with this name already exists.";
 
     try {
