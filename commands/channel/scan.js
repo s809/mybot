@@ -5,6 +5,7 @@ import { mentionToChannel } from "../../util.js";
 import { sendAlwaysLastMessage } from "../../modules/messages/AlwaysLastMessage.js";
 import sendLongText from "../../modules/messages/sendLongText.js";
 import { once } from "events";
+import { getLanguageByMessage, getTranslation } from "../../modules/misc/translations.js";
 
 /**
  * @param {Message} msg
@@ -13,6 +14,8 @@ import { once } from "events";
  * @returns {boolean}
  */
 async function scanChannel(msg, mode, fromChannel) {
+    let language = getLanguageByMessage(msg);
+
     const inviteLink = /(https?:\/\/)?(www.)?(discord.(gg|io|me|li)|discordapp.com\/invite)\/[^\s/]+?(?=\b)/g;
     const getWeekNumber = d => {
         // Copy date so don't modify original
@@ -27,7 +30,7 @@ async function scanChannel(msg, mode, fromChannel) {
     };
 
     if (mode !== "daily" && mode !== "weekly" && mode !== "monthly")
-        return "Mode is not defined.";
+        return getTranslation(language, "errors", "mode_not_defined");
 
     if (fromChannel !== undefined)
         fromChannel = await client.channels.fetch(mentionToChannel(fromChannel));
@@ -35,7 +38,7 @@ async function scanChannel(msg, mode, fromChannel) {
         fromChannel = msg.channel;
 
     if (!(fromChannel instanceof TextChannel) || !(fromChannel.permissionsFor(client.user).has(["VIEW_CHANNEL", "READ_MESSAGE_HISTORY"])))
-        return "Channel is not a text channel or permissions are missing.";
+        return getTranslation(language, "errors", "cannot_read_channel");
 
     /** @type {Map<string, User>} */
     let authors = new Map();
@@ -51,7 +54,7 @@ async function scanChannel(msg, mode, fromChannel) {
     let invites = new Set();
 
     let totalLength = 0;
-    let counterMessage = await sendAlwaysLastMessage(msg.channel, `Fetching messages...`);
+    let counterMessage = await sendAlwaysLastMessage(msg.channel, getTranslation(language, "common", "fetching_messages"));
 
     for await (let message of iterateMessages(fromChannel, "0")) {
         if (!authors.has(message.author.tag))
@@ -86,11 +89,10 @@ async function scanChannel(msg, mode, fromChannel) {
         entry.dailyCount.set(date, entry.dailyCount.get(date) + 1);
         totalLength++;
         if (!(totalLength % 100))
-            counterMessage = await counterMessage.edit(`Fetching messages... (${totalLength} fetched)`);
+            counterMessage = await counterMessage.edit(getTranslation(language, "common", "fetching_messages_progress", totalLength));
     }
 
-    await counterMessage.edit(`Fetched ${totalLength} messages.\n` +
-        "Fetching invites...");
+    await counterMessage.edit(getTranslation(language, "common", "fetching_invites", totalLength));
     if (counterMessage.editing)
         await once(counterMessage, "editComplete");
 
@@ -111,7 +113,7 @@ async function scanChannel(msg, mode, fromChannel) {
             }
             catch (e) { /* Skip */ }
         }
-        result = `Found ${invites.size} invites, alive: ${aliveInviteCount}\n` + result;
+        result = getTranslation(language, "common", "invites_summary", invites.size, aliveInviteCount) + result;
         await sendLongText(msg.channel, result, { code: null });
     }
 
@@ -127,7 +129,7 @@ async function scanChannel(msg, mode, fromChannel) {
             await msg.channel.send({
                 embeds: embeds,
                 files: files.map((x, i) => (x ? {
-                    name: `${i + 1}.txt`,
+                    name: `statistics${i + 1}.txt`,
                     attachment: Buffer.from(x, "utf8")
                 } : null)).filter(x => x)
             });
@@ -144,13 +146,12 @@ async function scanChannel(msg, mode, fromChannel) {
                 result += `${dayEntry[0]}: ${dayEntry[1]}\n`;
 
             let authorStr = `${author.tag} (${author.id})`;
-            let capitalizedMode = mode[0].toUpperCase() + mode.substring(1);
-            let statTitle = `${capitalizedMode} message statistics:\n`;
+            let statTitle = getTranslation(language, "common", "message_statistics");
 
             let unsanitizedResult = statTitle + "```\n" + result + "```";
             if (unsanitizedResult.length > 4096) {
                 files.push(statTitle.replace(":", ` for ${authorStr}:`) + result);
-                result = statTitle + `*See attachment (${files.length})*`;
+                result = statTitle + getTranslation(language, "common", "see_attachment", files.length);
             }
             else {
                 result = unsanitizedResult;
@@ -161,11 +162,11 @@ async function scanChannel(msg, mode, fromChannel) {
                 description: result,
                 fields: [
                     {
-                        name: "First message",
+                        name: getTranslation(language, "common", "first_message"),
                         value: `${data.first.url} (${data.first.createdAt.toLocaleString()})`
                     },
                     {
-                        name: "Last message",
+                        name: getTranslation(language, "common", "last_message"),
                         value: `${data.last.url} (${data.last.createdAt.toLocaleString()})`
                     },
                 ]
@@ -180,7 +181,6 @@ async function scanChannel(msg, mode, fromChannel) {
 }
 
 export const name = "scan";
-export const description = "get information about users sent to this or defined channel";
 export const args = "<mode{daily,weekly,monthly}> [channel]";
 export const minArgs = 1;
 export const maxArgs = 2;

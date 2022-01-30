@@ -12,13 +12,12 @@ async function _eval(msg) {
     await sendLongText(msg.channel, sanitizePaths(
         await botEval(skipStringAfter(msg.content,
             getPrefix(msg.guildId),
-            name
+            "eval"
         ), msg))
     );
 }
 
 export const name = "eval";
-export const args = "<code...>";
 export const maxArgs = Infinity;
 export const func = _eval;
 export const managementPermissionLevel = CommandManagementPermissionLevel.BOT_OWNER;

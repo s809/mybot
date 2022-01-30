@@ -1,30 +1,32 @@
 import { setTimeout } from "timers/promises";
+import { getLanguageByMessage, getTranslation } from "../modules/misc/translations.js";
 
 async function timer(msg, date, time, countstr, endstr) {
+    let language = getLanguageByMessage(msg);
+
     date = date.split(".");
     for (let i = 0; i < date.length; i++) {
         date[i] = parseInt(date[i]);
         if (date[i] === undefined || date.length !== 3)
-            return "Invalid date format";
+            return getTranslation(language, "errors", "invalid_date_format");
     }
 
     time = time.split(":");
     for (let i = 0; i < time.length; i++) {
         time[i] = parseInt(time[i]);
         if (time[i] === undefined || time.length !== 2)
-            return "Invalid time format";
+            return getTranslation(language, "errors", "invalid_time_format");
     }
 
     if (!countstr)
-        return "Countstr is empty.";
-
+        return getTranslation(language, "errors", "countstr_empty");
     if (!endstr)
-        return "Endstr is empty.";
+        return getTranslation(language, "errors", "endstr_empty");
 
     let goal = new Date(date[2], date[1] - 1, date[0], time[0], time[1]);
     let current;
 
-    let res = await msg.channel.send("Initializing timer...");
+    let res = await msg.channel.send(getTranslation(language, "common", "initializing_timer"));
 
     do {
         let diff = new Date(goal - Date.now() + 60000);
@@ -40,7 +42,6 @@ async function timer(msg, date, time, countstr, endstr) {
 }
 
 export const name = "timer";
-export const description = "self-updating UTC timer message";
 export const args = "<dd.mm.yyyy> <hh:mm> <countstr{%s}> <endstr>";
 export const minArgs = 4;
 export const maxArgs = 4;

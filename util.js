@@ -96,3 +96,23 @@ export function wrapInQuotesIfNeed(text) {
     else
         return text;
 }
+
+/**
+ * Formats string. \
+ * Tokens used for formatting are **$1**, **$2** and so on.
+ * 
+ * @param {string} text Text to format.
+ * @param  {...string} args Arguments for embedding into string.
+ * @returns Formatted string.
+ */
+export function formatString(text, ...args) {
+    return text.replaceAll(/\\?\$(\d+)/g, (match, value) => {
+        if (match[0] === "\\")
+            return match.slice(1);
+
+        let replacedValue = args[parseInt(value) - 1];
+        if (replacedValue === undefined)
+            throw new Error(`Value for $${parseInt(value)} is missing`);
+        return replacedValue;
+    });
+}

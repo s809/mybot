@@ -1,12 +1,15 @@
 import assert from "assert";
 import { Message } from "discord.js";
 import { client, data } from "../../env.js";
+import { getLanguageByMessage, getTranslation } from "../../modules/misc/translations.js";
 
 /**
  * @param {Message} msg
  * @param {string} id
  */
 async function permissionList(msg, id = msg.author.id) {
+    let language = getLanguageByMessage(msg);
+
     /** @type {"user" | "role" | "member"} */
     let resolvedType;
     let resolvedItem;
@@ -31,7 +34,7 @@ async function permissionList(msg, id = msg.author.id) {
         assert(resolvedType);
     }
     catch (e) {
-        return "Invalid ID was provided.";
+        return getTranslation(language, "errors", "invalid_id");
     }
 
     /** @type {string[]} */
@@ -58,45 +61,42 @@ async function permissionList(msg, id = msg.author.id) {
     }
 
     let fields = [];
-
-    if (userCommands) {
+    if (userCommands?.length) {
         fields.push({
-            name: "User",
-            value: userCommands.length
-                ? userCommands.join("\n")
-                : "None"
+            name: getTranslation(language, "common", "user"),
+            value: userCommands.join("\n")
         });
     }
-    if (roleCommands) {
+    if (roleCommands?.length) {
         fields.push({
-            name: "Role",
-            value: roleCommands.length
-                ? roleCommands.join("\n")
-                : "None"
+            name: getTranslation(language, "common", "role"),
+            value: roleCommands.join("\n")
         });
     }
-    if (memberCommands) {
+    if (memberCommands?.length) {
         fields.push({
-            name: "Member",
-            value: memberCommands.length
-                ? memberCommands.join("\n")
-                : "None"
+            name: getTranslation(language, "common", "member"),
+            value: memberCommands.join("\n")
         });
     }
 
     await msg.channel.send({
         embeds: [{
-            title: `Permission list for ${resolvedItem.name ??
+            title: getTranslation(language, "common", "permission_list_title", resolvedItem.name ??
                 resolvedItem.user?.tag ??
-                resolvedItem.tag
-                }`,
-            fields: fields
+                resolvedItem.tag),
+            ...fields.length
+                ? {
+                    fields: fields,
+                }
+                : {
+                    description: getTranslation(language, "common", "no_permissions")
+                }
         }]
     });
 }
 
 export const name = "list";
-export const description = "get permissions of specific item";
 export const args = "<id>";
 export const maxArgs = 1;
 export const func = permissionList;

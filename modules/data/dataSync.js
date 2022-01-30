@@ -58,6 +58,7 @@ export function createUser(user) {
     data.users[user.id] = {
         allowedCommands: [],
         flags: [],
+        language: "en",
         ...data.users[user.id]
     };
 }
@@ -96,6 +97,7 @@ export async function onGuildCreate(guild) {
         channels: {},
         flags: [],
         prefix: defaultPrefix,
+        language: "en",
         ...data.guilds[guild.id]
     };
     let guildData = data.guilds[guild.id];

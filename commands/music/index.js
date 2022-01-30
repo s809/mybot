@@ -7,6 +7,7 @@ import { AudioPlayer, AudioResource, VoiceConnection } from "@discordjs/voice";
 import { formatDuration } from "../../util.js";
 import { ALMessageData } from "../../modules/messages/AlwaysLastMessage.js";
 import { importCommands } from "../../modules/commands/importHelper.js";
+import { getTranslation } from "../../modules/misc/translations.js";
 
 /**
  * @typedef QueueEntry
@@ -26,8 +27,9 @@ export class MusicPlayerEntry {
      * @param {QueueEntry[]} initialEntries
      * @param {ALMessageData} statusMsg
      * @param {VoiceConnection} conn
+     * @param {string} language
      */
-    constructor(initialEntries, statusMsg, conn) {
+    constructor(initialEntries, statusMsg, conn, language) {
         /** @type {QueueEntry[]} Queued videos. */
         this.queue = initialEntries;
 
@@ -51,6 +53,9 @@ export class MusicPlayerEntry {
 
         /** @type {boolean} Whether the preloader is running. */
         this.isLoading = false;
+
+        /** @type {string} Language of this entry. */
+        this.language = language;
     }
 
     /**
@@ -69,8 +74,8 @@ export class MusicPlayerEntry {
                 this.text = text + "\n";
         }
 
-        let durationStr = this.currentVideo?.duration ? formatDuration(this.currentVideo.duration) : "unknown";
-        let result = this.text + `Now playing: ${this.currentVideo?.title} (${durationStr})\n` + this.printQueue();
+        let durationStr = this.currentVideo?.duration ? formatDuration(this.currentVideo.duration) : getTranslation(this.language, "common", "unknown");
+        let result = this.text + getTranslation(this.language, "common", "now_playing", this.currentVideo?.title, durationStr) + this.printQueue();
 
         if (result.length > 2000)
             result = result.slice(0, 2000 - 3) + "...";
@@ -89,12 +94,12 @@ export class MusicPlayerEntry {
         for (let pos = 0; pos < this.queue.length; pos++) {
             let entry = this.queue[pos];
 
-            let durationStr = entry.duration ? formatDuration(entry.duration) : "unknown";
+            let durationStr = entry.duration ? formatDuration(entry.duration) : getTranslation(this.language, "common", "unknown");
             result += `${pos + 1}) ${entry.title ?? `<${entry.url}>`} (${durationStr})\n`;
             duration += entry.duration ?? 0;
         }
 
-        return `Current queue size: ${this.queue.length} (${formatDuration(duration)})\n` + result;
+        return getTranslation(this.language, "common", "queue_summary", this.queue.length, formatDuration(duration)) + result;
     }
 }
 

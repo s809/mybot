@@ -1,7 +1,7 @@
 import { Message } from "discord.js";
 import { data } from "../../env.js";
 import { botEval } from "../../modules/misc/eval.js";
-import { sanitizePaths } from "../../util.js";
+import { formatString, sanitizePaths } from "../../util.js";
 import sendLongText from "../../modules/messages/sendLongText.js";
 
 /**
@@ -16,15 +16,7 @@ async function runScript(msg, name, ...args) {
         return "Script with this name does not exist.";
 
     await sendLongText(msg.channel, sanitizePaths(await botEval(
-        data.scripts.callable[name].replaceAll(/\\?\$(\d+)/g, (match, value) => {
-            if (match[0] === "\\")
-                return match.slice(1);
-
-            let replacedValue = args[parseInt(value) - 1];
-            if (replacedValue === undefined)
-                throw new Error(`Value for $${parseInt(value)} is missing`);
-            return replacedValue;
-        }),
+        formatString(data.scripts.callable[name], ...args),
         msg
     )));
 }

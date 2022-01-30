@@ -1,5 +1,6 @@
 import { Message, Permissions } from "discord.js";
 import { client, isDebug } from "../../env.js";
+import { getLanguageByMessage, getTranslation } from "../../modules/misc/translations.js";
 
 /**
  * @param {Message} msg
@@ -8,19 +9,21 @@ import { client, isDebug } from "../../env.js";
  * @param {string} newEmojiName
  */
 async function importEmoji(msg, guildId, emojiName, newEmojiName = emojiName) {
+    let language = getLanguageByMessage(msg);
+
     if (!msg.guild.me.permissions.has(Permissions.FLAGS.MANAGE_EMOJIS_AND_STICKERS))
-        return "Cannot manage emojis on this server.";
+        return getTranslation(language, "errors", "cannot_manage_emojis");
 
     let guild = client.guilds.resolve(guildId);
     if (!guild)
-        return "Unknown server.";
+        return getTranslation(language, "errors", "unknown_server");
 
     let emoji = guild.emojis.cache.find(x => x.name === emojiName);
     if (!emoji)
-        return "Unknown emoji.";
+        return getTranslation(language, "errors", "unknown_emoji");
 
     if (msg.guild.emojis.cache.some(x => x.name === newEmojiName))
-        return "Emoji with this name already exists.";
+        return getTranslation(language, "errors", "emoji_already_exists");
 
     try {
         await msg.guild.emojis.create(emoji.url, newEmojiName);
@@ -29,13 +32,13 @@ async function importEmoji(msg, guildId, emojiName, newEmojiName = emojiName) {
         if (isDebug)
             throw e;
 
-        return "Failed to create emoji.";
+        return getTranslation(language, "errors", "emoji_create_failed");
     }
 }
 
 export const name = "import";
-export const description = "import emoji from another server";
 export const args = "<server id> <emoji name> [new emoji name]";
 export const minArgs = 2;
 export const maxArgs = 3;
+export const managementPermissionLevel = Permissions.FLAGS.MANAGE_EMOJIS_AND_STICKERS;
 export const func = importEmoji;

@@ -24,7 +24,6 @@ async function getLinkedChannels(msg) {
 }
 
 export const name = "list";
-export const description = "get channel links for this server";
 export const minArgs = 0;
 export const maxArgs = 0;
 export const func = getLinkedChannels;

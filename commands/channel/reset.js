@@ -1,12 +1,13 @@
 import { Message } from "discord.js";
 import { isChannelLinked } from "../../modules/data/channelLinking.js";
+import { getLanguageByMessage, getTranslation } from "../../modules/misc/translations.js";
 
 /**
  * @param {Message} msg
  */
 async function resetChannel(msg) {
     if (isChannelLinked(msg.guild.id, msg.channel.id))
-        return "Disable channel linking first.";
+        return getTranslation(getLanguageByMessage(msg), "errors", "channel_needs_unlink");
 
     await Promise.all([
         (async () => {
@@ -18,7 +19,6 @@ async function resetChannel(msg) {
 }
 
 export const name = "reset";
-export const description = "clone and delete this channel";
 export const minArgs = 0;
 export const maxArgs = 0;
 export const func = resetChannel;

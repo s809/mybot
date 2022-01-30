@@ -1,22 +1,24 @@
 import { data } from "../env.js";
 import { CommandManagementPermissionLevel } from "../modules/commands/definitions.js";
+import { getLanguageByMessage, getTranslation } from "../modules/misc/translations.js";
 
 /**
  * @param {import("discord.js").Message} msg
  * @param {string} newPrefix
  */
 function prefix(msg, newPrefix) {
+    let language = getLanguageByMessage(msg);
+
     if (!msg.guild)
-        return "This command is only available in servers.";
+        return getTranslation(language, "errors", "not_in_server");
 
     if (newPrefix.match(/[\\"\s]/))
-        return "Invalid prefix.";
+        return getTranslation(language, "errors", "invalid_prefix");
     
     data.guilds[msg.guildId].prefix = newPrefix;
 }
 
 export const name = "prefix";
-export const description = "change prefix";
 export const args = "<newPrefix>";
 export const minArgs = 1;
 export const maxArgs = 1;

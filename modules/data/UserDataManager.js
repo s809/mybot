@@ -11,9 +11,13 @@ import { isDebug } from "../../env.js";
  */
 
 /**
+ * @typedef {"string" | "object"} UserDataFileType
+ */
+
+/**
  * @typedef {{
  *  [children: string]: UserDataSchemaNode;
- *  fileType?: string;
+ *  fileType?: UserDataFileType;
  * }} UserDataSchemaNode
  */
 

@@ -1,7 +1,8 @@
 import os from "os";
 import { client } from "../../env.js";
+import { getLanguageByMessage, getTranslation } from "../../modules/misc/translations.js";
 
-function getUptimeStr(diff) {
+function getUptimeStr(diff, language) {
     var days = Math.floor(diff / (1000 * 60 * 60 * 24));
     diff -= days * (1000 * 60 * 60 * 24);
 
@@ -14,16 +15,19 @@ function getUptimeStr(diff) {
     var seconds = Math.floor(diff / (1000));
     diff -= seconds * (1000);
 
-    return `${days} days, ${hours} hours, ${mins} minutes, ${seconds} seconds`;
+    return getTranslation(language, "common", "uptime_inner", days, hours, mins, seconds);
 }
 
 async function uptime(msg) {
     let bot = new Date(client.uptime);
     let host = new Date(os.uptime() * 1000);
 
-    await msg.channel.send(`Bot uptime: ${getUptimeStr(bot)}\nHost uptime: ${getUptimeStr(host)}`);
+    let language = getLanguageByMessage(msg);
+    await msg.channel.send(getTranslation(language, "common", "uptime",
+        getUptimeStr(bot, language),
+        getUptimeStr(host, language)
+    ));
 }
 
 export const name = "uptime";
-export const description = "get bot uptime";
 export const func = uptime;

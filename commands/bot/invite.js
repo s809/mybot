@@ -9,7 +9,6 @@ async function botInvite(msg) {
 }
 
 export const name = "invite";
-export const description = "get bot server invite link";
 export const minArgs = 0;
 export const maxArgs = 0;
 export const func = botInvite;

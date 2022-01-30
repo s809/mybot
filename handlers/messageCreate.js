@@ -11,6 +11,7 @@ import { sanitizePaths } from "../util.js";
 import { hasFlag } from "../modules/data/flags.js";
 import { copyMessageToLinkedChannel } from "../modules/messages/messageCopying.js";
 import { getPrefix } from "../modules/commands/getPrefix.js";
+import { getLanguageByMessage, getTranslation } from "../modules/misc/translations.js";
 
 client.on("messageCreate", async msg => {
     if (msg.guild) {
@@ -55,11 +56,13 @@ client.on("messageCreate", async msg => {
     const maxArgs = command.maxArgs ?? 0;
 
     if (args.length < minArgs || args.length > maxArgs) {
-        let [kind, need] = args.length < minArgs
-            ? ["less", `least ${minArgs}`]
-            : ["more", `most ${maxArgs}`];
+        let language = getLanguageByMessage(msg);
         
-        await msg.channel.send(`Provided arguments ${kind} than expected (need at ${need}).`);
+        let [strName, need] = args.length < minArgs
+            ? ["arguments_less_than_expected", minArgs]
+            : ["arguments_more_than_expected", maxArgs];
+        
+        await msg.channel.send(getTranslation(language, "errors", strName, need));
         await msg.react("❌");
         return;
     }
@@ -77,16 +80,14 @@ client.on("messageCreate", async msg => {
             await sendLongText(msg.channel, sanitizePaths(e.stack));
         }
 
-        if (!msg.deleted) {
-            await Promise.allSettled([
-                msg.react(typeof result !== "string" ? "✅" : "❌"),
-                reaction.users.remove(),
-                (async () => {
-                    if (typeof result === "string")
-                        await msg.channel.send(result);
-                })()
-            ]);
-        }
+        await Promise.allSettled([
+            msg.react(typeof result !== "string" ? "✅" : "❌"),
+            reaction.users.remove(),
+            (async () => {
+                if (typeof result === "string")
+                    await msg.channel.send(result);
+            })()
+        ]);
     }
     catch (e) {
         console.error(e.stack);

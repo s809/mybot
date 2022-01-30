@@ -80,10 +80,7 @@
         "allowArrowFunctions": true
       }
     ],
-    "function-call-argument-newline": [
-      "error",
-      "consistent"
-    ],
+    "function-call-argument-newline": "off",
     "function-paren-newline": "off",
     "generator-star-spacing": "off",
     "grouped-accessor-pairs": "error",

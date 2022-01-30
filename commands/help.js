@@ -4,6 +4,7 @@ import { CommandManagementPermissionLevel } from "../modules/commands/definition
 import { getPrefix } from "../modules/commands/getPrefix.js";
 import { isCommandAllowedToUse } from "../modules/commands/permissions.js";
 import sendLongText from "../modules/messages/sendLongText.js";
+import { getLanguageByMessage, getTranslation } from "../modules/misc/translations.js";
 
 /**
  * @param {Message} msg
@@ -14,8 +15,11 @@ async function help(msg) {
     /** @type {("Short" | "FullKeepIndent" | "Full")[]} */
     let commandGenHintChain = [];
 
+    /** @type {string} */
+    let language = getLanguageByMessage(msg);
+
     /**
-     * @type {import("../util.js").Command}
+     * @type {import("../modules/commands/commands.js").Command}
      */
     let command;
     for (command of iterateCommands()) {
@@ -57,8 +61,9 @@ async function help(msg) {
         if (command.args)
             response += " " + command.args;
 
-        if (command.description)
-            response += ` - ${command.description.split("\n").join("\n  " + indent)}.`;
+        let description = getTranslation(language, "commandDescriptions", command.path);
+        if (description)
+            response += ` - ${description.split("\n").join("\n  " + indent)}.`;
 
         response += "\n";
     }
@@ -69,5 +74,4 @@ async function help(msg) {
 }
 
 export const name = "help";
-export const description = "show this help message";
 export const func = help;

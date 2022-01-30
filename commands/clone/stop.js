@@ -1,6 +1,7 @@
 import { Message } from "discord.js";
 import { ChannelLinkRole, getLinkedChannel } from "../../modules/data/channelLinking.js";
 import { isCopying, stopCopying } from "../../modules/messages/messageCopying.js";
+import { getLanguageByMessage, getTranslation } from "../../modules/misc/translations.js";
 
 /**
  * 
@@ -11,7 +12,7 @@ async function stopBatchClone(msg) {
     let link = getLinkedChannel(msg.guildId, msg.channelId);
 
     if (!isCopying(link.channelId))
-        return "Clone is not pending.";
+        return getTranslation(getLanguageByMessage(msg), "errors", "clone_not_pending");
 
     stopCopying(link.role === ChannelLinkRole.DESTINATION ? msg.channelId : link.channelId);
 }

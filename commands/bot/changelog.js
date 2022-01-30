@@ -13,7 +13,7 @@ import { version as currentVersion, isDebug } from "../../env.js";
  */
 function prepareChangelog() {
     if (isDebug)
-        return "*Not loaded in debug mode*";
+        return "*Changelog is not generated in debug mode.*";
 
     console.log("Preparing changelog...");
 
@@ -82,7 +82,6 @@ async function changelog(msg) {
 }
 
 export const name = "changelog";
-export const description = "get bot changelog";
 export const minArgs = 0;
 export const maxArgs = 0;
 export const func = changelog;

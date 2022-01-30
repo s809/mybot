@@ -3,6 +3,7 @@
  */
 import Discord from "discord.js";
 import { musicPlayingGuilds } from "../../env.js";
+import { getLanguageByMessage, getTranslation } from "../../modules/misc/translations.js";
 
 /**
  * Pauses playback.
@@ -12,12 +13,11 @@ import { musicPlayingGuilds } from "../../env.js";
  */
 async function pause(msg) {
     if (!musicPlayingGuilds.has(msg.guild))
-        return "Nothing is not playing here.";
+        return getTranslation(getLanguageByMessage(msg), "errors", "nothing_is_playing");
 
     let entry = musicPlayingGuilds.get(msg.guild);
     entry.player.pause();
 }
 
 export const name = "pause";
-export const description = "pause player";
 export const func = pause;

@@ -3,6 +3,7 @@
  */
 import Discord from "discord.js";
 import { musicPlayingGuilds } from "../../env.js";
+import { getLanguageByMessage, getTranslation } from "../../modules/misc/translations.js";
 
 /**
  * Stops playback.
@@ -12,7 +13,7 @@ import { musicPlayingGuilds } from "../../env.js";
  */
 async function stop(msg) {
     if (!musicPlayingGuilds.has(msg.guild))
-        return "Nothing is not playing here.";
+        return getTranslation(getLanguageByMessage(msg), "errors", "nothing_is_playing");
 
     let entry = musicPlayingGuilds.get(msg.guild);
 
@@ -22,5 +23,4 @@ async function stop(msg) {
 }
 
 export const name = "stop";
-export const description = "stop player";
 export const func = stop;

@@ -17,18 +17,18 @@ import { once } from "events";
 import { setTimeout } from "timers/promises";
 import { fetchVideoByUrl, fetchVideoOrPlaylist, getDownloadStream } from "../../modules/music/youtubeDl.js";
 import { makeOpusStream } from "../../modules/music/ffmpeg.js";
+import { getLanguageByMessage, getTranslation } from "../../modules/misc/translations.js";
 
 const timeouts = {
-    ...(!isDebug
+    ...isDebug
         ? {
-            voiceReady: 5000,
-            playerPlaying: 10000,
-        }
-        : {
             voiceReady: 15000,
             playerPlaying: 30000,
         }
-    ),
+        : {
+            voiceReady: 5000,
+            playerPlaying: 10000,
+        },
     playerIdle: 3000,
     paused: 120000
 };
@@ -72,12 +72,14 @@ async function fillMissingData(playerEntry) {
  * @returns {boolean} Whether the execution was successful.
  */
 async function play(msg, url, startPosition) {
+    let language = getLanguageByMessage(msg);
+
     if (url?.match(/(\\|'|")/))
-        return "URL is invalid.";
+        return getTranslation(language, "errors", "invalid_url");
 
     let voiceChannel = msg.member.voice.channel;
     if (!voiceChannel)
-        return "Join any voice channel and try again.";
+        return getTranslation(language, "errors", "not_in_voice");
 
     let entry = musicPlayingGuilds.get(voiceChannel.guild);
 
@@ -87,7 +89,7 @@ async function play(msg, url, startPosition) {
     }
 
     if (!url)
-        return "No URL specified.";
+        return getTranslation(language, "errors", "no_url");
 
     /** @type {import("./index.js").QueueEntry[]} */
     let videos = await fetchVideoOrPlaylist(url);
@@ -95,12 +97,12 @@ async function play(msg, url, startPosition) {
     // Validate start time/position
     if (startPosition) {
         if (!startPosition.match(/^\d{1,2}$/) || parseInt(startPosition) < 1) {
-            return "Start position is invalid.";
+            return getTranslation(language, "errors", "invalid_start_position");
         }
         else {
             startPosition = parseInt(startPosition);
             if (startPosition - 1 >= videos.length)
-                return "At least one video should be added to queue.";
+                return getTranslation(language, "errors", "no_videos_added");
 
             videos = videos.slice(startPosition - 1);
         }
@@ -108,11 +110,11 @@ async function play(msg, url, startPosition) {
 
     if (entry) {
         entry.queue.push(videos.length > 1 ? [...videos] : videos[0]);
-        await entry.updateStatus("Queued!");
+        await entry.updateStatus(getTranslation(language, "common", "queued"));
         return;
     }
 
-    const statusMessage = await sendAlwaysLastMessage(msg.channel, "Initializing player...");
+    const statusMessage = await sendAlwaysLastMessage(msg.channel, getTranslation(language, "common", "initializing_player"));
 
     const conn = joinVoiceChannel({
         channelId: voiceChannel.id,
@@ -121,7 +123,7 @@ async function play(msg, url, startPosition) {
         adapterCreator: createDiscordJSAdapter(voiceChannel)
     });
 
-    entry = new (await import("./index.js")).MusicPlayerEntry(videos, statusMessage, conn);
+    entry = new (await import("./index.js")).MusicPlayerEntry(videos, statusMessage, conn, language);
     musicPlayingGuilds.set(voiceChannel.guild, entry);
 
     try {
@@ -140,7 +142,14 @@ async function play(msg, url, startPosition) {
 
             fillMissingData(entry).catch(console.log);
 
-            await entry.updateStatus("Buffering...");
+            try {
+                if (msg.guild.me.voice.channel.type === "GUILD_STAGE_VOICE")
+                    await msg.guild.me.voice.setSuppressed(false);
+            }
+            catch (e) {
+                return getTranslation(language, "errors", "cannot_become_speaker");
+            }
+            await entry.updateStatus(getTranslation(language, "common", "buffering"));
 
             let video = await getDownloadStream(currentVideo.url);
             let ffmpeg = await makeOpusStream(video);
@@ -152,7 +161,7 @@ async function play(msg, url, startPosition) {
             player.play(entry.resource);
             await entersState(player, AudioPlayerStatus.Playing, timeouts.playerPlaying);
 
-            await entry.updateStatus("Ready!");
+            await entry.updateStatus(getTranslation(language, "common", "ready"));
 
             do {
                 if (player.state.status === AudioPlayerStatus.Paused) {
@@ -187,10 +196,6 @@ async function play(msg, url, startPosition) {
 }
 
 export const name = "play";
-export const description = "play a video.\n" +
-    "If no URL or query is specified, unpauses playback.\n" +
-    "Queries are searched on YouTube, but URL can be from any source.\n" +
-    "Quotes are not required for one-word queries";
 export const args = "[url|\"query\"] [startPos (0-99)]";
 export const minArgs = 0;
 export const maxArgs = 2;
