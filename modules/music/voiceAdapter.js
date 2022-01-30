@@ -1,11 +1,9 @@
 /**
  * @file Voice adapter for discord.js.
  */
-import voice from '@discordjs/voice';
-const { DiscordGatewayAdapterCreator, DiscordGatewayAdapterLibraryMethods } = voice;
 import { Client, Constants, Channel } from 'discord.js';
 
-/** @type {Map<import('discord.js').Snowflake, DiscordGatewayAdapterLibraryMethods>} */
+/** @type {Map<import('discord.js').Snowflake, import("@discordjs/voice").DiscordGatewayAdapterLibraryMethods>} */
 const adapters = new Map();
 /** @type {Set<Client>} */
 const trackedClients = new Set();
@@ -56,7 +54,7 @@ function trackGuild(guild) {
  * Creates an adapter for a Voice Channel.
  * 
  * @param {Channel} channel - The channel to create the adapter for.
- * @returns {DiscordGatewayAdapterCreator}
+ * @returns {import("@discordjs/voice").DiscordGatewayAdapterCreator}
  */
 export function createDiscordJSAdapter(channel) {
     return methods => {

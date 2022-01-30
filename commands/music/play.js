@@ -10,7 +10,7 @@ import {
     joinVoiceChannel,
     VoiceConnectionStatus
 } from "@discordjs/voice";
-import { createDiscordJSAdapter } from "../../modules/misc/voiceadapter.js";
+import { createDiscordJSAdapter } from "../../modules/music/voiceAdapter.js";
 import { isDebug, musicPlayingGuilds } from "../../env.js";
 import { sendAlwaysLastMessage } from "../../modules/messages/AlwaysLastMessage.js";
 import { once } from "events";
@@ -157,7 +157,7 @@ async function play(msg, url, startPosition) {
 
             entry.readable = ffmpeg;
             entry.resource = createAudioResource(entry.readable);
-            
+
             player.play(entry.resource);
             await entersState(player, AudioPlayerStatus.Playing, timeouts.playerPlaying);
 

@@ -41,10 +41,9 @@ export async function makeOpusStream(readable) {
         "-i", "-",
         "-vn",
         "-f", "opus",
-        ...(isOpus
+        ...isOpus
             ? ["-c:a", "copy"]
-            : ["-b:a", "384k"]
-        ),
+            : ["-b:a", "384k"],
         "-"
     ]);
     ffmpeg.on("error", () => { /* Ignored */ });
