@@ -123,7 +123,8 @@ async function play(msg, url, startPosition) {
         adapterCreator: createDiscordJSAdapter(voiceChannel)
     });
 
-    entry = new (await import("./index.js")).MusicPlayerEntry(videos, statusMessage, conn, language);
+    const { MusicPlayerEntry } = await import("./index.js");
+    entry = new MusicPlayerEntry(videos, statusMessage, conn, language);
     musicPlayingGuilds.set(voiceChannel.guild, entry);
 
     try {

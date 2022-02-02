@@ -17,6 +17,10 @@ import { wrapText } from "./util.js";
     await client.login(token);
 
     process.on("uncaughtException", async (e, origin) => {
+        if (e.message === "write EPIPE" || e.message === "write EOF") {
+            console.warn(e.stack);
+        }
+
         let text = wrapText(origin, e.stack);
 
         if (client.user) {
