@@ -16,7 +16,7 @@ const maxFetchMessages = 100;
  * @yields Messages from a channel.
  */
 async function* iterateMessagesFromTop(channel, oldestId, latestId, count) {
-    let firstMessageId = oldestId ?? 0;
+    let firstMessageId = oldestId ?? "0";
 
     // eslint-disable-next-line no-unmodified-loop-condition
     for (let collectedCount = 0; collectedCount < count || count === null; collectedCount += maxFetchMessages) {
@@ -32,7 +32,7 @@ async function* iterateMessagesFromTop(channel, oldestId, latestId, count) {
         firstMessageId = messages[0].id;
 
         for (let message of messages.reverse()) {
-            if (BigInt(message.id) > BigInt(latestId ?? Number.MAX_SAFE_INTEGER)) return;
+            if (BigInt(message.id) > BigInt(latestId ?? channel.lastMessageId) + 1n) return;
             yield message;
         }
 
@@ -66,7 +66,7 @@ async function* iterateMessagesFromBottom(channel, latestId, oldestId, count) {
         lastMessageId = messages[messages.length - 1].id;
 
         for (let message of messages) {
-            if (BigInt(message.id) <= BigInt(oldestId ?? 0)) return;
+            if (BigInt(message.id) <= BigInt(oldestId ?? "0")) return;
             yield message;
         }
 
@@ -96,7 +96,7 @@ export default async function* iterateMessages(channel, startId = null, endId = 
         throw new Error("Invalid count parameter.");
 
     let iterable;
-    if (parseInt(startId) < parseInt(endId) || (startId && !endId))
+    if (BigInt(startId ?? 0) < BigInt(endId ?? channel.lastMessageId) + 1n || (startId && !endId))
         iterable = iterateMessagesFromTop(channel, startId, endId, count);
     else if (!startId && endId)
         iterable = iterateMessagesFromBottom(channel, endId, startId, count);
