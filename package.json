@@ -1,7 +1,7 @@
 {
   "name": "mybot",
   "type": "module",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "dependencies": {
     "@discordjs/opus": "^0.7.0",
     "@discordjs/voice": "^0.8.0",
