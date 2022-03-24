@@ -1,4 +1,4 @@
-import { getLanguageByMessage, getTranslation } from "../modules/misc/translations.js";
+import { Translator } from "../modules/misc/Translator.js";
 import { Permissions } from "discord.js";
 
 async function deleteRange(msg, start, end) {
@@ -6,7 +6,7 @@ async function deleteRange(msg, start, end) {
     end = parseInt(end);
 
     if (start === undefined || end === undefined || start >= end)
-        return getTranslation(getLanguageByMessage(msg), "errors", "invalid_message_range");
+        return Translator.get(msg).translate("errors.invalid_message_range");
 
     while (true) {
         let messages = await msg.channel.messages.fetch({ limit: 100, before: end + 1 });

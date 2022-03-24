@@ -1,14 +1,14 @@
 import assert from "assert";
 import { Message } from "discord.js";
 import { client, data } from "../../env.js";
-import { getLanguageByMessage, getTranslation } from "../../modules/misc/translations.js";
+import { Translator } from "../../modules/misc/Translator.js";
 
 /**
  * @param {Message} msg
  * @param {string} id
  */
 async function permissionList(msg, id = msg.author.id) {
-    let language = getLanguageByMessage(msg);
+    let translator = Translator.get(msg);
 
     /** @type {"user" | "role" | "member"} */
     let resolvedType;
@@ -34,7 +34,7 @@ async function permissionList(msg, id = msg.author.id) {
         assert(resolvedType);
     }
     catch (e) {
-        return getTranslation(language, "errors", "invalid_id");
+        return translator.translate("errors.invalid_id");
     }
 
     /** @type {string[]} */
@@ -63,26 +63,26 @@ async function permissionList(msg, id = msg.author.id) {
     let fields = [];
     if (userCommands?.length) {
         fields.push({
-            name: getTranslation(language, "common", "user"),
+            name: translator.translate("embeds.permission_list.user"),
             value: userCommands.join("\n")
         });
     }
     if (roleCommands?.length) {
         fields.push({
-            name: getTranslation(language, "common", "role"),
+            name: translator.translate("embeds.permission_list.role"),
             value: roleCommands.join("\n")
         });
     }
     if (memberCommands?.length) {
         fields.push({
-            name: getTranslation(language, "common", "member"),
+            name: translator.translate("embeds.permission_list.member"),
             value: memberCommands.join("\n")
         });
     }
 
     await msg.channel.send({
         embeds: [{
-            title: getTranslation(language, "common", "permission_list_title", resolvedItem.name ??
+            title: translator.translate("embeds.permission_list.title", resolvedItem.name ??
                 resolvedItem.user?.tag ??
                 resolvedItem.tag),
             ...fields.length
@@ -90,7 +90,7 @@ async function permissionList(msg, id = msg.author.id) {
                     fields: fields,
                 }
                 : {
-                    description: getTranslation(language, "common", "no_permissions")
+                    description: translator.translate("embeds.permission_list.no_permissions")
                 }
         }]
     });

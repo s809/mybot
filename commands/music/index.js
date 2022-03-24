@@ -7,7 +7,7 @@ import { AudioPlayer, AudioResource, VoiceConnection } from "@discordjs/voice";
 import { formatDuration } from "../../util.js";
 import { ALMessageData } from "../../modules/messages/AlwaysLastMessage.js";
 import { importCommands } from "../../modules/commands/importHelper.js";
-import { getTranslation } from "../../modules/misc/translations.js";
+import { Translator } from "../../modules/misc/Translator.js";
 
 /**
  * @typedef QueueEntry
@@ -27,9 +27,9 @@ export class MusicPlayerEntry {
      * @param {QueueEntry[]} initialEntries
      * @param {ALMessageData} statusMsg
      * @param {VoiceConnection} conn
-     * @param {string} language
+     * @param {Translator} translator
      */
-    constructor(initialEntries, statusMsg, conn, language) {
+    constructor(initialEntries, statusMsg, conn, translator) {
         /** @type {QueueEntry[]} Queued videos. */
         this.queue = initialEntries;
 
@@ -54,8 +54,8 @@ export class MusicPlayerEntry {
         /** @type {boolean} Whether the preloader is running. */
         this.isLoading = false;
 
-        /** @type {string} Language of this entry. */
-        this.language = language;
+        /** @type {Translator} Translator of this entry. */
+        this.translator = translator;
     }
 
     /**
@@ -66,7 +66,7 @@ export class MusicPlayerEntry {
     async updateStatus(text) {
         switch (text) {
             case null:
-                this.text = "";
+                this.text = null;
                 break;
             case undefined:
                 break;
@@ -74,32 +74,52 @@ export class MusicPlayerEntry {
                 this.text = text + "\n";
         }
 
-        let durationStr = this.currentVideo?.duration ? formatDuration(this.currentVideo.duration) : getTranslation(this.language, "common", "unknown");
-        let result = this.text + getTranslation(this.language, "common", "now_playing", this.currentVideo?.title, durationStr) + this.printQueue();
+        let currentDurationStr = this.currentVideo?.duration
+            ? formatDuration(this.currentVideo.duration)
+            : this.translator.translate("common.unknown");
+        let queueData = this.getQueueData();
 
-        if (result.length > 2000)
-            result = result.slice(0, 2000 - 3) + "...";
-
+        /** @type {import("discord.js").MessageEditOptions} */
+        let options = {
+            embeds: [{
+                title: this.text ?? this.translator.translate("embeds.music.player_title"),
+                description: this.translator.translate("embeds.music.now_playing", this.currentVideo.title, currentDurationStr) + queueData.text,
+                footer: {
+                    text: this.queue.length
+                        ? this.translator.translate("embeds.music.queue_summary", queueData.formattedDuration)
+                        : null
+                }
+            }]
+        }
+        
         if (!text)
-            await this.statusMessage.editWithoutDeleting(result);
+            await this.statusMessage.editWithoutDeleting(options);
         else
-            await this.statusMessage.edit(result);
+            await this.statusMessage.edit(options);
     }
 
-    printQueue() {
-        if (!this.queue.length) return "";
-
+    getQueueData() {
         let result = "";
         let duration = 0;
+        let tooLongFlag = false;
         for (let pos = 0; pos < this.queue.length; pos++) {
             let entry = this.queue[pos];
 
-            let durationStr = entry.duration ? formatDuration(entry.duration) : getTranslation(this.language, "common", "unknown");
-            result += `${pos + 1}) ${entry.title ?? `<${entry.url}>`} (${durationStr})\n`;
             duration += entry.duration ?? 0;
+
+            if (result.length < 2000) {
+                let durationStr = entry.duration ? formatDuration(entry.duration) : this.translator.translate("common.unknown");
+                result += `${pos + 1}) ${entry.title ?? `<${entry.url}>`} (${durationStr})\n`;
+            } else if (!tooLongFlag) {
+                result += "...";
+                tooLongFlag = true;
+            }
         }
 
-        return getTranslation(this.language, "common", "queue_summary", this.queue.length, formatDuration(duration)) + result;
+        return {
+            formattedDuration: formatDuration(duration),
+            text: result
+        };
     }
 }
 

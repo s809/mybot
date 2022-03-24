@@ -5,6 +5,7 @@ import { execSync } from "child_process";
 import sendLongText from "../../modules/messages/sendLongText.js";
 import Discord from "discord.js";
 import { version as currentVersion, isDebug } from "../../env.js";
+import { Translator } from "../../modules/misc/Translator.js";
 
 /**
  * Prepares bot changelog based on Git commits.
@@ -77,7 +78,10 @@ const logstr = prepareChangelog();
 async function changelog(msg) {
     await sendLongText(msg.channel, logstr, {
         code: null,
-        splitByLines: true
+        splitByLines: true,
+        embed: {
+            title: Translator.get(msg).translate("embeds.bot_changelog.title")
+        }
     });
 }
 

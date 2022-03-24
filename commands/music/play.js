@@ -17,7 +17,7 @@ import { once } from "events";
 import { setTimeout } from "timers/promises";
 import { fetchVideoByUrl, fetchVideoOrPlaylist, getDownloadStream } from "../../modules/music/youtubeDl.js";
 import { makeOpusStream } from "../../modules/music/ffmpeg.js";
-import { getLanguageByMessage, getTranslation } from "../../modules/misc/translations.js";
+import { Translator } from "../../modules/misc/Translator.js";
 
 const timeouts = {
     ...isDebug
@@ -72,14 +72,14 @@ async function fillMissingData(playerEntry) {
  * @returns {boolean} Whether the execution was successful.
  */
 async function play(msg, url, startPosition) {
-    let language = getLanguageByMessage(msg);
+    let translator = Translator.get(msg);
 
     if (url?.match(/(\\|'|")/))
-        return getTranslation(language, "errors", "invalid_url");
+        return translator.translate("errors.invalid_url");
 
     let voiceChannel = msg.member.voice.channel;
     if (!voiceChannel)
-        return getTranslation(language, "errors", "not_in_voice");
+        return translator.translate("errors.not_in_voice");
 
     let entry = musicPlayingGuilds.get(voiceChannel.guild);
 
@@ -89,7 +89,7 @@ async function play(msg, url, startPosition) {
     }
 
     if (!url)
-        return getTranslation(language, "errors", "no_url");
+        return translator.translate("errors.no_url");
 
     /** @type {import("./index.js").QueueEntry[]} */
     let videos = await fetchVideoOrPlaylist(url);
@@ -97,12 +97,12 @@ async function play(msg, url, startPosition) {
     // Validate start time/position
     if (startPosition) {
         if (!startPosition.match(/^\d{1,2}$/) || parseInt(startPosition) < 1) {
-            return getTranslation(language, "errors", "invalid_start_position");
+            return translator.translate("errors.invalid_start_position");
         }
         else {
             startPosition = parseInt(startPosition);
             if (startPosition - 1 >= videos.length)
-                return getTranslation(language, "errors", "no_videos_added");
+                return translator.translate("errors.no_videos_added");
 
             videos = videos.slice(startPosition - 1);
         }
@@ -110,11 +110,15 @@ async function play(msg, url, startPosition) {
 
     if (entry) {
         entry.queue.push(videos.length > 1 ? [...videos] : videos[0]);
-        await entry.updateStatus(getTranslation(language, "common", "queued"));
+        await entry.updateStatus(translator.translate("embeds.music.queued"));
         return;
     }
 
-    const statusMessage = await sendAlwaysLastMessage(msg.channel, getTranslation(language, "common", "initializing_player"));
+    const statusMessage = await sendAlwaysLastMessage(msg.channel, {
+        embeds: [{
+            title: translator.translate("embeds.music.initializing_player")
+        }]
+    });
 
     const conn = joinVoiceChannel({
         channelId: voiceChannel.id,
@@ -124,7 +128,7 @@ async function play(msg, url, startPosition) {
     });
 
     const { MusicPlayerEntry } = await import("./index.js");
-    entry = new MusicPlayerEntry(videos, statusMessage, conn, language);
+    entry = new MusicPlayerEntry(videos, statusMessage, conn, translator);
     musicPlayingGuilds.set(voiceChannel.guild, entry);
 
     try {
@@ -148,9 +152,9 @@ async function play(msg, url, startPosition) {
                     await msg.guild.me.voice.setSuppressed(false);
             }
             catch (e) {
-                return getTranslation(language, "errors", "cannot_become_speaker");
+                return translator.translate("errors.cannot_become_speaker");
             }
-            await entry.updateStatus(getTranslation(language, "common", "buffering"));
+            await entry.updateStatus(translator.translate("embeds.music.buffering"));
 
             let video = await getDownloadStream(currentVideo.url);
             let ffmpeg = await makeOpusStream(video);
@@ -162,7 +166,7 @@ async function play(msg, url, startPosition) {
             player.play(entry.resource);
             await entersState(player, AudioPlayerStatus.Playing, timeouts.playerPlaying);
 
-            await entry.updateStatus(getTranslation(language, "common", "ready"));
+            await entry.updateStatus(translator.translate("embeds.music.ready"));
 
             do {
                 if (player.state.status === AudioPlayerStatus.Paused) {

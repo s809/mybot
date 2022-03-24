@@ -1,20 +1,20 @@
 import { data } from "../env.js";
 import { CommandManagementPermissionLevel } from "../modules/commands/definitions.js";
-import { getLanguageByMessage, getTranslation } from "../modules/misc/translations.js";
+import { Translator } from "../modules/misc/Translator.js";
 
 /**
  * @param {import("discord.js").Message} msg
  * @param {string} newPrefix
  */
 function prefix(msg, newPrefix) {
-    let language = getLanguageByMessage(msg);
+    let translator = Translator.get(msg);
 
     if (!msg.guild)
-        return getTranslation(language, "errors", "not_in_server");
+        return translator.translate("errors.not_in_server");
 
     if (newPrefix.match(/[\\"\s]/))
-        return getTranslation(language, "errors", "invalid_prefix");
-    
+        return translator.translate("errors.invalid_prefix");
+
     data.guilds[msg.guildId].prefix = newPrefix;
 }
 

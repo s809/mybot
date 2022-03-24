@@ -3,7 +3,7 @@
  */
 import Discord from "discord.js";
 import { musicPlayingGuilds } from "../../env.js";
-import { getLanguageByMessage, getTranslation } from "../../modules/misc/translations.js";
+import { Translator } from "../../modules/misc/Translator.js";
 
 /**
  * Skips current song.
@@ -14,7 +14,7 @@ import { getLanguageByMessage, getTranslation } from "../../modules/misc/transla
 async function skip(msg) {
     let entry = musicPlayingGuilds.get(msg.guild);
     if (!entry)
-        return getTranslation(getLanguageByMessage(msg), "errors", "nothing_is_playing");
+        return Translator.get(msg).translate("errors.nothing_is_playing");
 
     // Destroying current entry *always* leads to moving player to next song.
     entry.readable.destroy();

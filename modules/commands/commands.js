@@ -11,13 +11,44 @@ import { importCommands } from "./importHelper.js";
  * @private
  */
 
+/** @type {Map<string, Command>} */
 var commands;
+
+/**
+ * Prepares inner properties of commands.
+ * 
+ * @param {Map<string, Command>} list List of commands to prepare.
+ * @param {*} inheritedOptions Options inherited from parent command
+ */
+function prepareSubcommands(list, inheritedOptions) {
+    if (!list) return;
+
+    for (let command of list.values()) {
+        let path = inheritedOptions?.path
+            ? `${inheritedOptions.path}/${command.name}`
+            : command.name;
+
+        let options = {
+            ...inheritedOptions,
+            path: path
+        };
+
+        command.path = path;
+        if (command.managementPermissionLevel)
+            options.managementPermissionLevel = command.managementPermissionLevel;
+        if (options.managementPermissionLevel && !command.managementPermissionLevel)
+            command.managementPermissionLevel = options.managementPermissionLevel;
+
+        prepareSubcommands(command.subcommands, options);
+    }
+}
 
 /**
  * Loads commands to internal cache.
  */
 export async function loadCommands() {
     commands ??= await importCommands(pathToFileURL(botDirectory + "/commands/foo").toString());
+    prepareSubcommands(commands);
 }
 
 /**
@@ -33,21 +64,11 @@ export function resolveCommand(path, allowPartialResolve = false) {
 
     let command;
     let list = commands;
-    let commandPath, managementPermissionLevel;
-
     do {
         let found = list.get(path[0]);
         if (!found) break;
 
         command = found;
-
-        if (command.managementPermissionLevel)
-            managementPermissionLevel = command.managementPermissionLevel;
-
-        if (commandPath)
-            commandPath += `/${command.name}`;
-        else
-            commandPath = command.name;
 
         list = command.subcommands;
         path.shift();
@@ -56,42 +77,30 @@ export function resolveCommand(path, allowPartialResolve = false) {
     if (!allowPartialResolve && path.length)
         return null;
 
-    return command !== undefined
-        ? {
-            path: commandPath,
-            managementPermissionLevel: managementPermissionLevel,
-            ...command
-        }
-        : null;
+    return command ?? null;
+}
+
+/**
+ * Returns a list with root commands.
+ * 
+ * @returns {Command[]}
+ */
+export function getRootCommands() {
+    return [...commands.values()];
 }
 
 /**
  * Recursively iterates map of with commands.
  * 
  * @param {Map<string, Command>} list List of commands to iterate.
- * @param {{path?: string, managementPermissionLevel?: CommandManagementPermissionLevel}} inheritedOptions Options inherited from parent command.
- * @yields {}
+ * @yields
  */
-function* iterateSubcommands(list, inheritedOptions) {
+function* iterateSubcommands(list) {
     for (let command of list.values()) {
-        let path = inheritedOptions?.path
-            ? `${inheritedOptions.path}/${command.name}`
-            : command.name;
-
-        let options = {
-            ...inheritedOptions,
-            path: path
-        };
-        if (command.managementPermissionLevel)
-            options.managementPermissionLevel = command.managementPermissionLevel;
-
-        yield {
-            ...options,
-            ...command
-        };
+        yield command;
 
         if (command.subcommands) {
-            for (let subcommand of iterateSubcommands(command.subcommands, options))
+            for (let subcommand of iterateSubcommands(command.subcommands))
                 yield subcommand;
         }
     }

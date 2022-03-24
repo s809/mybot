@@ -1,6 +1,11 @@
 import { client } from "../../env.js";
 import { ChannelLinkRole, getLinks } from "../../modules/data/channelLinking.js";
+import { Translator } from "../../modules/misc/Translator.js";
 
+/**
+ * 
+ * @param {import("discord.js").Message} msg 
+ */
 async function getLinkedChannels(msg) {
     /** @type {Set<import("discord.js").Snowflake} */
     let ids = new Set();
@@ -19,8 +24,13 @@ async function getLinkedChannels(msg) {
         response += `${fromChannel} (${fromChannel.guild}) => ${toChannel} (${toChannel.guild})\n`;
     }
 
-    if (response !== "")
-        await msg.channel.send(response);
+    let translator = Translator.get(msg);
+    await msg.channel.send({
+        embeds: [{
+            title: translator.translate("embeds.link_list.title"),
+            description: response || translator.translate("embeds.link_list.no_channels_linked")
+        }]
+    });
 }
 
 export const name = "list";

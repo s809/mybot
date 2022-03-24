@@ -1,9 +1,10 @@
 /**
  * @file Provides utility functions for sending messages.
  */
-import MessageWithButtons, { MessageButtonType } from "./MessageWithButtons.js";
+import { MessageActionRow, MessageButton } from "discord.js";
 
 const title = "Page %page% of %pagecount%";
+const titleAlt = " (%page%/%pagecount%)";
 const separator = ":\n";
 const contentWrap = "```%code%\n%content% ```";
 
@@ -106,67 +107,75 @@ function splitTextByDelimiter(text, textWrap, delimiter) {
 /**
  * Send message with buttons for page switching.
  * 
- * @param {import("discord.js").TextBasedChannels} channel Channel in which to send a message.
+ * @param {import("discord.js").TextBasedChannel} channel Channel in which to send a message.
  * @param {string[]} pages Array of page texts.
- * @param {MessageButtonType} buttonType Type of buttons to use.
  * @param {import("discord.js").MessageEmbedOptions} embed Embed template for wrapping text.
  * Title and desctiption will be overwritten.
  */
-async function sendPagedTextWithButtons(channel, pages, buttonType, embed = {}) {
-    let backButton = {
-        customId: "back_button",
+async function sendPagedTextWithButtons(channel, pages, embed = {}) {
+    let backButton = new MessageButton({
+        customId: "back",
         style: "PRIMARY",
         emoji: back,
         disabled: true
-    };
-
-    let stopButton = {
-        customId: "stop_button",
+    });
+    let stopButton = new MessageButton({
+        customId: "stop",
         style: "DANGER",
         emoji: stop
-    };
-
-    let forwardButton = {
-        customId: "forward_button",
+    });
+    let forwardButton = new MessageButton({
+        customId: "forward",
         style: "PRIMARY",
         emoji: forward
-    };
-
-    let msg = new MessageWithButtons(buttonType,
-        backButton,
-        stopButton,
-        forwardButton
-    );
-
-    let page = 0;
-
-    const getOptions = () => ({
-        embeds: embed !== null ? [{
-            ...embed,
-            title: title.replace("%page%", page + 1).replace("%pagecount%", pages.length),
-            description: pages[page],
-        }] : undefined,
-        content: embed === null ? pages[page] : undefined
     });
 
-    await msg.send(channel, getOptions(), async customId => {
-        switch (customId) {
+    let components = [
+        new MessageActionRow({
+            components: [
+                backButton,
+                stopButton,
+                forwardButton
+            ]
+        })
+    ];
+
+    let page = 0;
+    const makeOptions = components => ({
+        embeds: embed !== null ? [{
+            ...embed,
+            title: (embed.title ?? "") + (!embed.title ? title : titleAlt).replace("%page%", page + 1).replace("%pagecount%", pages.length),
+            description: pages[page],
+        }] : undefined,
+        content: embed === null ? pages[page] : undefined,
+        components: components ?? []
+    });
+
+    let msg = await channel.send(makeOptions(components));
+
+    let collector = msg.createMessageComponentCollector({
+        idle: 60000,
+        dispose: true
+    }).on("collect", async interaction => {
+        await interaction.deferUpdate();
+
+        switch (interaction.customId) {
             case backButton.customId:
                 page = Math.max(page - 1, 0);
                 break;
             case stopButton.customId:
-                msg.stopCollectingInteractions();
+                collector.stop();
                 return;
             case forwardButton.customId:
                 page = Math.min(page + 1, pages.length - 1);
                 break;
         }
 
-        msg.setButtonDisabled(back, page === 0);
-        msg.setButtonDisabled(forward, page === pages.length - 1);
+        backButton.setDisabled(page === 0);
+        forwardButton.setDisabled(page === pages.length - 1);
 
-        await msg.edit(getOptions());
-    });
+        await msg.edit(makeOptions(components));
+    }).on("end", () => msg.edit(makeOptions(null)));
 }
 
 /**
@@ -180,17 +189,18 @@ async function sendPagedTextWithButtons(channel, pages, buttonType, embed = {}) 
  * @param {boolean} options.useReactions Whether to use reactions instead of embed buttons.
  * @param {string?} options.delimiter Delimiter for splitting text in pages.
  * If not specified, text will be split by characters.
+ * @param {boolean} options.multipleMessages Whether to send multiple messages instead of using single interactable message.
  * @returns {Promise<void>}
  */
 export default async function sendLongText(channel, text, {
     code = "js",
     embed = {},
-    useReactions = false,
-    delimiter = "\n"
+    delimiter = "\n",
+    multipleMessages = false
 } = {}) {
     text = text.replaceAll("```", "\\`\\`\\`");
 
-    const contentWrapWithCode = contentWrap.replace("%code%", code);
+    const contentWrapWithCode = contentWrap.replace("%code%", code ?? "");
     let textWrap = code !== null ? contentWrapWithCode : "%content%";
 
     if (embed === null) {
@@ -205,9 +215,7 @@ export default async function sendLongText(channel, text, {
         await channel.send(embed ? {
             embeds: [{
                 ...embed,
-                ...{
-                    description: textWrap.replace("%content%", text),
-                },
+                description: textWrap.replace("%content%", text),
             }]
         } : textWrap.replace("%content%", text));
         return;
@@ -220,6 +228,20 @@ export default async function sendLongText(channel, text, {
     else
         pages = splitTextByCharacters(text, textWrap, maxMessageLength);
 
-    // Send message and add buttons
-    await sendPagedTextWithButtons(channel, pages, useReactions ? MessageButtonType.REACTION : MessageButtonType.BUTTON, embed);
+    if (multipleMessages) {
+        // Send pages as multiple messages
+        for (let [pos, page] of pages.entries()) {
+            await channel.send(embed ? {
+                embeds: embed !== null ? [{
+                    ...embed,
+                    title: (embed.title ?? "") + (!embed.title ? title : titleAlt).replace("%page%", pos + 1).replace("%pagecount%", pages.length),
+                    description: page,
+                }] : undefined,
+                content: embed === null ? page : undefined,
+            } : textWrap.replace("%content%", text));
+        }
+    } else {
+        // Send message and add buttons
+        await sendPagedTextWithButtons(channel, pages, embed);
+    }
 }

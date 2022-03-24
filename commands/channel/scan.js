@@ -5,7 +5,7 @@ import { mentionToChannel } from "../../util.js";
 import { sendAlwaysLastMessage } from "../../modules/messages/AlwaysLastMessage.js";
 import sendLongText from "../../modules/messages/sendLongText.js";
 import { once } from "events";
-import { getLanguageByMessage, getTranslation } from "../../modules/misc/translations.js";
+import { Translator } from "../../modules/misc/Translator.js";
 
 /**
  * @param {Message} msg
@@ -14,7 +14,7 @@ import { getLanguageByMessage, getTranslation } from "../../modules/misc/transla
  * @returns {boolean}
  */
 async function scanChannel(msg, mode, fromChannel) {
-    let language = getLanguageByMessage(msg);
+    let translator = Translator.get(msg);
 
     const inviteLink = /(https?:\/\/)?(www.)?(discord.(gg|io|me|li)|discordapp.com\/invite)\/[^\s/]+?(?=\b)/g;
     const getWeekNumber = d => {
@@ -30,7 +30,7 @@ async function scanChannel(msg, mode, fromChannel) {
     };
 
     if (mode !== "daily" && mode !== "weekly" && mode !== "monthly")
-        return getTranslation(language, "errors", "mode_not_defined");
+        return translator.translate("errors.mode_not_defined");
 
     if (fromChannel !== undefined)
         fromChannel = await client.channels.fetch(mentionToChannel(fromChannel));
@@ -38,7 +38,7 @@ async function scanChannel(msg, mode, fromChannel) {
         fromChannel = msg.channel;
 
     if (!(fromChannel instanceof TextChannel) || !(fromChannel.permissionsFor(client.user).has(["VIEW_CHANNEL", "READ_MESSAGE_HISTORY"])))
-        return getTranslation(language, "errors", "cannot_read_channel");
+        return translator.translate("errors.cannot_read_channel");
 
     /** @type {Map<string, User>} */
     let authors = new Map();
@@ -54,7 +54,12 @@ async function scanChannel(msg, mode, fromChannel) {
     let invites = new Set();
 
     let totalLength = 0;
-    let counterMessage = await sendAlwaysLastMessage(msg.channel, getTranslation(language, "common", "fetching_messages"));
+    let counterMessage = await sendAlwaysLastMessage(msg.channel, {
+        embeds: [{
+            title: translator.translate("embeds.channel_scan.title"),
+            description: translator.translate("embeds.channel_scan.progress.fetching_messages")
+        }]
+    });
 
     for await (let message of iterateMessages(fromChannel, "0")) {
         if (!authors.has(message.author.tag))
@@ -88,11 +93,28 @@ async function scanChannel(msg, mode, fromChannel) {
             entry.dailyCount.set(date, 0);
         entry.dailyCount.set(date, entry.dailyCount.get(date) + 1);
         totalLength++;
-        if (!(totalLength % 100))
-            counterMessage = await counterMessage.edit(getTranslation(language, "common", "fetching_messages_progress", totalLength));
+        if (!(totalLength % 100)) {
+            counterMessage = await counterMessage.edit({
+                embeds: [{
+                    title: translator.translate("embeds.channel_scan.title"),
+                    description: translator.translate("embeds.channel_scan.progress.fetching_messages"),
+                    footer: {
+                        text: translator.translate("embeds.channel_scan.progress.fetch_progress", totalLength)
+                    }
+                }]
+            });
+        }
     }
 
-    await counterMessage.edit(getTranslation(language, "common", "fetching_invites", totalLength));
+    await counterMessage.edit({
+        embeds: [{
+            title: translator.translate("embeds.channel_scan.title"),
+            description: translator.translate("embeds.channel_scan.progress.fetching_invites"),
+            footer: {
+                text: translator.translate("embeds.channel_scan.progress.fetch_progress", totalLength)
+            }
+        }]
+    });
     if (counterMessage.editing)
         await once(counterMessage, "editComplete");
 
@@ -113,8 +135,14 @@ async function scanChannel(msg, mode, fromChannel) {
             }
             catch (e) { /* Skip */ }
         }
-        result = getTranslation(language, "common", "invites_summary", invites.size, aliveInviteCount) + result;
-        await sendLongText(msg.channel, result, { code: null });
+        result = translator.translate("embeds.channel_scan.finished.invites_summary", invites.size, aliveInviteCount) + result;
+        await sendLongText(msg.channel, result, {
+            code: null,
+            multipleMessages: true,
+            embed: {
+                title: translator.translate("embeds.channel_scan.title")
+            }
+        });
     }
 
     await counterMessage.delete();
@@ -146,12 +174,12 @@ async function scanChannel(msg, mode, fromChannel) {
                 result += `${dayEntry[0]}: ${dayEntry[1]}\n`;
 
             let authorStr = `${author.tag} (${author.id})`;
-            let statTitle = getTranslation(language, "common", "message_statistics");
+            let statTitle = translator.translate("embeds.channel_scan.finished.message_statistics");
 
             let unsanitizedResult = statTitle + "```\n" + result + "```";
             if (unsanitizedResult.length > 4096) {
                 files.push(statTitle.replace(":", ` for ${authorStr}:`) + result);
-                result = statTitle + getTranslation(language, "common", "see_attachment", files.length);
+                result = statTitle + translator.translate("embeds.channel_scan.finished.see_attachment", files.length);
             }
             else {
                 result = unsanitizedResult;
@@ -162,11 +190,11 @@ async function scanChannel(msg, mode, fromChannel) {
                 description: result,
                 fields: [
                     {
-                        name: getTranslation(language, "common", "first_message"),
+                        name: translator.translate("embeds.channel_scan.finished.first_message"),
                         value: `${data.first.url} (${data.first.createdAt.toLocaleString()})`
                     },
                     {
-                        name: getTranslation(language, "common", "last_message"),
+                        name: translator.translate("embeds.channel_scan.finished.last_message"),
                         value: `${data.last.url} (${data.last.createdAt.toLocaleString()})`
                     },
                 ]

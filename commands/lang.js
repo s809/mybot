@@ -1,18 +1,19 @@
 import { data } from "../env.js";
-import { getLanguageByMessage, getTranslation, languageExists } from "../modules/misc/translations.js";
+import { Translator } from "../modules/misc/Translator.js";
 
 /**
  * @param {import("discord.js").Message} msg
  * @param {string} newLang
+ * @returns
  */
 function lang(msg, newLang) {
-    let language = getLanguageByMessage(msg);
+    let translator = Translator.get(msg);
 
     if (msg.guild && !msg.member.permissions.has("MANAGE_GUILD"))
-        return getTranslation(language, "errors", "cannot_manage_language");
+        return translator.translate("errors.cannot_manage_language");
 
-    if (!languageExists(newLang))
-        return getTranslation(language, "errors", "invalid_language");
+    if (!Translator.get(newLang))
+        return translator.translate("errors.invalid_language");
 
     if (msg.guild)
         data.guilds[msg.guildId].language = newLang;

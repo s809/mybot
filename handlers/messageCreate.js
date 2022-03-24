@@ -11,7 +11,7 @@ import { sanitizePaths } from "../util.js";
 import { hasFlag } from "../modules/data/flags.js";
 import { copyMessageToLinkedChannel } from "../modules/messages/messageCopying.js";
 import { getPrefix } from "../modules/commands/getPrefix.js";
-import { getLanguageByMessage, getTranslation } from "../modules/misc/translations.js";
+import { Translator } from "../modules/misc/Translator.js";
 
 client.on("messageCreate", async msg => {
     if (msg.guild) {
@@ -56,13 +56,11 @@ client.on("messageCreate", async msg => {
     const maxArgs = command.maxArgs ?? 0;
 
     if (args.length < minArgs || args.length > maxArgs) {
-        let language = getLanguageByMessage(msg);
-        
         let [strName, need] = args.length < minArgs
             ? ["arguments_less_than_expected", minArgs]
             : ["arguments_more_than_expected", maxArgs];
-        
-        await msg.channel.send(getTranslation(language, "errors", strName, need));
+
+        await msg.channel.send(Translator.get(msg).translate(`errors.${strName}`, need));
         await msg.react("❌");
         return;
     }

@@ -33,8 +33,10 @@ export async function importCommands(modulePath) {
         .filter(entry => entry.name !== "index.js")) {
         if (isDebug)
             console.log(`${dir}/${entry.name}${entry.isDirectory() ? `/index.js` : ""}`);
-        
-        modules.push(await import(`${dir}/${entry.name}${entry.isDirectory() ? `/index.js` : ""}`));
+
+        modules.push({
+            ...await import(`${dir}/${entry.name}${entry.isDirectory() ? `/index.js` : ""}`)
+        });
     }
 
     return makeSubCommands(modules);

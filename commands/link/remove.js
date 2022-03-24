@@ -1,9 +1,9 @@
 import { isChannelLinked, unlinkChannel } from "../../modules/data/channelLinking.js";
-import { getLanguageByMessage, getTranslation } from "../../modules/misc/translations.js";
+import { Translator } from "../../modules/misc/Translator.js";
 
 async function removeMirror(msg) {
     if (!isChannelLinked(msg.guildId, msg.channelId))
-        return getTranslation(getLanguageByMessage(msg), "errors", "channel_not_linked");
+        return Translator.get(msg).translate("errors.channel_not_linked");
 
     unlinkChannel(msg.channel);
 }

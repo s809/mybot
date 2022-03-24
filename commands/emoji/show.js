@@ -1,19 +1,20 @@
 import { Message } from "discord.js";
-import { getLanguageByMessage, getTranslation } from "../../modules/misc/translations.js";
+import { Translator } from "../../modules/misc/Translator.js";
 
 /**
  * @param {Message} msg
  * @param {string} emojiName
  */
 async function showEmoji(msg, emojiName) {
-    let language = getLanguageByMessage(msg);
+    let translator = Translator.get(msg);
+
     let emoji = msg.guild.emojis.cache.find(x => x.name === emojiName);
     if (!emoji)
-        return getTranslation(language, "errors", "unknown_emoji");
+        return translator.translate("errors.unknown_emoji");
 
     await msg.channel.send({
         embeds: [{
-            title: getTranslation(language, "common", emoji.animated ? "emoji" : "emoji_animated", emoji.name),
+            title: translator.translate(emoji.animated ? "embeds.emoji_show.title_for_normal" : "embeds.emoji_show.title_for_animated", emoji.name),
             image: {
                 url: emoji.url
             }

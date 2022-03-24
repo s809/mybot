@@ -3,7 +3,7 @@ import { client, data, owner } from "../../env.js";
 import { resolveCommand } from "../../modules/commands/commands.js";
 import { importCommands } from "../../modules/commands/importHelper.js";
 import { isCommandAllowedToManage } from "../../modules/commands/permissions.js";
-import { getLanguageByMessage, getTranslation } from "../../modules/misc/translations.js";
+import { Translator } from "../../modules/misc/Translator.js";
 
 /**
  * @param {Message} msg
@@ -11,13 +11,13 @@ import { getLanguageByMessage, getTranslation } from "../../modules/misc/transla
  * @param {string} commandPath
  */
 async function permission(msg, id, commandPath) {
-    let language = getLanguageByMessage(msg);
+    let translator = Translator.get(msg);
 
     let command = resolveCommand(commandPath);
     if (!command)
-        return getTranslation(language, "errors", "unknown_command");
+        return translator.translate("errors.unknown_command");
     if (!isCommandAllowedToManage(msg, command))
-        return getTranslation(language, "errors", "command_management_not_allowed");
+        return translator.translate("errors.command_management_not_allowed");
 
     /** @type {"user" | "role" | "member"} */
     let resolvedType;
@@ -32,7 +32,7 @@ async function permission(msg, id, commandPath) {
             resolvedType = "user";
     }
     catch (e) {
-        return getTranslation(language, "errors", "invalid_id");
+        return translator.translate("errors.invalid_id");
     }
 
     /** @type {{ allowedCommands: string[] }} */
@@ -41,7 +41,7 @@ async function permission(msg, id, commandPath) {
         case "user":
             // Users can only be managed by bot owner.
             if (msg.author.id !== owner)
-                return getTranslation(language, "errors", "target_management_not_allowed");
+                return translator.translate("errors.target_management_not_allowed");
 
             data.users[id] ??= {
                 allowedCommands: []

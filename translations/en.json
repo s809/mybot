@@ -1,26 +1,27 @@
 {
   "commandDescriptions": {
-    "bot/changelog": "get bot changelog",
-    "bot/invite": "get bot server invite link",
-    "bot/uptime": "get bot uptime",
-    "channel/reset": "clone and delete this channel",
-    "channel/scan": "get information about users sent to this or defined channel",
-    "clone/stop": "stop pending clone operation",
-    "delrange": "delete all messages within range",
-    "emoji/import": "import emoji from another server",
-    "emoji/show": "show emoji from current server",
-    "help": "show this help message",
-    "link": "enable copying of messages in this channel to another",
-    "link/list": "get channel links for this server",
-    "link/remove": "remove link to/from this channel",
-    "music/pause": "pause player",
-    "music/play": "play a video.\nIf no URL or query is specified, unpauses playback.\nQueries are searched on YouTube, but URL can be from any source.\nQuotes are not required for one-word queries",
-    "music/skip": "skip currently playing song",
-    "music/stop": "stop player",
-    "permission": "manage permissions of specific item.\nRequires item to be manageable by caller",
-    "permission/list": "get permissions of specific item",
-    "prefix": "change prefix",
-    "timer": "self-updating UTC timer message"
+    "bot_changelog": "Get bot changelog.",
+    "bot_invite": "Get bot server invite link.",
+    "bot_uptime": "Get bot uptime.",
+    "channel_reset": "Clone and delete this channel.",
+    "channel_scan": "Get information about users sent to this or defined channel.",
+    "clone_stop": "Stop pending clone operation.",
+    "delrange": "Delete all messages within range.",
+    "emoji_import": "Import emoji from another server.",
+    "emoji_show": "Show emoji from current server.",
+    "help": "Show this help message.",
+    "lang": "Change language of bot for server or user.",
+    "link": "Enable copying of messages in this channel to another.",
+    "link_list": "Get channel links for this server.",
+    "link_remove": "Remove link to/from this channel.",
+    "music_pause": "Pause player.",
+    "music_play": "Play a video.\nIf no URL or query is specified, unpauses playback.\nQueries are searched on YouTube, but URL can be from any source.\nQuotes are not required for one-word queries.",
+    "music_skip": "Skip currently playing song.",
+    "music_stop": "Stop player.",
+    "permission": "Manage permissions of specific item.\nRequires item to be manageable by caller.",
+    "permission_list": "Get permissions of specific item.",
+    "prefix": "Change prefix.",
+    "timer": "Self-updating UTC timer message."
   },
   "errors": {
     "already_linked_destination": "Cannot link to a linked channel.",
@@ -60,32 +61,68 @@
     "unknown_emoji": "Unknown emoji.",
     "unknown_server": "Unknown server."
   },
+  "embeds": {
+    "bot_changelog": {
+      "title": "Changelog"
+    },
+    "bot_invite": {
+      "title": "Bot server invite link"
+    },
+    "bot_uptime": {
+      "title": "Uptime",
+      "text": "Bot uptime: $1\nHost uptime: $2",
+      "time_format": "$1 days, $2 hours, $3 minutes, $4 seconds"
+    },
+    "channel_scan": {
+      "title": "Channel scan",
+      "progress": {
+        "fetching_messages": "Fetching messages...",
+        "fetch_progress": "$1 messages fetched",
+        "fetching_invites": "Fetching invites..."
+      },
+      "finished": {
+        "invites_summary": "Found $1 invites, alive: $2\n",
+        "message_statistics": "Message statistics:\n",
+        "see_attachment": "*See attachment ($1)*",
+        "first_message": "First message",
+        "last_message": "Last message"
+      }
+    },
+    "link_list": {
+      "title:": "Channel links",
+      "no_channels_linked": "No channels are linked with this channel."
+    },
+    "emoji_show": {
+      "title_for_normal": "Image of $1",
+      "title_for_animated": "Animated image of $1"
+    },
+    "help": {
+      "title": "Help",
+      "no_description": "No description.",
+      "select_command": "Select a command to view information about it.",
+      "select_command_in_category": "Select a command in this category to view information about it.",
+      "select_command_menu": "Select a command..."
+    },
+    "music": {
+      "player_title": "Player",
+      "now_playing": "Now playing: $1 ($2)\n",
+      "queue_summary": "Queue length: $1 ($2)\n",
+      "initializing_player": "Initializing...",
+      "queued": "Queued!",
+      "buffering": "Buffering...",
+      "ready": "Ready!"
+    },
+    "permission_list": {
+      "title": "Permission list for $1",
+      "user": "User",
+      "role": "Role",
+      "member": "Member",
+      "no_permissions": "This user has no permissions."
+    }
+  },
   "common": {
-    "buffering": "Buffering...",
     "channel_linked_here": "$1 is linked here.",
-    "emoji_animated": "Animated image of $1",
-    "emoji": "Image of $1",
-    "fetching_invites": "Fetched $1 messages.\nFetching invites...",
-    "fetching_messages_progress": "Fetching messages... ($1 fetched)",
-    "fetching_messages": "Fetching messages...",
-    "first_message": "First message",
-    "initializing_player": "Initializing player...",
     "initializing_timer": "Initializing timer...",
-    "invites_summary": "Found $1 invites, alive: $2\n",
-    "last_message": "Last message",
-    "member": "Member",
-    "message_statistics": "Message statistics:\n",
-    "no_permissions": "This user has no permissions.",
-    "now_playing": "Now playing: $1 ($2)\n",
-    "permission_list_title": "Permission list for $1",
-    "queue_summary": "Current queue size: $1 ($2)\n",
-    "queued": "Queued!",
-    "ready": "Ready!",
-    "role": "Role",
-    "see_attachment": "*See attachment ($1)*",
-    "unknown": "unknown",
-    "uptime_inner": "$1 days, $2 hours, $3 minutes, $4 seconds",
-    "uptime": "Bot uptime: $1\nHost uptime: $2",
-    "user": "User"
+    "unknown": "unknown"
   }
 }

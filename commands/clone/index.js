@@ -2,5 +2,5 @@ import { CommandManagementPermissionLevel } from "../../modules/commands/definit
 import { importCommands } from "../../modules/commands/importHelper.js";
 
 export const name = "clone";
-export const managementPermissionLevel = CommandManagementPermissionLevel.SERVER_OWNER;
+export const managementPermissionLevel = CommandManagementPermissionLevel.BOT_OWNER;
 export const subcommands = await importCommands(import.meta.url);

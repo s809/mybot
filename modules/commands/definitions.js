@@ -4,7 +4,7 @@
 /**
  * @typedef {object} Command
  * @property {string} name Name of a command.
- * @property {string?} path Slash-delimited path to command.
+ * @property {string} path Slash-delimited path to command.
  * @property {string?} [args] Representation of command arguments.
  * @property {number?} [minArgs] Minimum number of arguments.
  * @property {number?} [maxArgs] Maximum number of arguments.
