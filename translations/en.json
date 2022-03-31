@@ -52,8 +52,10 @@
     "mode_not_defined": "Mode is not defined.",
     "no_url": "No URL specified.",
     "no_videos_added": "At least one video should be added to queue.",
+    "non_text_channel": "Specified channel is not a text channel.",
     "not_in_server": "This command is only available in servers.",
-    "not_in_voice": "Join any voice channel and try again.",
+    "not_in_any_voice": "Join any voice channel to use this command.",
+    "not_in_specific_voice": "Join $1 to use this command.",
     "nothing_is_playing": "Nothing is not playing.",
     "target_management_not_allowed": "You don't have permission to manage this type of target.",
     "unknown_channel": "Unknown channel.",
@@ -104,13 +106,19 @@
       "select_command_menu": "Select a command..."
     },
     "music": {
-      "player_title": "Player",
+      "title_player": "Player",
+      "title_paused": "Player - paused",
+      "title_buffering": "Player - buffering...",
+
+      "initializing": "Initializing...",
       "now_playing": "Now playing: $1 ($2)\n",
+      "playback_finished": "Playback has finished!",
+      
+      "loading": "Loading...",
+
       "queue_summary": "Queue length: $1 ($2)\n",
-      "initializing_player": "Initializing...",
-      "queued": "Queued!",
-      "buffering": "Buffering...",
-      "ready": "Ready!"
+      "load_remaining": "Remaining to load: $1\n",
+      "some_removed": "Some videos failed to load and were removed.\n"
     },
     "permission_list": {
       "title": "Permission list for $1",

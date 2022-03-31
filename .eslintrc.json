@@ -102,7 +102,7 @@
     ],
     "line-comment-position": "off",
     "linebreak-style": [
-      "error",
+      "off",
       "windows"
     ],
     "lines-around-comment": "off",
@@ -309,7 +309,7 @@
     ],
     "jsdoc/check-access": "warn",
     "jsdoc/check-alignment": "warn",
-    "jsdoc/check-examples": "warn",
+    "jsdoc/check-examples": "off",
     "jsdoc/check-indentation": "off",
     "jsdoc/check-line-alignment": "warn",
     "jsdoc/check-param-names": "warn",

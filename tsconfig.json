@@ -1,0 +1,29 @@
+{
+  "compilerOptions": {
+    "moduleResolution": "node",
+    "allowSyntheticDefaultImports": true,
+
+    "removeComments": true,
+    "noImplicitAny": true,
+
+    "outDir": "./build",
+    "sourceMap": true,
+    "incremental": true,
+
+    "allowJs": true,
+    "target": "ESNext",
+    "module": "ESNext",
+    "lib": [
+      "ESNext"
+    ]
+  },
+  "include": [
+    "./**/*"
+  ],
+  "exclude": [
+    ".vscode",
+    ".git",
+    "build",
+    "node_modules"
+  ]
+}

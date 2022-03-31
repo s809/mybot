@@ -1,16 +1,28 @@
 {
   "name": "mybot",
   "type": "module",
-  "version": "1.4.1",
+  "version": "1.5.0",
+  "scripts": {
+    "start": "npm run build && node --experimental-specifier-resolution=node ./build/main.js",
+    "build": "tsc && cp ./package.json ./config.json ./build",
+    "install": "sudo apt install ffmpeg && pip install youtube-dl && sudo npm install -g typescript"
+  },
   "dependencies": {
     "@discordjs/opus": "^0.7.0",
+    "@discordjs/rest": "^0.3.0",
     "@discordjs/voice": "^0.8.0",
     "@types/node": "^17.0.13",
+    "bufferutil": "^4.0.6",
+    "discord-api-types": "^0.30.0",
     "discord.js": "^13.6.0",
+    "erlpack": "github:discord/erlpack",
     "lodash-es": "^4.17.21",
-    "tweetnacl": "^1.0.3"
+    "tweetnacl": "^1.0.3",
+    "utf-8-validate": "^5.0.9",
+    "zlib-sync": "^0.1.7"
   },
   "devDependencies": {
+    "@types/lodash-es": "^4.17.6",
     "eslint": "^7.32.0",
     "eslint-plugin-jsdoc": "^37.7.0",
     "eslint-plugin-promise": "^6.0.0"

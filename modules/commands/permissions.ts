@@ -1,0 +1,79 @@
+import { Message, PermissionResolvable } from "discord.js";
+import { data, owner } from "../../env";
+import { Command, CommandManagementPermissionLevel } from "./definitions";
+
+/**
+ * @typedef {import("./definitions").Command} Command
+ * @private
+ */
+
+/**
+ * Checks if user has required permissions to manage command in their context.
+ *
+ * @param msg Context message.
+ * @param command Command to check.
+ * @returns Whether the execution of command is allowed.
+ */
+export function isCommandAllowedToManage(msg: Message, command: Command): boolean {
+    if (!command.managementPermissionLevel)
+        return false;
+
+    const isBotOwner = () => msg.author.id === owner;
+    const isServerOwner = () => isBotOwner() || (msg.guild && msg.guild.ownerId === msg.author.id);
+    const hasSpecifiedPermissions = () => isServerOwner() || (msg.member && msg.member.permissions.has(command.managementPermissionLevel as PermissionResolvable));
+
+    switch (command.managementPermissionLevel) {
+        case "BOT_OWNER":
+            if (isBotOwner())
+                return true;
+            break;
+        case "SERVER_OWNER":
+            if (isServerOwner())
+                return true;
+            break;
+        default:
+            if (hasSpecifiedPermissions())
+                return true;
+            break;
+    }
+
+    return false;
+}
+
+/**
+ * Checks if user has required permissions to execute command in their context.
+ *
+ * @param msg Context message.
+ * @param command Command to check.
+ * @returns Whether the management of command is allowed.
+ */
+export function isCommandAllowedToUse(msg: Message, command: Command): boolean {
+    if (!command.managementPermissionLevel)
+        return true;
+
+    if (isCommandAllowedToManage(msg, command))
+        return true;
+
+    /** @type {string[]} */
+    let allowedCommands: string[] = [
+        // Global user
+        ...data.users[msg.author.id].allowedCommands
+    ];
+
+    if (msg.member) {
+        allowedCommands.push(
+            // Server role
+            ...[...msg.member.roles.cache.values()]
+                .flatMap(role => data.guilds[msg.guildId].roles[role.id].allowedCommands),
+            // Server member
+            ...data.guilds[msg.guildId].members[msg.author.id].allowedCommands
+        );
+    }
+
+    for (let allowedCommand of allowedCommands) {
+        if (command.path.startsWith(allowedCommand))
+            return true;
+    }
+
+    return false;
+}
