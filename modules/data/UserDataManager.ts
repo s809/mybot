@@ -320,6 +320,8 @@ export class UserDataManager {
             switch (typeof item.src) {
                 case "string":
                     promise = writeFileFunction(path, item.src);
+                    if (isDebug)
+                        console.log(`Written: ${path}`);
                     break;
                 case "object":
                     if (item.accessor?.deref() !== undefined)
@@ -327,6 +329,8 @@ export class UserDataManager {
                     if (item.modified) {
                         promise = writeFileFunction(path, JSON.stringify(item.src, null, 2));
                         item.modified = false;
+                        if (isDebug)
+                            console.log(`Written: ${path}`);
                     }
                     break;
             }

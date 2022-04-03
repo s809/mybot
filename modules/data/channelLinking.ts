@@ -1,16 +1,6 @@
 import { GuildTextBasedChannel, Snowflake, TextChannel } from "discord.js";
 import { data } from "../../env";
-
-export type ChannelLinkRole =
-    "SOURCE"
-    | "DESTINATION";
-
-export interface ChannelLink {
-    channelId: Snowflake;
-    guildId: Snowflake;
-    role: ChannelLinkRole;
-    lastMessageId?: Snowflake;
-}
+import { ChannelLink, ChannelLinkRole } from "./models";
 
 export async function linkChannel(src: GuildTextBasedChannel, dest: GuildTextBasedChannel) {
     let srcToDestLink: ChannelLink = {

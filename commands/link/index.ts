@@ -1,4 +1,4 @@
-import { mentionToChannel } from "../../util";
+import { parseChannelMention } from "../../util";
 import { client } from "../../env";
 
 import { isChannelLinked, linkChannel } from "../../modules/data/channelLinking";
@@ -10,7 +10,7 @@ import { Command } from "../../modules/commands/definitions";
 async function createLink(msg: Message, idArg: string) {
     let translator = Translator.get(msg);
 
-    let channel = client.channels.resolve(mentionToChannel(idArg));
+    let channel = client.channels.resolve(parseChannelMention(idArg));
 
     if (!(msg.channel instanceof BaseGuildTextChannel) || !(channel instanceof BaseGuildTextChannel))
         return translator.translate("errors.linking_outside_guild")

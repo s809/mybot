@@ -15,7 +15,7 @@
     "link_list": "Get channel links for this server.",
     "link_remove": "Remove link to/from this channel.",
     "music_pause": "Pause player.",
-    "music_play": "Play a video.\nIf no URL or query is specified, unpauses playback.\nQueries are searched on YouTube, but URL can be from any source.\nQuotes are not required for one-word queries.",
+    "music_play": "Play a video.\nIf no URL or query is specified, unpauses playback.\nQueries are searched on YouTube, but URL can be from any source.\nQueries with more than word require quotes (`\"`).",
     "music_skip": "Skip currently playing song.",
     "music_stop": "Stop player.",
     "permission": "Manage permissions of specific item.\nItem should be manageable by caller.",
@@ -24,6 +24,7 @@
     "timer": "Self-updating UTC timer message."
   },
   "errors": {
+    "already_disabled": "Already disabled.",
     "already_linked_destination": "Cannot link to a linked channel.",
     "already_linked_source": "Channel is already linked.",
     "arguments_less_than_expected": "Provided arguments less than expected (need at least $1).",
@@ -58,6 +59,7 @@
     "not_in_specific_voice": "Join $1 to use this command.",
     "nothing_is_playing": "Nothing is not playing.",
     "target_management_not_allowed": "You don't have permission to manage this type of target.",
+    "tracker_init_failed": "Failed to set up tracker. Check if bot has \"Send Messages\" permission in log channel and \"Manage Server\" in this server.",
     "unknown_channel": "Unknown channel.",
     "unknown_command": "Unknown command.",
     "unknown_emoji": "Unknown emoji.",
@@ -89,6 +91,16 @@
         "first_message": "First message",
         "last_message": "Last message"
       }
+    },
+    "invitetracker": {
+      "title": "Invite tracker",
+      "not_tracking": "Not tracking",
+      "log_channel": "Log channel: $1",
+      "tracking_started": "Tracking $1 invites.",
+      "invite_created": "Tracking new invite: $1 by $2",
+      "invite_deleted": "Invite deleted: $1",
+      "member_joined": "$1 joined",
+      "invite_used": "Used invite: $1 by $2"
     },
     "link_list": {
       "title:": "Channel links",

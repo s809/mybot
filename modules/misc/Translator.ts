@@ -1,4 +1,4 @@
-import { Message } from "discord.js";
+import { Guild, GuildResolvable, Message, Snowflake } from "discord.js";
 import { readdirSync, readFileSync } from "fs";
 import { get } from "lodash-es";
 import { data } from "../../env";
@@ -20,20 +20,22 @@ export class Translator {
     }
 
     /**
-     * Returns a translator by name or context of message.
+     * Returns a translator by language name or given context.
      * 
-     * @param msgOrName Message or name to use.
+     * @param nameOrContext Message or name to use.
      * @returns
      */
-    static get(msgOrName: string | Message): Translator | null {
+    static get(nameOrContext: string | Message | GuildResolvable): Translator | null {
         let language: string;
 
-        if (typeof msgOrName === "string") {
-            language = msgOrName;
+        if (typeof nameOrContext === "string") {
+            language = nameOrContext;
+        } else if (nameOrContext instanceof Guild) {
+            language = data.guilds[nameOrContext.id].language
         } else {
-            language ??= msgOrName.guild
-                ? data.guilds[msgOrName.guildId].language
-                : data.users[msgOrName.author.id].language;
+            language = (nameOrContext instanceof Message && nameOrContext.guild) || !(nameOrContext instanceof Message)
+                ? data.guilds[nameOrContext.guild.id].language
+                : data.users[nameOrContext.author.id].language;
         }
 
         return Translator.translators.get(language) ?? null;

@@ -1,9 +1,6 @@
-import { Guild, GuildBasedChannel, GuildChannel, Message, User } from "discord.js";
+import { Guild, GuildBasedChannel, Message, User } from "discord.js";
 import { client, data } from "../../env";
-
-type FlaggableDataEntry = {
-    flags: string[];
-}
+import { FlaggableDataEntry } from "./models";
 
 /**
  * Finds item in data by ID.

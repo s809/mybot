@@ -9,9 +9,6 @@ function prefix(msg: Message, newPrefix: string) {
     if (!msg.guild)
         return translator.translate("errors.not_in_server");
 
-    if (newPrefix.match(/[\\"\s]/))
-        return translator.translate("errors.invalid_prefix");
-
     data.guilds[msg.guildId].prefix = newPrefix;
 }
 

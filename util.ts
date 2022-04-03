@@ -1,6 +1,7 @@
 /**
  * @file Some useful functions.
  */
+import assert from "assert";
 import { botDirectory } from "./env";
 
 /**
@@ -15,14 +16,39 @@ export function clamp(num: number, max: number): number {
 }
 
 /**
- * Extracts channel ID from channel mention.
+ * Extracts ID from mention.
  * 
- * @param {string} text Channel mention.
- * @returns {string?} Channel ID.
+ * @param text Text containing mention.
+ * @returns Extracted ID.
  */
-export function mentionToChannel(text: string): string | null {
-    return /^<#(\d+)>$/.test(text) ? text.match(/^<#(\d+)>$/)[1] : null;
+export function parseMention(text: string, prefix: string): string | null {
+    if (/^\d+$/.test(text))
+        return text;
+
+    let regex = new RegExp(`^<${prefix}(\\d+)>$`)
+    return regex.test(text) ? text.match(regex)[1] : null;
 }
+
+/**
+ * Extracts channel ID from mention.
+ * 
+ * @param text Text containing mention.
+ * @returns Extracted ID.
+ */
+export function parseChannelMention(text: string) {
+    return parseMention(text, "#");
+}
+
+/**
+ * Extracts user ID from mention.
+ * 
+ * @param text Text containing mention.
+ * @returns Extracted ID.
+ */
+export function parseUserMention(text: string) {
+    return parseMention(text, "@") ?? parseMention(text, "@!");
+}
+
 
 /**
  * Wraps text in titled borders.

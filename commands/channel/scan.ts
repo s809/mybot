@@ -1,7 +1,7 @@
 import { AnyChannel, Channel, Message, PartialTextBasedChannel, TextBasedChannel, TextChannel, User } from "discord.js";
 import { client } from "../../env";
 import iterateMessages from "../../modules/messages/iterateMessages";
-import { mentionToChannel } from "../../util";
+import { parseChannelMention, parseMention } from "../../util";
 import { sendAlwaysLastMessage } from "../../modules/messages/AlwaysLastMessage";
 import sendLongText from "../../modules/messages/sendLongText";
 import { once } from "events";
@@ -29,7 +29,7 @@ async function scanChannel(msg: Message, mode: string, fromChannelStr: string) {
 
     let fromChannel;
     if (fromChannelStr)
-        fromChannel = await client.channels.fetch(mentionToChannel(fromChannelStr));
+        fromChannel = await client.channels.fetch(parseChannelMention(fromChannelStr));
     else
         fromChannel = msg.channel;
     

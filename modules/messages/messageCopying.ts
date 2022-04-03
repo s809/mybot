@@ -1,6 +1,6 @@
 import { Message, Snowflake, TextChannel } from "discord.js";
 import { client, data } from "../../env";
-import { ChannelLink } from "../data/channelLinking";
+import { ChannelLink } from "../data/models";
 import { getOrCreateWebhook, sendWebhookMessage } from "./sendWebhookMessage";
 
 const messageBuffers = new Map<Snowflake, Message[]>();

@@ -4,7 +4,7 @@ import {
     owner
 } from "../env";
 import { resolveCommand } from "../modules/commands";
-import { ChannelLink, ChannelLinkRole } from "../modules/data/channelLinking";
+import { ChannelLink } from "../modules/data/models";
 import { isCommandAllowedToUse } from "../modules/commands/permissions";
 import sendLongText from "../modules/messages/sendLongText";
 import { sanitizePaths } from "../util";
@@ -35,15 +35,13 @@ client.on("messageCreate", async msg => {
     const prefix = getPrefix(msg.guildId);
     if (!msg.content.startsWith(prefix)) return;
 
-    let args = msg.content.match(/[^"\s]+|"(?:\\"|[^"])+"/g);
-    args.forEach((str, i, arr) => {
-        if (i === 0)
-            str = str.slice(prefix.length);
-        if (str.charAt(0) === "\"")
+    let args = msg.content.slice(prefix.length).match(/[^"\s]+|"(?:\\"|[^"])+"/g);
+    for (let [i, str] of args.entries()) {
+        if (str.match(/^".*"$/))
             str = str.slice(1, -1);
 
-        arr[i] = str.replace("\\\"", "\"").replace("\\\\", "\\");
-    });
+        args[i] = str.replace("\\\"", "\"").replace("\\\\", "\\");
+    }
 
     let command = resolveCommand(args, true);
     if (command && !isCommandAllowedToUse(msg, command)) return;

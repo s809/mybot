@@ -3,7 +3,7 @@
  */
 
 import { readFileSync } from "fs";
-import { Client, Intents, Guild } from "discord.js";
+import { Client, Intents, Guild, Snowflake } from "discord.js";
 import { UserDataManager } from "./modules/data/UserDataManager";
 import { dirname } from "path";
 import { fileURLToPath } from "url";
@@ -65,6 +65,8 @@ export const voiceTimeouts = {
 };
 
 export const musicPlayingGuilds = new Map<Guild, MusicPlayer>();
+
+export const storedInviteCounts = new Map<Snowflake, Map<string, number>>();
 
 if (isDebug)
     console.log("(Warn) Running in debug mode.");

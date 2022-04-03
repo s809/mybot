@@ -4,7 +4,7 @@
 
 import { Snowflake, TextChannel } from "discord.js";
 import { client } from "../../env";
-import { ChannelLink } from "../data/channelLinking";
+import { ChannelLink } from "../data/models";
 import iterateMessages from "./iterateMessages";
 import { startCopyingMessages } from "./messageCopying";
 
