@@ -1,5 +1,5 @@
 {
-  "commandDescriptions": {
+  "command_descriptions": {
     "bot_changelog": "Get bot changelog.",
     "bot_invite": "Get bot server invite link.",
     "bot_uptime": "Get bot uptime.",
@@ -18,7 +18,7 @@
     "music_play": "Play a video.\nIf no URL or query is specified, unpauses playback.\nQueries are searched on YouTube, but URL can be from any source.\nQuotes are not required for one-word queries.",
     "music_skip": "Skip currently playing song.",
     "music_stop": "Stop player.",
-    "permission": "Manage permissions of specific item.\nRequires item to be manageable by caller.",
+    "permission": "Manage permissions of specific item.\nItem should be manageable by caller.",
     "permission_list": "Get permissions of specific item.",
     "prefix": "Change prefix.",
     "timer": "Self-updating UTC timer message."
@@ -131,6 +131,7 @@
   "common": {
     "channel_linked_here": "$1 is linked here.",
     "initializing_timer": "Initializing timer...",
+    "test": "Test message",
     "unknown": "unknown"
   }
 }

@@ -44,9 +44,20 @@ export class Translator {
      * 
      * @param path Path of translation entry.
      * @param args Arguments for string interpolation.
-     * @returns String with translation.
+     * @returns String with translation or passed path, if it was not found.
      */
-    translate(path: string, ...args: string[]): string | null {
+    translate(path: string, ...args: string[]): string {
+        return this.tryTranslate(path, ...args) ?? path;
+    }
+
+    /**
+     * Get a translation string.
+     * 
+     * @param path Path of translation entry.
+     * @param args Arguments for string interpolation.
+     * @returns String with translation or null, if it was not found.
+     */
+    tryTranslate(path: string, ...args: string[]): string | null {
         var source = get(this.data, path);
         return source ? formatString(source, ...args) : null;
     }

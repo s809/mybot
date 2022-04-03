@@ -4,7 +4,7 @@
   "version": "1.5.0",
   "scripts": {
     "start": "npm run build && node --experimental-specifier-resolution=node ./build/main.js",
-    "build": "tsc && cp ./package.json ./config.json ./build",
+    "build": "tsc",
     "install": "sudo apt install ffmpeg && pip install youtube-dl && sudo npm install -g typescript"
   },
   "dependencies": {

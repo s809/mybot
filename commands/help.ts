@@ -31,7 +31,6 @@ async function help(msg: Message) {
             value: `${levelName}_${x.name}`,
             default: false,
         } as MessageSelectOptionData));
-        console.log(selectOptions);
 
         let selectMenu = new MessageSelectMenu({
             customId: levelName,
@@ -73,7 +72,7 @@ async function help(msg: Message) {
                 title: translator.translate("embeds.help.title"),
                 description: command.func
                     ? `\`\`\`\n${getPrefix(msg.guildId)}${command.path.replace("/", " ")} ${command.args?.[2] ?? ""}\`\`\`\n` +
-                    `${translator.translate("commandDescriptions." + command.path.replace("/", "_")) ?? translator.translate("embeds.help.no_description")}`
+                    `${translator.tryTranslate("command_descriptions." + command.path.replace("/", "_")) ?? translator.translate("embeds.help.no_description")}`
                     : `${translator.translate("embeds.help.select_command_in_category")}`
             };
         }

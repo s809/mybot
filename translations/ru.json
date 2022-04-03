@@ -1,5 +1,5 @@
 {
-  "commandDescriptions": {
+  "command_descriptions": {
     "bot_changelog": "Получить список изменений бота.",
     "bot_invite": "Получить ссылку для приглашения бота на сервер.",
     "bot_uptime": "Получить время работы бота.",
@@ -131,6 +131,7 @@
   "common": {
     "channel_linked_here": "Этот канал теперь принимает сообщения из $1.",
     "initializing_timer": "Иницифлизация таймера...",
+    "test": "Тестовое сообщение",
     "unknown": "неизвестно"
   }
 }
