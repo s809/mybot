@@ -3,9 +3,7 @@
   "type": "module",
   "version": "1.5.1",
   "scripts": {
-    "start": "npm run build && node --experimental-specifier-resolution=node ./build/main.js",
-    "build": "tsc",
-    "install": "sudo apt install ffmpeg && pip install youtube-dl && sudo npm install -g typescript"
+    "start": "tsc && node --experimental-specifier-resolution=node ./build/main.js"
   },
   "dependencies": {
     "@discordjs/opus": "^0.7.0",
