@@ -8,6 +8,7 @@ import { UserDataManager } from "./modules/data/UserDataManager";
 import { dirname } from "path";
 import { fileURLToPath } from "url";
 import { MusicPlayer } from "./modules/music/MusicPlayer";
+import discordModals from "discord-modals";
 
 export const version: string = JSON.parse(readFileSync("./package.json", "utf8")).version;
 export const botDirectory = fileURLToPath(dirname(import.meta.url));
@@ -33,6 +34,8 @@ export const client = new Client({
         }]
     }
 });
+discordModals(client);
+
 export const data = new UserDataManager("./data", {
     guilds: {
         fileType: "object"
@@ -65,7 +68,6 @@ export const voiceTimeouts = {
 };
 
 export const musicPlayingGuilds = new Map<Guild, MusicPlayer>();
-
 export const storedInviteCounts = new Map<Snowflake, Map<string, number>>();
 
 if (isDebug)

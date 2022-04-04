@@ -58,6 +58,7 @@
     "not_in_any_voice": "Join any voice channel to use this command.",
     "not_in_specific_voice": "Join $1 to use this command.",
     "nothing_is_playing": "Nothing is not playing.",
+    "send_your_own_command": "You cannot interact with this message; send a new command (`$1$2`) to interact with a new message.",
     "target_management_not_allowed": "You don't have permission to manage this type of target.",
     "tracker_init_failed": "Failed to set up tracker. Check if bot has \"Send Messages\" permission in log channel and \"Manage Server\" in this server.",
     "unknown_channel": "Unknown channel.",

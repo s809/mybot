@@ -89,7 +89,13 @@ async function help(msg: Message) {
         idle: 60000,
         dispose: true
     }).on("collect", async (interaction: SelectMenuInteraction) => {
-        await interaction.deferUpdate();
+        if (interaction.user != msg.author) {
+            interaction.reply({
+                content: translator.translate("errors.send_your_own_command", getPrefix(msg.guildId), "help"),
+                ephemeral: true
+            });
+            return;
+        }
 
         let pos = levelNameToPosition.get(interaction.customId);
         if (pos < chain.length - 1)
@@ -106,7 +112,7 @@ async function help(msg: Message) {
             return option as MessageSelectOptionData;
         }));
 
-        await resp.edit(makeOptions(command));
+        await interaction.update(makeOptions(command));
     }).on("end", () => {
         resp.edit({
             embeds: resp.embeds,

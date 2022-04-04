@@ -4,7 +4,7 @@ import { InviteTrackerData } from "../data/models";
 import { Translator } from "./Translator";
 
 export function getInviteTrackerDataOrClean(guildId: Snowflake): [InviteTrackerData, GuildTextBasedChannel] | [null, null] {
-    let inviteTrackerData = data.guilds[guildId].inviteTracker as InviteTrackerData;
+    let inviteTrackerData = data.guilds[guildId]?.inviteTracker as InviteTrackerData;
     if (!inviteTrackerData)
         return [null, null];
 
