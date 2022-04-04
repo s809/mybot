@@ -1,21 +1,14 @@
 /**
  * @file Restart command.
  */
-import { execSync } from "child_process";
 import { Message } from "discord.js";
-import { data, isDebug } from "../../env";
 import { Command } from "../../modules/commands/definitions";
+import { doRestart } from "../../modules/misc/restart";
 
 async function restart(msg: Message) {
-    data.saveDataSync();
-
-    if (!isDebug)
-        execSync("git pull && npm install");
-    if (process.argv.includes("--started-by-script"))
-        execSync("./mybot.sh --nokill");
-
-    await msg.react("✅");
-    process.exit();
+    await doRestart(async () => {
+        await msg.react("✅")
+    });
 }
 
 const command: Command = {
