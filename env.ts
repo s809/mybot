@@ -36,7 +36,7 @@ discordModals(client);
 
 export function isBotOwner(user: User) {
     return client.application.owner.id === user.id
-        || (client.application.owner as Team).members.map(x => x.user).includes(user);
+        || (client.application.owner as Team).members?.map(x => x.user).includes(user);
 }
 
 export const data = new UserDataManager("./data", {
