@@ -3,7 +3,7 @@
  */
 
 import { readFileSync } from "fs";
-import { Client, Intents, Guild, Snowflake } from "discord.js";
+import { Client, Intents, Guild, Snowflake, Team, User } from "discord.js";
 import { UserDataManager } from "./modules/data/UserDataManager";
 import { dirname } from "path";
 import { fileURLToPath } from "url";
@@ -16,12 +16,10 @@ export const botDirectory = fileURLToPath(dirname(import.meta.url));
 export const {
     isDebug,
     token,
-    owner,
     prefix: defaultPrefix
 }: {
     isDebug: boolean,
     token: string,
-    owner: string,
     prefix: string
 } = JSON.parse(readFileSync("./config.json", "utf8"));
 
@@ -35,6 +33,11 @@ export const client = new Client({
     }
 });
 discordModals(client);
+
+export function isBotOwner(user: User) {
+    return client.application.owner.id === user.id
+        || (client.application.owner as Team).members.map(x => x.user).includes(user);
+}
 
 export const data = new UserDataManager("./data", {
     guilds: {

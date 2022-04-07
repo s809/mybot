@@ -1,5 +1,5 @@
 import { Message } from "discord.js";
-import { client, data, owner } from "../../env";
+import { client, data, isBotOwner } from "../../env";
 import { resolveCommand } from "../../modules/commands";
 import { Command } from "../../modules/commands/definitions";
 import { importCommands } from "../../modules/commands/importHelper";
@@ -36,7 +36,7 @@ async function permission(msg: Message, id: string, commandPath: string) {
     switch (resolvedType) {
         case "user":
             // Users can only be managed by bot owner.
-            if (msg.author.id !== owner)
+            if (!isBotOwner(msg.author))
                 return translator.translate("errors.target_management_not_allowed");
 
             data.users[id] ??= {

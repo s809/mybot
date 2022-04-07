@@ -1,6 +1,6 @@
 import { Message, PermissionResolvable } from "discord.js";
-import { data, owner } from "../../env";
-import { Command, CommandManagementPermissionLevel } from "./definitions";
+import { data, isBotOwner } from "../../env";
+import { Command } from "./definitions";
 
 /**
  * @typedef {import("./definitions").Command} Command
@@ -18,26 +18,17 @@ export function isCommandAllowedToManage(msg: Message, command: Command): boolea
     if (!command.managementPermissionLevel)
         return false;
 
-    const isBotOwner = () => msg.author.id === owner;
-    const isServerOwner = () => isBotOwner() || (msg.guild && msg.guild.ownerId === msg.author.id);
+    const isServerOwner = () => isBotOwner(msg.author) || (msg.guild && msg.guild.ownerId === msg.author.id);
     const hasSpecifiedPermissions = () => isServerOwner() || (msg.member && msg.member.permissions.has(command.managementPermissionLevel as PermissionResolvable));
 
     switch (command.managementPermissionLevel) {
         case "BOT_OWNER":
-            if (isBotOwner())
-                return true;
-            break;
+            return isBotOwner(msg.author);
         case "SERVER_OWNER":
-            if (isServerOwner())
-                return true;
-            break;
+            return isServerOwner();
         default:
-            if (hasSpecifiedPermissions())
-                return true;
-            break;
+            return hasSpecifiedPermissions();
     }
-
-    return false;
 }
 
 /**

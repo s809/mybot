@@ -1,7 +1,7 @@
 import {
     client,
     data,
-    owner
+    isBotOwner
 } from "../env";
 import { resolveCommand } from "../modules/commands";
 import { ChannelLink } from "../modules/data/models";
@@ -23,7 +23,7 @@ client.on("messageCreate", async msg => {
 
     if (msg.author.bot || msg.webhookId) return;
 
-    if (msg.author.id !== owner) {
+    if (!isBotOwner(msg.author)) {
         // User ban
         if (hasFlag(data.users[msg.author.id], "banned")) return;
 
