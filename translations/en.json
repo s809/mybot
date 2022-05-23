@@ -25,8 +25,10 @@
   },
   "errors": {
     "already_disabled": "Already disabled.",
+    "already_enabled": "Already enabled.",
     "already_linked_destination": "Cannot link to a linked channel.",
     "already_linked_source": "Channel is already linked.",
+    "argument_value_too_large": "Value of \"$1\" is too large (should be no larger than $2).",
     "arguments_less_than_expected": "Provided arguments less than expected (need at least $1).",
     "arguments_more_than_expected": "Provided arguments more than expected (need at most $1).",
     "cannot_become_speaker": "Failed to become a speaker.",
@@ -139,6 +141,14 @@
       "role": "Role",
       "member": "Member",
       "no_permissions": "This user has no permissions."
+    },
+    "textgen": {
+      "title": "Text generator",
+      "property_table": "$1 | Avg: $2 | Med: $3 | Min: $4 | Max: $5\n",
+      "word_chain_variants": "Word chain variants",
+      "most_common_next_word_probability": "Most common next word probability",
+      "generation_stop_probability": "Generation stop probability",
+      "property_table_not_enough_data": "$1 | <not enough data>"
     }
   },
   "common": {

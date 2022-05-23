@@ -6,7 +6,7 @@ import { tryInitTrackedGuild } from "../../modules/misc/inviteTracker";
 import { Translator } from "../../modules/misc/Translator";
 import { parseChannelMention } from "../../util";
 
-function enableInviteTracker(msg: Message, channelResolvable: string) {
+async function enableInviteTracker(msg: Message, channelResolvable: string) {
     let translator = Translator.get(msg);
 
     let channel = client.channels.resolve(parseChannelMention(channelResolvable));
@@ -19,7 +19,7 @@ function enableInviteTracker(msg: Message, channelResolvable: string) {
         logChannelId: channel.id
     } as InviteTrackerData;
 
-    if (!tryInitTrackedGuild(msg.guild))
+    if (!await tryInitTrackedGuild(msg.guild))
         return translator.translate("errors.tracker_init_failed");
 }
 

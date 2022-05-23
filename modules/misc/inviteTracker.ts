@@ -37,7 +37,7 @@ export async function tryInitTrackedGuild(guild: Guild) {
     }
 }
 
-export async function cleanTrackedGuild(guildId: Snowflake) {
+export function cleanTrackedGuild(guildId: Snowflake) {
     storedInviteCounts.delete(guildId);
     delete data.guilds[guildId].inviteTracker;
 }
