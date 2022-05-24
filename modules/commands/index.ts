@@ -6,6 +6,8 @@ import { pathToFileURL } from "url";
 import { botDirectory } from "../../env";
 import { importCommands } from "./importHelper";
 import { Command } from "./definitions";
+import { Message } from "discord.js";
+import { getPrefix } from "../data/getPrefix";
 
 var commands: Map<string, Command>;
 
@@ -96,7 +98,17 @@ function* iterateSubcommands(list: Map<string, Command>): Iterable<Command> {
  * Recursively iterates commands.
  */
 export function* iterateCommands() {
-    for (let command of iterateSubcommands(commands)) {
+    for (let command of iterateSubcommands(commands))
         yield command;
-    }
+}
+
+/**
+ * Converts a command into an usage string.
+ * 
+ * @param msg Context message.
+ * @param command Command which usage needs to be printed.
+ * @returns Usage string of a command.
+ */
+export function toUsageString(msg: Message, command: Command) {
+    return `${getPrefix(msg.guildId)}${command.path.replaceAll("/", " ")} ${command.args?.[2] ?? ""}`
 }

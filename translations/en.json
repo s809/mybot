@@ -35,8 +35,8 @@
     "already_linked_destination": "Cannot link to a linked channel.",
     "already_linked_source": "Channel is already linked.",
     "argument_value_too_large": "Value of \"$1\" is too large (should be no larger than $2).",
-    "arguments_less_than_expected": "Provided arguments less than expected (need at least $1).",
-    "arguments_more_than_expected": "Provided arguments more than expected (need at most $1).",
+    "too_few_arguments": "Too few arguments.\n",
+    "too_many_arguments": "Too many arguments.\n",
     "cannot_become_speaker": "Failed to become a speaker.",
     "cannot_manage_emojis": "Cannot manage emojis on this server.",
     "cannot_manage_language": "You cannot manage a language of this server.",
@@ -160,6 +160,7 @@
   },
   "common": {
     "channel_linked_here": "$1 is linked here.",
+    "command_usage": "Command usage: `$1`",
     "initializing_timer": "Initializing timer...",
     "test": "Test message",
     "unknown": "unknown"

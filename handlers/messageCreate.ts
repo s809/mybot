@@ -3,7 +3,7 @@ import {
     data,
     isBotOwner
 } from "../env";
-import { resolveCommand } from "../modules/commands";
+import { resolveCommand, toUsageString } from "../modules/commands";
 import { ChannelLink } from "../modules/data/models";
 import { isCommandAllowedToUse } from "../modules/commands/permissions";
 import sendLongText from "../modules/messages/sendLongText";
@@ -50,13 +50,14 @@ client.on("messageCreate", async msg => {
 
     let minArgs = command.args?.[0] ?? 0;
     let maxArgs = command.args?.[1] ?? 0;
-
     if (args.length < minArgs || args.length > maxArgs) {
-        let [strName, need] = args.length < minArgs
-            ? ["arguments_less_than_expected", minArgs]
-            : ["arguments_more_than_expected", maxArgs];
+        let translator = Translator.get(msg);
+        let errorStr = args.length < minArgs
+            ? translator.translate("errors.too_few_arguments")
+            : translator.translate("errors.too_many_arguments");
 
-        await msg.channel.send(Translator.get(msg).translate(`errors.${strName}`, need.toString()));
+        await msg.channel.send(errorStr +
+            translator.translate("common.command_usage", toUsageString(msg, command)));
         await msg.react("❌");
         return;
     }

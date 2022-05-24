@@ -1,6 +1,6 @@
 import { assert } from "console";
 import { BitFieldResolvable, DMChannel, Message, MessageActionRow, MessageSelectMenu, MessageSelectOption, MessageSelectOptionData, Permissions, PermissionString, SelectMenuInteraction } from "discord.js";
-import { getRootCommands } from "../modules/commands";
+import { getRootCommands, toUsageString } from "../modules/commands";
 import { Command, CommandManagementPermissionLevel } from "../modules/commands/definitions";
 import { isCommandAllowedToUse } from "../modules/commands/permissions";
 import { getPrefix } from "../modules/data/getPrefix";
@@ -90,7 +90,7 @@ async function help(msg: Message) {
                 assert(false, "Permission conversion failed\nValue: %s", raw);
             };
 
-            let codeBlock = `\`\`\`\n${getPrefix(msg.guildId)}${command.path.replaceAll("/", " ")} ${command.args?.[2] ?? ""}\`\`\`\n`;
+            let codeBlock = `\`\`\`\n${toUsageString(msg, command)}\`\`\`\n`;
             let description = `${translator.tryTranslate("command_descriptions." + command.path.replaceAll("/", "_")) ?? translator.translate("embeds.help.no_description")}`;
             let requiredPermissions = command.managementPermissionLevel
                 ? `\n${translator.translate("embeds.help.required_permissions", convertPermissions(command.managementPermissionLevel))}`

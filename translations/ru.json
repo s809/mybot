@@ -35,8 +35,8 @@
     "already_linked_destination": "Канал уже имеет связь в него.",
     "already_linked_source": "Канал уже имеет связь из него.",
     "argument_value_too_large": "Значение \"$1\" слишком большое (должно быть не больше $2).",
-    "arguments_less_than_expected": "Недостаточно аргументов (требуется как минимум $1).",
-    "arguments_more_than_expected": "Слишком много аргументов (требуется максимум $1).",
+    "too_few_arguments": "Слишком мало аргументов.\n",
+    "too_many_arguments": "Слишком много аргументов.\n",
     "cannot_become_speaker": "Не удалось стать оратором.",
     "cannot_manage_emojis": "Недостаточно прав для управления эмодзи на этом сервере.",
     "cannot_manage_language": "Вы не можете управлять языком на этом сервере.",
@@ -157,6 +157,7 @@
   },
   "common": {
     "channel_linked_here": "Этот канал теперь принимает сообщения из $1.",
+    "command_usage": "Использование команды: `$1`",
     "initializing_timer": "Инициализация таймера...",
     "test": "Тестовое сообщение",
     "unknown": "неизвестно"
