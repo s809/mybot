@@ -1,7 +1,6 @@
 /**
  * @file Some useful functions.
  */
-import assert from "assert";
 import { botDirectory } from "./env";
 
 /**
@@ -141,4 +140,14 @@ export function formatString(text: string, ...args: string[]) {
             throw new Error(`Value for $${parseInt(value)} is missing`);
         return replacedValue;
     });
+}
+
+/**
+ * Capitalizes words in a given string.
+ * 
+ * @param text String with words to capitalize.
+ * @returns String with capitalized words.
+ */
+export function capitalizeWords(text: string) {
+    return text.toLowerCase().replace(/(^\w|\s\w)/g, m => m.toUpperCase());
 }

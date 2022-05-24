@@ -1,9 +1,11 @@
-import { DMChannel, Message, MessageActionRow, MessageSelectMenu, MessageSelectOption, MessageSelectOptionData, SelectMenuInteraction } from "discord.js";
+import { assert } from "console";
+import { BitFieldResolvable, DMChannel, Message, MessageActionRow, MessageSelectMenu, MessageSelectOption, MessageSelectOptionData, Permissions, PermissionString, SelectMenuInteraction } from "discord.js";
 import { getRootCommands } from "../modules/commands";
-import { Command } from "../modules/commands/definitions";
+import { Command, CommandManagementPermissionLevel } from "../modules/commands/definitions";
 import { isCommandAllowedToUse } from "../modules/commands/permissions";
 import { getPrefix } from "../modules/data/getPrefix";
 import { Translator } from "../modules/misc/Translator";
+import { capitalizeWords } from "../util";
 
 async function help(msg: Message) {
     let translator = Translator.get(msg);
@@ -68,12 +70,38 @@ async function help(msg: Message) {
                 description: `${translator.translate("embeds.help.select_command")}`
             };
         } else {
+            const convertPermissions = (raw: CommandManagementPermissionLevel): string => {
+                if (typeof raw === "bigint")
+                    raw = raw.toString() as CommandManagementPermissionLevel;
+
+                if (typeof raw === "string") {
+                    if (raw.match(/^\d+$/))
+                        return convertPermissions(new Permissions(raw as BitFieldResolvable<PermissionString, bigint>));
+                    else
+                        return capitalizeWords(raw.replaceAll("_", " "));
+                }
+
+                if (raw instanceof Permissions)
+                    return convertPermissions(raw.toArray())
+                
+                if (Array.isArray(raw))
+                    return raw.map(p => convertPermissions(p)).join(", ");
+
+                assert(false, "Permission conversion failed\nValue: %s", raw);
+            };
+
+            let codeBlock = `\`\`\`\n${getPrefix(msg.guildId)}${command.path.replaceAll("/", " ")} ${command.args?.[2] ?? ""}\`\`\`\n`;
+            let description = `${translator.tryTranslate("command_descriptions." + command.path.replaceAll("/", "_")) ?? translator.translate("embeds.help.no_description")}`;
+            let requiredPermissions = command.managementPermissionLevel
+                ? `\n${translator.translate("embeds.help.required_permissions", convertPermissions(command.managementPermissionLevel))}`
+                : ""
+
             embed = {
                 title: translator.translate("embeds.help.title"),
-                description: command.func
-                    ? `\`\`\`\n${getPrefix(msg.guildId)}${command.path.replace("/", " ")} ${command.args?.[2] ?? ""}\`\`\`\n` +
-                    `${translator.tryTranslate("command_descriptions." + command.path.replace("/", "_")) ?? translator.translate("embeds.help.no_description")}`
-                    : `${translator.translate("embeds.help.select_command_in_category")}`
+                description: (command.func
+                    ? codeBlock + description
+                    : translator.translate("embeds.help.select_command_in_category"))
+                    + requiredPermissions
             };
         }
 

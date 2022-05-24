@@ -118,7 +118,8 @@
       "no_description": "No description.",
       "select_command": "Select a command to view information about it.",
       "select_command_in_category": "Select a command in this category to view information about it.",
-      "select_command_menu": "Select a command..."
+      "select_command_menu": "Select a command...",
+      "required_permissions": "Required permissions: $1"
     },
     "music": {
       "title_player": "Player",

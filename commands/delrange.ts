@@ -27,7 +27,7 @@ async function deleteRange(msg: Message, start: string, end: string) {
 const command: Command = {
     name: "delrange",
     args: [2, 2, "<startid> <endid>"],
-    managementPermissionLevel: Permissions.FLAGS.ADMINISTRATOR,
+    managementPermissionLevel: Permissions.FLAGS.MANAGE_MESSAGES,
     func: deleteRange
 }
 export default command;
