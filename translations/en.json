@@ -10,6 +10,9 @@
     "emoji_import": "Import emoji from another server.",
     "emoji_show": "Show emoji from current server.",
     "help": "Show this help message.",
+    "invitetracker": "Show information about invite tracking.",
+    "invitetracker_disable": "Disable tracking of invites.",
+    "invitetracker_enable": "Enable tracking of invites.",
     "lang": "Change language of bot for server or user.",
     "link": "Enable copying of messages in this channel to another.",
     "link_list": "Get channel links for this server.",
@@ -21,6 +24,9 @@
     "permission": "Manage permissions of specific item.\nItem should be manageable by caller.",
     "permission_list": "Get permissions of specific item.",
     "prefix": "Change prefix.",
+    "textgen_disable": "Disable text generator for this channel.",
+    "textgen_enable": "Enable text generator for this channel.",
+    "textgen_info": "Show information about data for text generator for this channel.",
     "timer": "Self-updating UTC timer message."
   },
   "errors": {
