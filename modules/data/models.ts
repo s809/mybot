@@ -1,7 +1,15 @@
 import { Snowflake } from "discord.js";
 
-export type FlaggableDataEntry = {
+export interface LanguageData {
+    language: string;
+}
+
+export type FlagData = {
     flags: string[];
+}
+
+export interface PermissionData {
+    allowedCommands: string[];
 }
 
 export type ChannelLinkRole = "SOURCE" | "DESTINATION";
@@ -13,6 +21,11 @@ export interface ChannelLink {
     lastMessageId?: Snowflake;
 }
 
-export interface InviteTrackerData {
+export interface InviteTracker {
     logChannelId: Snowflake;
+}
+
+export interface TextGenData {
+    genData: Record<string, Record<string, number>>;
+    genCounters: Record<string, number>;
 }

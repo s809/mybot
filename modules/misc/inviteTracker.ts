@@ -1,10 +1,10 @@
 import { Guild, GuildTextBasedChannel, Snowflake } from "discord.js";
 import { data, client, storedInviteCounts } from "../../env";
-import { InviteTrackerData } from "../data/models";
+import { InviteTracker } from "../data/models";
 import { Translator } from "./Translator";
 
-export function getInviteTrackerDataOrClean(guildId: Snowflake): [InviteTrackerData, GuildTextBasedChannel] | [null, null] {
-    let inviteTrackerData = data.guilds[guildId]?.inviteTracker as InviteTrackerData;
+export function getInviteTrackerDataOrClean(guildId: Snowflake): [InviteTracker, GuildTextBasedChannel] | [null, null] {
+    let inviteTrackerData = data.guilds[guildId]?.inviteTracker;
     if (!inviteTrackerData)
         return [null, null];
 

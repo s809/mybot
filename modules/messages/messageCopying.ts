@@ -42,7 +42,7 @@ export function startCopyingMessages(link: ChannelLink, messages: Message[]) {
  * @param msg Message to be sent.
  */
 export async function copyMessageToLinkedChannel(msg: Message) {
-    let link: ChannelLink = data.guilds[msg.guild.id].channels[msg.channelId].link;
+    let link = data.guilds[msg.guild.id].channels[msg.channelId].link;
 
     let buffer = messageBuffers.get(link.channelId);
     if (buffer)

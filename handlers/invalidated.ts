@@ -1,7 +1,7 @@
-import { client, data } from "../env";
+import { client, dataManager } from "../env";
 
 client.on("invalidated", () => {
     console.log("The session was invalidated, shutting down.");
-    data.saveDataSync();
+    dataManager.saveDataSync();
     process.exit();
 });

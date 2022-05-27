@@ -1,10 +1,9 @@
-import { client, data } from "../env";
+import { client, data, dataManager } from "../env";
 import fetchAndCopyMessages from "../modules/messages/fetchAndCopyMessages";
 import { onGuildCreate, onGuildRemove } from "../modules/data/dataSync";
 import { botEval } from "../modules/misc/eval";
 import { getLinks } from "../modules/data/channelLinking";
 import { initBuffer } from "../modules/messages/messageCopying";
-import { InviteTrackerData } from "../modules/data/models";
 
 client.on("ready", async () => {
     console.log(`Logged in as ${client.user.tag}.`);
@@ -26,7 +25,7 @@ client.on("ready", async () => {
     for (let guild of client.guilds.cache.values())
         await onGuildCreate(guild);
 
-    await data.saveData();
+    await dataManager.saveData();
 
     // Execute startup scripts
     for (let scriptName of Object.getOwnPropertyNames(data.scripts.startup)) {

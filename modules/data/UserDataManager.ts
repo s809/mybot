@@ -12,15 +12,27 @@ interface ItemRoot {
     modified?: boolean;
 }
 
-type UserDataFileType = "string" | "object";
+type UserDataSchemaList = {
+    [key: string]: UserDataSchemaNode
+};
 
 type UserDataSchemaNode = {
-    [x: string | "fileType"]: UserDataSchemaNode | UserDataFileType
+    fileType?: "string" | "object";
+    children?: UserDataSchemaList;
+    object?: any;
 };
 
-type UserDataSchema = Omit<UserDataSchemaNode, "fileType"> & {
-    fileType?: never
+type UserDataList<List extends UserDataSchemaList> = {
+    readonly [key in keyof List]: UserDataObject<List[key]>;
+} & {
+    [key: string]: UserDataList<List>[keyof UserDataList<List>]
 };
+
+type UserDataObject<Node extends UserDataSchemaNode> = keyof Node["fileType"] extends undefined
+    ? UserDataList<Node["children"]>
+    : Node["fileType"] extends "string"
+        ? Record<string, string>
+        : Record<string, Node["object"] extends object ? Node["object"] : any>;
 
 export function getSrc(obj: any) {
     if (!obj)
@@ -36,22 +48,16 @@ export function getSrc(obj: any) {
 /**
  * Provides automatic saving and serialization of data.
  */
-export class UserDataManager {
-    /** Path to data root directory. */
-    path: string;
-    /** Defines directory structure. */
-    schema: UserDataSchema;
+export class UserDataManager<Schema extends UserDataSchemaList> {
+    readonly root: UserDataList<Schema> = {} as any;
     private cache: Map<string, ItemRoot>;
     private saveLock: number;
-    [x: string]: any;
 
-    constructor(path: string, schema: UserDataSchema) {
-        this.path = path;
-        this.schema = schema;
+    constructor(path: string, schema: Schema) {
         this.cache = new Map();
         this.saveLock = 0;
 
-        this.readSchema(this, schema, `${this.path}/`);
+        this.readSchema(this.root, schema, `${path}/`);
 
         const onSave = () => this.saveData();
         const saveAndExit = () => {
@@ -65,29 +71,29 @@ export class UserDataManager {
         setInterval(onSave, 60000 * 5);
     }
 
-    readSchema(ref: this, schemaNode: UserDataSchemaNode, pathPart: PathLike) {
-        let fileType = schemaNode.fileType;
-        if (ref === this && fileType)
-            throw new Error("Files are not supported in root directory.");
-
+    readSchema(ref: any, schemaList: UserDataSchemaList, pathPart: PathLike) {
         if (!existsSync(pathPart))
             mkdirSync(pathPart);
 
-        for (let [key, value] of Object.entries(schemaNode)) {
-            if (key === "fileType") continue;
-            value = value as UserDataSchemaNode;
-
-            let newPathPart = `${pathPart}${key}/`;
+        for (let [key, node] of Object.entries(schemaList)) {
+            let nestedPathPart = `${pathPart}${key}/`;
 
             ref[key] = {};
-            this.readSchema(ref[key], value, newPathPart);
+            if (!node.fileType) {
+                if (!node.children)
+                    throw new Error("Empty nodes are not supported");
 
-            switch (value.fileType) {
+                this.readSchema(ref[key], node.children, nestedPathPart);
+            } else if (node.children) {
+                throw new Error("Nodes with files cannot have children");
+            }
+
+            switch (node.fileType) {
                 case "string":
-                    ref[key] = this.createStringDirectoryProxy(ref[key], newPathPart);
+                    ref[key] = this.createStringDirectoryProxy(ref[key], nestedPathPart);
                     break;
                 case "object":
-                    ref[key] = this.createObjectDirectoryProxy(ref[key], newPathPart);
+                    ref[key] = this.createObjectDirectoryProxy(ref[key], nestedPathPart);
                     break;
             }
         }

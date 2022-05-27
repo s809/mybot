@@ -38,10 +38,7 @@ async function permission(msg: Message, id: string, commandPath: string) {
             // Users can only be managed by bot owner.
             if (!isBotOwner(msg.author))
                 return translator.translate("errors.target_management_not_allowed");
-
-            data.users[id] ??= {
-                allowedCommands: []
-            };
+            
             resolvedItem = data.users[id];
             break;
         case "role":

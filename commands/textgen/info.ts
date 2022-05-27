@@ -1,6 +1,7 @@
 import { Message } from "discord.js";
 import { data } from "../../env";
 import { Command } from "../../modules/commands/definitions";
+import { TextGenData } from "../../modules/data/models";
 import { Translator } from "../../modules/misc/Translator";
 
 async function textGenInfo(msg: Message, branchCutoffStr: string, branchCounterDepthStr: string) {
@@ -11,7 +12,7 @@ async function textGenInfo(msg: Message, branchCutoffStr: string, branchCounterD
     if (branchCounterDepth > 5)
         return translator.translate("errors.argument_value_too_large", "branch counter depth", "5");
 
-    const getVariations = (genData: { [x: string]: any; }, depth: number, wordData: {}) => {
+    const getVariations = (genData: TextGenData["genData"], depth: number, wordData: {}) => {
         let result = 0;
     
         for (let word of Object.keys(wordData)) {
@@ -26,18 +27,18 @@ async function textGenInfo(msg: Message, branchCutoffStr: string, branchCounterD
         return result;
     };
     
-    const calculateProperties = (arr: any[], name: string) => {
+    const calculateProperties = (arr: number[], name: string) => {
         if (!arr.length)
             return translator.translate("embeds.textgen.property_table_not_enough_data", name);
 
-        let avg = arr.reduce((acc: any, item: any) => acc + item, 0) / arr.length;
+        let avg = arr.reduce((acc, item) => acc + item, 0) / arr.length;
         arr = arr.sort((x: number, y: number) => x - y);
         let med = arr[Math.floor(arr.length / 2)];
 
-        return translator.translate("embeds.textgen.property_table", name, avg.toString(), med, arr[0], arr[arr.length - 1]);
+        return translator.translate("embeds.textgen.property_table", name, avg.toString(), med.toString(), arr[0].toString(), arr[arr.length - 1].toString());
     };
     
-    const calculatePropertiesForList = (genData: { [s: string]: unknown; } | ArrayLike<unknown>) => {
+    const calculatePropertiesForList = (genData: TextGenData["genData"]) => {
         let result = "";
     
         let arr = Object.values(genData).filter(wordData => Object.keys(wordData).length >= branchCutoff);
@@ -48,7 +49,7 @@ async function textGenInfo(msg: Message, branchCutoffStr: string, branchCounterD
         result += calculateProperties(varr.map(values => values.length), translator.translate("embeds.textgen.word_chain_variants"));
         result += calculateProperties(varr.map(values => Math.max(...values)), translator.translate("embeds.textgen.most_common_next_word_probability"));
         result += calculateProperties(earr
-            .reduce((acc, item) => {
+            .reduce<number[]>((acc, item) => {
                 let pair = item.find(x => x[0] === "__genEnd");
                 if (pair)
                     acc.push(pair[1]);

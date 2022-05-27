@@ -3,14 +3,14 @@ import { data } from "../../env";
 import { ChannelLink, ChannelLinkRole } from "./models";
 
 export async function linkChannel(src: GuildTextBasedChannel, dest: GuildTextBasedChannel) {
-    let srcToDestLink: ChannelLink = {
+    let srcToDestLink = <ChannelLink>{
         channelId: dest.id,
         guildId: dest.guildId,
         role: "SOURCE",
         lastMessageId: (await src.messages.fetch({ limit: 1 })).firstKey() ?? null
     };
 
-    let destFromSrcLink: ChannelLink = {
+    let destFromSrcLink = <ChannelLink>{
         channelId: src.id,
         guildId: src.guildId,
         role: "DESTINATION"
@@ -20,11 +20,11 @@ export async function linkChannel(src: GuildTextBasedChannel, dest: GuildTextBas
     data.guilds[dest.guildId].channels[dest.id].link = destFromSrcLink;
 }
 
-export function unlinkChannel(channel: import("discord.js").TextChannel | {
+export function unlinkChannel(channel: TextChannel | {
         id: Snowflake;
         guildId: Snowflake;
     }) {
-    let link: ChannelLink = data.guilds[channel.guildId].channels[channel.id].link;
+    let link = data.guilds[channel.guildId].channels[channel.id].link;
     if (!link) return;
 
     data.guilds[channel.guildId].channels[channel.id].link = null;
@@ -32,11 +32,7 @@ export function unlinkChannel(channel: import("discord.js").TextChannel | {
 }
 
 export function getLinks(guildId: Snowflake, role?: ChannelLinkRole): [Snowflake, ChannelLink][] {
-    return Object.entries(data.guilds[guildId].channels as {
-        [id: string]: {
-            link?: ChannelLink
-        }
-    })
+    return Object.entries(data.guilds[guildId].channels)
         .filter(([, channelData]) => channelData.link)
         .map(([id, channelData]) => ([id, channelData.link] as [Snowflake, ChannelLink]))
         .filter(([, link]) => !role || link.role === role);

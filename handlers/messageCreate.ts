@@ -4,7 +4,6 @@ import {
     isBotOwner
 } from "../env";
 import { resolveCommand, toUsageString } from "../modules/commands";
-import { ChannelLink } from "../modules/data/models";
 import { isCommandAllowedToUse } from "../modules/commands/permissions";
 import sendLongText from "../modules/messages/sendLongText";
 import { sanitizePaths } from "../util";
@@ -15,7 +14,7 @@ import { Translator } from "../modules/misc/Translator";
 
 client.on("messageCreate", async msg => {
     if (msg.guild) {
-        let link: ChannelLink = data.guilds[msg.guildId].channels[msg.channelId].link;
+        let link = data.guilds[msg.guildId].channels[msg.channelId].link;
 
         if (link?.role === "SOURCE")
             await copyMessageToLinkedChannel(msg);

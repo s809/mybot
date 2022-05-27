@@ -1,9 +1,9 @@
 import { execSync } from "child_process";
-import { Awaitable, Message } from "discord.js";
-import { data, isDebug } from "../../env";
+import { Awaitable } from "discord.js";
+import { dataManager, isDebug } from "../../env";
 
 export async function doRestart(callback?: () => Awaitable<void>) {
-    data.saveDataSync();
+    dataManager.saveDataSync();
 
     if (!isDebug)
         execSync("git pull && npm install");

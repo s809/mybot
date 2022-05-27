@@ -9,6 +9,7 @@ import { dirname } from "path";
 import { fileURLToPath } from "url";
 import { MusicPlayer } from "./modules/music/MusicPlayer";
 import discordModals from "discord-modals";
+import { ChannelLink, FlagData, InviteTracker as InviteTrackerData, LanguageData, PermissionData, TextGenData } from "./modules/data/models";
 
 export const version: string = JSON.parse(readFileSync("./package.json", "utf8")).version;
 export const botDirectory = fileURLToPath(dirname(import.meta.url));
@@ -39,22 +40,36 @@ export function isBotOwner(user: User) {
         || (client.application.owner as Team).members?.map(x => x.user).includes(user);
 }
 
-export const data = new UserDataManager("./data", {
+export const dataManager = new UserDataManager("./data", {
     guilds: {
-        fileType: "object"
+        fileType: "object",
+        object: {} as {
+            prefix: string,
+            inviteTracker: InviteTrackerData,
+
+            roles: Record<string, PermissionData>,
+            members: Record<string, PermissionData>,
+            channels: Record<string, {
+                link: ChannelLink;
+            } & FlagData & TextGenData>,
+        } & LanguageData & FlagData
     },
     users: {
-        fileType: "object"
+        fileType: "object",
+        object: {} as LanguageData & FlagData & PermissionData
     },
     scripts: {
-        startup: {
-            fileType: "string"
-        },
-        callable: {
-            fileType: "string"
+        children: {
+            startup: {
+                fileType: "string"
+            },
+            callable: {
+                fileType: "string"
+            }
         }
     }
 });
+export const data = dataManager.root;
 
 export const voiceTimeouts = {
     ...isDebug

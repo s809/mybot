@@ -1,7 +1,8 @@
 import { Message } from "discord.js";
 import { client, data } from "../../env";
+import { TextGenData } from "../data/models";
 
-export function makeGenSample(genData: { [x: string]: any; }) {
+export function makeGenSample(genData: TextGenData["genData"]) {
     let words = Object.getOwnPropertyNames(genData);
     let nextWord = words[Math.floor(Math.random() * words.length)];
     let result = nextWord;
@@ -42,7 +43,7 @@ export function generate(msg: Message) {
     return text;
 }
 
-export function validateContext(msg: Message<boolean>) {
+export function validateContext(msg: Message) {
     const isMention = msg.mentions.has(client.user);
     const isReply = msg.channel.messages.resolve(msg.reference?.messageId)?.author.id === client.user.id;
     const isRandom = Math.random() < 1 / 50;

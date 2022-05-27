@@ -1,6 +1,6 @@
 import { Guild, GuildBasedChannel, Message, User } from "discord.js";
 import { client, data } from "../../env";
-import { FlaggableDataEntry } from "./models";
+import { FlagData } from "./models";
 
 /**
  * Finds item in data by ID.
@@ -14,7 +14,7 @@ import { FlaggableDataEntry } from "./models";
  */
 export async function resolveFlaggableItem(msg: Message, id: string): Promise<{
     item: GuildBasedChannel | Guild | User;
-    dataEntry: FlaggableDataEntry;
+    dataEntry: FlagData;
 }> {
     // Channel (current guild)
     if (msg.guild) {
@@ -65,23 +65,23 @@ export async function resolveFlaggableItem(msg: Message, id: string): Promise<{
     return null;
 }
 
-export function toggleFlag(dataEntry: FlaggableDataEntry, flag: string) {
+export function toggleFlag(dataEntry: FlagData, flag: string) {
     if (!dataEntry.flags.includes(flag))
         dataEntry.flags.push(flag);
     else
         dataEntry.flags.splice(dataEntry.flags.indexOf(flag));
 }
 
-export function setFlag(dataEntry: FlaggableDataEntry, flag: string) {
+export function setFlag(dataEntry: FlagData, flag: string) {
     if (!dataEntry.flags.includes(flag))
         dataEntry.flags.push(flag);
 }
 
-export function removeFlag(dataEntry: FlaggableDataEntry, flag: string) {
+export function removeFlag(dataEntry: FlagData, flag: string) {
     if (dataEntry.flags.includes(flag))
         dataEntry.flags.splice(dataEntry.flags.indexOf(flag));
 }
 
-export function hasFlag(dataEntry: FlaggableDataEntry, flag: string) {
+export function hasFlag(dataEntry: FlagData, flag: string) {
     return dataEntry.flags.includes(flag);
 }
