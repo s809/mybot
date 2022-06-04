@@ -2,6 +2,8 @@
   "compilerOptions": {
     "moduleResolution": "node",
     "allowSyntheticDefaultImports": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
 
     "removeComments": true,
     "noImplicitAny": true,

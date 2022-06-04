@@ -1,5 +1,4 @@
-import { Message } from "discord.js";
-import { ChannelTypes } from "discord.js/typings/enums";
+import { ChannelType, Message } from "discord.js";
 import { Command } from "../../modules/commands/definitions";
 
 async function setupReceiverServer(msg: Message) {
@@ -7,16 +6,16 @@ async function setupReceiverServer(msg: Message) {
         await channel.delete();
 
     let commandChannel = await msg.guild.channels.create("commands", {
-        type: ChannelTypes.GUILD_TEXT
+        type: ChannelType.GuildText
     });
     let logChannel = await msg.guild.channels.create("logs", {
-        type: ChannelTypes.GUILD_TEXT
+        type: ChannelType.GuildText
     });
     let deletedCategory = await msg.guild.channels.create("Deleted Channels", {
-        type: ChannelTypes.GUILD_CATEGORY
+        type: ChannelType.GuildCategory
     });
     let rootCategory = await msg.guild.channels.create("Root Category", {
-        type: ChannelTypes.GUILD_CATEGORY
+        type: ChannelType.GuildCategory
     });
 
     await commandChannel.send(

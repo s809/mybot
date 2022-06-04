@@ -6,7 +6,7 @@ import { Translator } from "../modules/misc/Translator";
 function lang(msg: Message, newLang: string) {
     let translator = Translator.get(msg);
 
-    if (msg.guild && !msg.member.permissions.has("MANAGE_GUILD"))
+    if (msg.guild && !msg.member.permissions.has("ManageGuild"))
         return translator.translate("errors.cannot_manage_language");
 
     if (!Translator.get(newLang))

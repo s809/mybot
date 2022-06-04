@@ -1,11 +1,11 @@
-import { Message, Permissions, TextChannel } from "discord.js";
+import { GuildDefaultMessageNotifications, Message, PermissionFlagsBits, TextChannel } from "discord.js";
 import { client } from "../../env";
 import { Command } from "../../modules/commands/definitions";
 
 async function createServer(msg: Message) {
     let guild = await client.guilds.create("testGuild", {
         icon: client.user.displayAvatarURL(),
-        defaultMessageNotifications: "ONLY_MENTIONS",
+        defaultMessageNotifications: GuildDefaultMessageNotifications.OnlyMentions,
         channels: [{
             name: "general"
         }, {
@@ -13,7 +13,7 @@ async function createServer(msg: Message) {
         }],
         roles: [{
             id: 0,
-            permissions: Permissions.ALL
+            permissions: Object.values(PermissionFlagsBits)
         }]
     });
 

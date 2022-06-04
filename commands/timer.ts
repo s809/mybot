@@ -52,6 +52,6 @@ const command: Command = {
     name: "timer",
     args: [4, 4, "<dd.mm.yyyy> <hh:mm> <countstr{%s}> <endstr>"],
     func: timer,
-    managementPermissionLevel: "BOT_OWNER"
+    managementPermissionLevel: "BotOwner"
 }
 export default command;

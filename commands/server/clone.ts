@@ -1,21 +1,28 @@
-import { CategoryChannel, GuildBasedChannel, GuildChannel, GuildTextBasedChannel, Message, NewsChannel, Role, Snowflake, StageChannel, StoreChannel, TextBasedChannel, ThreadChannel, VoiceChannel } from "discord.js";
-import { ChannelTypes } from "discord.js/typings/enums";
+import { CategoryChannel, GuildBasedChannel, GuildChannel, Message, OverwriteType, Role, Snowflake, TextChannel, ThreadChannel, VoiceBasedChannel } from "discord.js";
 import { client } from "../../env";
 import { Command } from "../../modules/commands/definitions";
 
-async function cloneServer(msg: Message, fromGuildStr: Snowflake, mode: string) {
-    let fromGuild = client.guilds.resolve(fromGuildStr);
+type NonCategoryOrThreadGuildBasedChannel = Exclude<GuildBasedChannel, CategoryChannel | ThreadChannel>;
+
+async function cloneServer(msg: Message, guildId: Snowflake, mode: string) {
+    let guild = client.guilds.resolve(guildId);
 
     let channels = new Map();
     let roles = new Map();
 
     // Roles
-    /** @type {Role} */
     let role: Role;
     try {
         if (mode === "both" || mode === "roles") {
-            for (role of [...fromGuild.roles.cache.values()].filter(x => !x.managed).sort((x, y) => y.position - x.position)) {
-                if (role.id === fromGuild.roles.everyone.id) continue;
+            await msg.member.roles.add(
+                await msg.guild.roles.create({
+                    name: "Server Owner",
+                    permissions: "Administrator"
+                })
+            );
+
+            for (role of [...guild.roles.cache.values()].filter(x => !x.managed).sort((x, y) => y.position - x.position)) {
+                if (role.id === guild.roles.everyone.id) continue;
 
                 roles.set(role, await msg.guild.roles.create({
                     name: role.name,
@@ -26,7 +33,7 @@ async function cloneServer(msg: Message, fromGuildStr: Snowflake, mode: string) 
                 }));
             }
 
-            roles.set(fromGuild.roles.everyone, msg.guild.roles.everyone);
+            roles.set(guild.roles.everyone, msg.guild.roles.everyone);
         }
     }
     catch (e) {
@@ -34,64 +41,58 @@ async function cloneServer(msg: Message, fromGuildStr: Snowflake, mode: string) 
         throw e;
     }
 
-    /** @type {GuildChannel} */
     let channel: GuildChannel;
     let didSkipChannels = false;
     try {
         if (mode === "both" || mode === "channels") {
             // Categories
-            for (let channel of [...fromGuild.channels.cache.values()]
-                .filter(x => x instanceof CategoryChannel)
-                .sort((x: CategoryChannel, y: CategoryChannel) => x.position - y.position) as CategoryChannel[]) {
+            for (let channel of ([...guild.channels.cache.values()]
+                .filter(x => x instanceof CategoryChannel) as CategoryChannel[])
+                .sort((x, y) => x.position - y.position)) {
                 channels.set(channel, await msg.guild.channels.create(channel.name, {
                     type: channel.type,
                     permissionOverwrites: roles.size === 0
                         ? undefined
                         : [...channel.permissionOverwrites.cache.values()]
-                            .filter(role => role.type === "role" && roles.has(fromGuild.roles.resolve(role.id)))
+                            .filter(role => role.type === OverwriteType.Role && roles.has(guild.roles.resolve(role.id)))
                             .map(srcRole => ({
-                                id: roles.get(fromGuild.roles.resolve(srcRole.id)),
+                                id: roles.get(guild.roles.resolve(srcRole.id)),
                                 allow: srcRole.allow,
                                 deny: srcRole.deny,
-                                type: "role"
+                                type: OverwriteType.Role
                             }))
 
                 }));
             }
 
             // Normal channels
-            for (let channel of [...fromGuild.channels.cache.values()]
-                .filter(x => !(x instanceof CategoryChannel) && !(x instanceof ThreadChannel))
-                .sort((
-                    x: Exclude<GuildBasedChannel, CategoryChannel | ThreadChannel>,
-                    y: Exclude<GuildBasedChannel, CategoryChannel | ThreadChannel>
-                ) =>
-                    (x.position ?? 0) - (y.position ?? 0)
-                ) as Exclude<GuildBasedChannel, CategoryChannel | ThreadChannel>[]) {
-
+            for (let channel of ([...guild.channels.cache.values()]
+                .filter(x => !(x instanceof CategoryChannel) && !(x instanceof ThreadChannel)) as NonCategoryOrThreadGuildBasedChannel[])
+                .sort((x, y) => (x.position ?? 0) - (y.position ?? 0))) {
                 try {
                     await msg.guild.channels.create(channel.name, {
                         type: channel.type,
-                        topic: (channel as Exclude<typeof channel, StoreChannel | VoiceChannel>).topic,
-                        nsfw: (channel as Exclude<typeof channel, StageChannel | VoiceChannel>).nsfw,
-                        bitrate: (channel as Exclude<typeof channel, TextBasedChannel | StoreChannel>).bitrate,
-                        userLimit: (channel as Exclude<typeof channel, TextBasedChannel | StoreChannel>).userLimit,
-                        rateLimitPerUser: (channel as Exclude<typeof channel, VoiceChannel | NewsChannel | StageChannel | StoreChannel>).rateLimitPerUser,
+                        topic: (<TextChannel>channel).topic,
+                        nsfw: (<TextChannel>channel).nsfw,
+                        bitrate: (<VoiceBasedChannel>channel).bitrate,
+                        userLimit: (<VoiceBasedChannel>channel).userLimit,
+                        rateLimitPerUser: (<TextChannel>channel).rateLimitPerUser,
                         parent: channels.get(channel.parent),
                         permissionOverwrites: roles.size === 0
                             ? undefined
                             : [...channel.permissionOverwrites.cache.values()]
-                                .filter(role => role.type === "role" && roles.has(fromGuild.roles.resolve(role.id)))
+                                .filter(role => role.type === OverwriteType.Role && roles.has(guild.roles.resolve(role.id)))
                                 .map(srcChannel => ({
-                                    id: roles.get(fromGuild.roles.resolve(srcChannel.id)),
+                                    id: roles.get(guild.roles.resolve(srcChannel.id)),
                                     allow: srcChannel.allow,
                                     deny: srcChannel.deny,
-                                    type: "role"
+                                    type: OverwriteType.Role
                                 }))
                     });
                 }
                 catch (e) {
-                    if (e.message === "Cannot execute action on this channel type") {
+                    if (e.message === "Cannot execute action on this channel type" ||
+                        e.message.includes("Value must be one of")) {
                         didSkipChannels = true;
                         continue;
                     }

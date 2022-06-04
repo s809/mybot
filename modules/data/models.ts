@@ -21,7 +21,7 @@ export interface ChannelLink {
     lastMessageId?: Snowflake;
 }
 
-export interface InviteTracker {
+export interface InviteTrackerData {
     logChannelId: Snowflake;
 }
 

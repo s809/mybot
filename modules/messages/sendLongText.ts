@@ -1,7 +1,8 @@
 /**
  * @file Provides utility functions for sending messages.
  */
-import { MessageActionRow, MessageButton, MessageEmbedOptions, MessageOptions, TextBasedChannel } from "discord.js";
+import { EmbedBuilder } from "@discordjs/builders";
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, MessageActionRowComponentBuilder, TextBasedChannel } from "discord.js";
 
 const title = "Page %page% of %pagecount%";
 const titleAlt = " (%page%/%pagecount%)";
@@ -112,26 +113,26 @@ function splitTextByDelimiter(text: string, textWrap: string, delimiter: string)
  * @param embed Embed template for wrapping text.
  * Title and desctiption will be overwritten.
  */
-async function sendPagedTextWithButtons(channel: TextBasedChannel, pages: string[], embed: MessageEmbedOptions = {}) {
-    let backButton = new MessageButton({
+async function sendPagedTextWithButtons(channel: TextBasedChannel, pages: string[], embed: EmbedBuilder = new EmbedBuilder()) {
+    let backButton = new ButtonBuilder({
         customId: "back",
-        style: "PRIMARY",
+        style: ButtonStyle.Primary,
         emoji: back,
         disabled: true
     });
-    let stopButton = new MessageButton({
+    let stopButton = new ButtonBuilder({
         customId: "stop",
-        style: "DANGER",
+        style: ButtonStyle.Danger,
         emoji: stop
     });
-    let forwardButton = new MessageButton({
+    let forwardButton = new ButtonBuilder({
         customId: "forward",
-        style: "PRIMARY",
+        style: ButtonStyle.Primary,
         emoji: forward
     });
 
     let components = [
-        new MessageActionRow({
+        new ActionRowBuilder<ButtonBuilder>({
             components: [
                 backButton,
                 stopButton,
@@ -141,14 +142,14 @@ async function sendPagedTextWithButtons(channel: TextBasedChannel, pages: string
     ];
 
     let page = 0;
-    const makeOptions = (components: MessageOptions["components"]): MessageOptions => ({
+    const makeOptions = (components: ActionRowBuilder<ButtonBuilder>[]) => ({
         embeds: embed !== null ? [{
             ...embed,
-            title: (embed.title ?? "") + (!embed.title ? title : titleAlt).replace("%page%", (page + 1).toString()).replace("%pagecount%", pages.length.toString()),
+            title: (embed.data.title ?? "") + (!embed.data.title ? title : titleAlt).replace("%page%", (page + 1).toString()).replace("%pagecount%", pages.length.toString()),
             description: pages[page],
         }] : undefined,
         content: embed === null ? pages[page] : undefined,
-        components: components ?? []
+        components: (components ?? []).map(x => x.toJSON())
     });
 
     let msg = await channel.send(makeOptions(components));
@@ -160,13 +161,13 @@ async function sendPagedTextWithButtons(channel: TextBasedChannel, pages: string
         await interaction.deferUpdate();
 
         switch (interaction.customId) {
-            case backButton.customId:
+            case "back":
                 page = Math.max(page - 1, 0);
                 break;
-            case stopButton.customId:
+            case "stop":
                 collector.stop();
                 return;
-            case forwardButton.customId:
+            case "forward":
                 page = Math.min(page + 1, pages.length - 1);
                 break;
         }
@@ -186,14 +187,14 @@ async function sendPagedTextWithButtons(channel: TextBasedChannel, pages: string
  */
 export default async function sendLongText(channel: TextBasedChannel, text: string, {
     code = "js",
-    embed = {},
+    embed = new EmbedBuilder(),
     delimiter = "\n",
     multipleMessages = false
 }: {
     /** Type of optional code block. */
     code?: string,
     /** Template for embed of message. */
-    embed?: MessageEmbedOptions,
+    embed?: EmbedBuilder,
     /** 
      * Delimiter for splitting text in pages.
      * If not specified, text will be split by characters.
@@ -201,7 +202,7 @@ export default async function sendLongText(channel: TextBasedChannel, text: stri
     delimiter?: string,
     /** Whether to send multiple messages instead of using single interactable message. */
     multipleMessages?: boolean
-} = {}): Promise<void> {
+    } = {}): Promise<void> {
     text = text.replaceAll("```", "\\`\\`\\`");
 
     const contentWrapWithCode = contentWrap.replace("%code%", code ?? "");
@@ -238,7 +239,7 @@ export default async function sendLongText(channel: TextBasedChannel, text: stri
             await channel.send(embed ? {
                 embeds: embed !== null ? [{
                     ...embed,
-                    title: (embed.title ?? "") + (!embed.title ? title : titleAlt).replace("%page%", (pos + 1).toString()).replace("%pagecount%", pages.length.toString()),
+                    title: (embed.data.title ?? "") + (!embed.data.title ? title : titleAlt).replace("%page%", (pos + 1).toString()).replace("%pagecount%", pages.length.toString()),
                     description: page,
                 }] : undefined,
                 content: embed === null ? page : undefined,

@@ -29,6 +29,8 @@ async function* iterateMessagesFromTop(channel: TextBasedChannel, oldestId: Snow
             after: firstMessageId,
             limit: fetchCount
         })).values()];
+        if (!messages.length) return;
+
         firstMessageId = messages[0].id;
 
         for (let message of messages.reverse()) {
@@ -63,6 +65,8 @@ async function* iterateMessagesFromBottom(channel: TextBasedChannel, latestId: S
             before: lastMessageId,
             limit: fetchCount
         })).values()];
+        if (!messages.length) return;
+
         lastMessageId = messages[messages.length - 1].id;
 
         for (let message of messages) {
@@ -77,11 +81,11 @@ async function* iterateMessagesFromBottom(channel: TextBasedChannel, latestId: S
 /**
  * Iterate through messages.
  * 
- * | Presence of arguments           | Direction     | Comment |
- * | :--------------------           | :------------ | :------ |
+ * | Arguments                       | Direction     |
+ * | :--------------------           | :------------ |
  * | None                            | bottom-to-top |
  * | {@link startId} only            | top-to-bottom |
- * | {@link endId} only              | bottom-to-top | Iteration begins from {@link endId} |
+ * | {@link endId} only              | bottom-to-top |
  * | {@link startId} < {@link endId} | top-to-bottom |
  * | {@link startId} > {@link endId} | bottom-to-top |
  * 

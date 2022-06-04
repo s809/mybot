@@ -17,7 +17,7 @@ export default async function fetchAndCopyMessages(srcId: Snowflake, link: Chann
     let srcChannel = client.channels.resolve(srcId);
 
     if (!(srcChannel instanceof TextChannel)) return;
-    if (!srcChannel.permissionsFor(client.user).has(["VIEW_CHANNEL", "READ_MESSAGE_HISTORY"])) return;
+    if (!srcChannel.permissionsFor(client.user).has(["ViewChannel", "ReadMessageHistory"])) return;
 
     let messages = [];
     for await (let message of iterateMessages(srcChannel, srcChannel.lastMessageId, link.lastMessageId, count))

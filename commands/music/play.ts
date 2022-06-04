@@ -22,8 +22,8 @@ async function play(msg: Message, url: string, startPositionStr: string) {
     let player = musicPlayingGuilds.get(voiceChannel.guild);
     
     if (player) {
-        if (msg.member.voice.channelId !== msg.guild.me.voice.channelId)
-            return translator.translate("errors.not_in_specific_voice", msg.guild.me.voice.channel.toString());
+        if (msg.member.voice.channelId !== msg.guild.members.me.voice.channelId)
+            return translator.translate("errors.not_in_specific_voice", msg.guild.members.me.voice.channel.toString());
 
         if (!url && player.resume()) return;
     }

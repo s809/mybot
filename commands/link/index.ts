@@ -31,7 +31,7 @@ async function createLink(msg: Message, idArg: string) {
 const command: Command = {
     name: "link",
     args: [1, 1, "<channel>"],
-    managementPermissionLevel: "BOT_OWNER",
+    managementPermissionLevel: "BotOwner",
     func: createLink,
     subcommands: await importCommands(import.meta.url)
 };

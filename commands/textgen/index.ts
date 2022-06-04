@@ -3,7 +3,7 @@ import { importCommands } from "../../modules/commands/importHelper";
 
 const command: Command = {
     name: "textgen",
-    managementPermissionLevel: "MANAGE_CHANNELS",
+    managementPermissionLevel: "ManageChannels",
     subcommands: await importCommands(import.meta.url)
 };
 export default command;

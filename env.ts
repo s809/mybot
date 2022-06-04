@@ -3,13 +3,12 @@
  */
 
 import { readFileSync } from "fs";
-import { Client, Intents, Guild, Snowflake, Team, User } from "discord.js";
+import { Client, GatewayIntentBits, Guild, IntentsBitField, Partials, Snowflake, Team, User } from "discord.js";
 import { UserDataManager } from "./modules/data/UserDataManager";
 import { dirname } from "path";
 import { fileURLToPath } from "url";
 import { MusicPlayer } from "./modules/music/MusicPlayer";
-import discordModals from "discord-modals";
-import { ChannelLink, FlagData, InviteTracker as InviteTrackerData, LanguageData, PermissionData, TextGenData } from "./modules/data/models";
+import { ChannelLink, FlagData, InviteTrackerData, LanguageData, PermissionData, TextGenData } from "./modules/data/models";
 
 export const version: string = JSON.parse(readFileSync("./package.json", "utf8")).version;
 export const botDirectory = fileURLToPath(dirname(import.meta.url));
@@ -25,19 +24,19 @@ export const {
 } = JSON.parse(readFileSync("./config.json", "utf8"));
 
 export const client = new Client({
-    intents: Object.values(Intents.FLAGS),
-    partials: ["CHANNEL"],
+    intents: Object.values(IntentsBitField.Flags) as GatewayIntentBits[],
+    partials: [Partials.Channel],
     presence: {
         activities: [{
             name: `v${version}${isDebug ? "-dev" : ""}`
         }]
     }
 });
-discordModals(client);
 
 export function isBotOwner(user: User) {
     return client.application.owner.id === user.id
-        || (client.application.owner as Team).members?.map(x => x.user).includes(user);
+        || (client.application.owner as Team).members?.map(x => x.user).includes(user)
+        || data.users[user.id].flags.includes("owner");
 }
 
 export const dataManager = new UserDataManager("./data", {

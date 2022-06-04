@@ -3,7 +3,7 @@
  */
 import { execSync } from "child_process";
 import sendLongText from "../../modules/messages/sendLongText";
-import Discord from "discord.js";
+import Discord, { EmbedBuilder } from "discord.js";
 import { version as currentVersion, isDebug } from "../../env";
 import { Translator } from "../../modules/misc/Translator";
 import { Command } from "../../modules/commands/definitions";
@@ -78,9 +78,9 @@ const logstr = prepareChangelog();
 async function changelog(msg: Discord.Message) {
     await sendLongText(msg.channel, logstr, {
         code: null,
-        embed: {
+        embed: new EmbedBuilder({
             title: Translator.get(msg).translate("embeds.bot_changelog.title")
-        }
+        })
     });
 }
 

@@ -1,4 +1,4 @@
-import { Message, Permissions } from "discord.js";
+import { Message } from "discord.js";
 import { data } from "../env";
 import { Command } from "../modules/commands/definitions";
 import { Translator } from "../modules/misc/Translator";
@@ -16,6 +16,6 @@ const command: Command = {
     name: "prefix",
     args: [1, 1, "<newPrefix>"],
     func: prefix,
-    managementPermissionLevel: Permissions.FLAGS.ADMINISTRATOR
+    managementPermissionLevel: "ManageGuild"
 }
 export default command;

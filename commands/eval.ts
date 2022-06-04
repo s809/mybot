@@ -5,7 +5,7 @@ import sendLongText from "../modules/messages/sendLongText";
 import { botEval } from "../modules/misc/eval";
 import { sanitizePaths, skipStringAfter } from "../util";
 
-async function _eval(msg: Message) {
+async function evalCommand(msg: Message) {
     await sendLongText(msg.channel, sanitizePaths(
         await botEval(skipStringAfter(msg.content,
             getPrefix(msg.guildId),
@@ -17,7 +17,7 @@ async function _eval(msg: Message) {
 const command: Command = {
     name: "eval",
     args: [0, Infinity, "<code...>"],
-    func: _eval,
-    managementPermissionLevel: "BOT_OWNER"
+    func: evalCommand,
+    managementPermissionLevel: "BotOwner"
 }
 export default command;

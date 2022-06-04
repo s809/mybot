@@ -15,7 +15,7 @@ async function flag(msg: Message, id: string, flag: string) {
 const command: Command = {
     name: "flag",
     args: [2, 2, "<id> <flag>"],
-    managementPermissionLevel: "BOT_OWNER",
+    managementPermissionLevel: "BotOwner",
     func: flag,
     subcommands: await importCommands(import.meta.url)
 };

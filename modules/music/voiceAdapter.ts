@@ -1,8 +1,8 @@
 /**
  * @file Voice adapter for discord.js.
  */
-import { DiscordGatewayAdapterLibraryMethods } from '@discordjs/voice';
-import { Client, Constants, Snowflake, WebSocketShard, GuildChannel, Guild } from 'discord.js';
+import { DiscordGatewayAdapterCreator, DiscordGatewayAdapterLibraryMethods } from '@discordjs/voice';
+import { Client, Snowflake, WebSocketShard, GuildChannel, Guild, GatewayDispatchEvents, Status } from 'discord.js';
 
 const adapters = new Map<Snowflake, DiscordGatewayAdapterLibraryMethods>();
 const trackedClients = new Set<Client>();
@@ -15,10 +15,10 @@ const trackedClients = new Set<Client>();
 function trackClient(client: Client) {
     if (trackedClients.has(client)) return;
     trackedClients.add(client);
-    client.ws.on(Constants.WSEvents.VOICE_SERVER_UPDATE, payload => {
+    client.ws.on(GatewayDispatchEvents.VoiceServerUpdate, payload => {
         adapters.get(payload.guild_id)?.onVoiceServerUpdate(payload);
     });
-    client.ws.on(Constants.WSEvents.VOICE_STATE_UPDATE, payload => {
+    client.ws.on(GatewayDispatchEvents.VoiceStateUpdate, payload => {
         if (payload.guild_id && payload.session_id && payload.user_id === client.user?.id) {
             adapters.get(payload.guild_id)?.onVoiceStateUpdate(payload);
         }
@@ -52,14 +52,14 @@ function trackGuild(guild: Guild) {
  * 
  * @param channel - The channel to create the adapter for.
  */
-export function createDiscordJSAdapter(channel: GuildChannel): import("@discordjs/voice").DiscordGatewayAdapterCreator {
+export function createDiscordJSAdapter(channel: GuildChannel): DiscordGatewayAdapterCreator {
     return methods => {
         adapters.set(channel.guild.id, methods);
         trackClient(channel.client);
         trackGuild(channel.guild);
         return {
             sendPayload(data) {
-                if (channel.guild.shard.status === Constants.Status.READY) {
+                if (channel.guild.shard.status === Status.Ready) {
                     channel.guild.shard.send(data);
                     return true;
                 }

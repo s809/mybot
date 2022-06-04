@@ -24,7 +24,7 @@ async function inviteTrackerInfo(msg: Message) {
 
 const command: Command = {
     name: "invitetracker",
-    managementPermissionLevel: "MANAGE_GUILD",
+    managementPermissionLevel: "ManageGuild",
     func: inviteTrackerInfo,
     subcommands: await importCommands(import.meta.url)
 };

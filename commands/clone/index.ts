@@ -3,6 +3,7 @@ import { importCommands } from "../../modules/commands/importHelper";
 
 const command: Command = {
     name: "clone",
+    managementPermissionLevel: "BotOwner",
     subcommands: await importCommands(import.meta.url)
 };
 export default command;

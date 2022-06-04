@@ -1,7 +1,7 @@
-import { AnyChannel, Channel, Message, PartialTextBasedChannel, TextBasedChannel, TextChannel, User } from "discord.js";
+import { APIEmbed, EmbedBuilder, Message, TextChannel, User } from "discord.js";
 import { client } from "../../env";
 import iterateMessages from "../../modules/messages/iterateMessages";
-import { parseChannelMention, parseMention } from "../../util";
+import { parseChannelMention } from "../../util";
 import { sendAlwaysLastMessage } from "../../modules/messages/AlwaysLastMessage";
 import sendLongText from "../../modules/messages/sendLongText";
 import { once } from "events";
@@ -36,7 +36,7 @@ async function scanChannel(msg: Message, mode: string, fromChannelStr: string) {
     if (!(fromChannel instanceof TextChannel))
         return translator.translate("errors.non_text_channel");
 
-    if (!(fromChannel.permissionsFor(client.user).has(["VIEW_CHANNEL", "READ_MESSAGE_HISTORY"])))
+    if (!(fromChannel.permissionsFor(client.user).has(["ViewChannel", "ReadMessageHistory"])))
         return translator.translate("errors.cannot_read_channel");
 
     let authors: Map<string, User> = new Map();
@@ -134,18 +134,16 @@ async function scanChannel(msg: Message, mode: string, fromChannelStr: string) {
         await sendLongText(msg.channel, result, {
             code: null,
             multipleMessages: true,
-            embed: {
+            embed: new EmbedBuilder({
                 title: translator.translate("embeds.channel_scan.title")
-            }
+            })
         });
     }
 
     await counterMessage.delete();
 
     {
-        /** @type {import("discord.js").MessageEmbedOptions[]} */
-        let embeds: import("discord.js").MessageEmbedOptions[] = [];
-        /** @type {string[]} */
+        let embeds: APIEmbed[] = [];
         let files: string[] = [];
 
         let sendAndClean = async () => {

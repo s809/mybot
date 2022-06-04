@@ -1,4 +1,4 @@
-import { HTTPError, Message, MessageActionRow, TextChannel, Webhook } from "discord.js";
+import { HTTPError, Message, ActionRowBuilder, MessageType, TextChannel, Webhook } from "discord.js";
 import { inspect } from "util";
 
 /**
@@ -12,8 +12,8 @@ export async function sendWebhookMessage(msg: Message, webhook: Webhook) {
         try {
             let content = msg.content;
             if (!content && msg.embeds.length === 0 && msg.attachments.size === 0) {
-                if (msg.type === "DEFAULT") return;
-                content = msg.type;
+                if (msg.type === MessageType.Default) return;
+                content = MessageType[msg.type];
             }
 
             return await webhook.send({
@@ -22,13 +22,7 @@ export async function sendWebhookMessage(msg: Message, webhook: Webhook) {
                 content: content.length ? content : undefined,
                 embeds: msg.embeds.filter(embed => !embed.provider),
                 files: [...msg.attachments.values()].map(att => att.url),
-                components: msg.components.map(x =>
-                    new MessageActionRow({
-                        components: x.components.map(y =>
-                            y.setDisabled(true)
-                        )
-                    })
-                ),
+                components: msg.components,
                 allowedMentions: {
                     parse: []
                 }

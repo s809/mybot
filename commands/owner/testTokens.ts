@@ -1,5 +1,5 @@
 import { inspect } from "util";
-import { Client, Intents, Message } from "discord.js";
+import { Client, GatewayIntentBits, Message } from "discord.js";
 import sendLongText from "../../modules/messages/sendLongText";
 import { sendAlwaysLastMessage } from "../../modules/messages/AlwaysLastMessage";
 import { once } from "events";
@@ -14,9 +14,10 @@ async function testTokens(msg: Message, ...tokens: string[]) {
         let token = tokens[i];
 
         let client = new Client({
-            intents: Object.values(Intents.FLAGS).filter(x =>
-                x !== Intents.FLAGS.GUILD_PRESENCES &&
-                x !== Intents.FLAGS.GUILD_MEMBERS)
+            intents: (131072 - 1)
+                ^ GatewayIntentBits.GuildMembers
+                ^ GatewayIntentBits.GuildPresences
+                ^ GatewayIntentBits.MessageContent
         });
 
         try {

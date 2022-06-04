@@ -16,8 +16,8 @@ export interface Command {
 /** Elevation level for managing specific command. */
 export type CommandManagementPermissionLevel =
     PermissionResolvable
-    | "BOT_OWNER"
-    | "SERVER_OWNER";
+    | "BotOwner"
+    | "ServerOwner";
 
 /** Handler function of a command. */
 export interface CommandHandler {

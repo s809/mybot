@@ -1,8 +1,10 @@
 /**
  * @file Module for syncing cloned channels.
  */
-import { Message, TextBasedChannel, TextChannel } from "discord.js";
+import { Message, TextBasedChannel } from "discord.js";
 import EventEmitter from "events";
+
+type MessageSendOptions = Parameters<TextBasedChannel["send"]>[0];
 
 /**
  * Wrapper for resending edited message if it's not last in channel.
@@ -38,12 +40,12 @@ export class AlwaysLastMessage extends EventEmitter {
         return this;
     }
 
-    async editInternal() {
+    private async editInternal() {
         let options: this["lastOptions"];
         this.editing = true;
 
         let resendFunc = async () => {
-            this.message = await this.message.channel.send(options);
+            this.message = await this.message.channel.send(options as MessageSendOptions);
         };
 
         while (options !== this.lastOptions) {
@@ -89,7 +91,7 @@ function wrapALMessage(msg: Message) {
  * @param options Content to fill new message with.
  * @returns Wrapped message.
  */
-export async function sendAlwaysLastMessage(channel: TextBasedChannel, options: AlwaysLastMessage["lastOptions"]) {
+export async function sendAlwaysLastMessage(channel: TextBasedChannel, options: MessageSendOptions) {
     let message = await channel.send(options);
     return wrapALMessage(message);
 }

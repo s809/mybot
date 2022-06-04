@@ -15,7 +15,6 @@ async function stopBatchClone(msg: Message) {
 
 const command: Command = {
     name: "stop",
-    func: stopBatchClone,
-    managementPermissionLevel: "BOT_OWNER"
+    func: stopBatchClone
 };
 export default command;

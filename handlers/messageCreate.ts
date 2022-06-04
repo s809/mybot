@@ -14,7 +14,7 @@ import { Translator } from "../modules/misc/Translator";
 
 client.on("messageCreate", async msg => {
     if (msg.guild) {
-        let link = data.guilds[msg.guildId].channels[msg.channelId].link;
+        let link = data.guilds[msg.guildId].channels[msg.channelId]?.link;
 
         if (link?.role === "SOURCE")
             await copyMessageToLinkedChannel(msg);

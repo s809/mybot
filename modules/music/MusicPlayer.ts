@@ -3,7 +3,7 @@ import { AudioPlayer, AudioPlayerStatus, AudioResource, createAudioPlayer, creat
 import { formatDuration } from "../../util";
 import { AlwaysLastMessage, sendAlwaysLastMessage } from "../../modules/messages/AlwaysLastMessage";
 import { Translator } from "../../modules/misc/Translator";
-import { MessageEditOptions, GuildTextBasedChannel, VoiceBasedChannel } from "discord.js";
+import { MessageEditOptions, GuildTextBasedChannel, VoiceBasedChannel, ChannelType } from "discord.js";
 import { MusicPlayerQueue, MusicPlayerQueueEntry } from "./MusicPlayerQueue";
 import { createDiscordJSAdapter } from "../../modules/music/voiceAdapter";
 import { musicPlayingGuilds, voiceTimeouts } from "../../env";
@@ -172,8 +172,8 @@ export class MusicPlayer {
                 this.currentVideo = this.queue.shift();
 
                 try {
-                    if (this.voiceChannel.type === "GUILD_STAGE_VOICE")
-                        await this.voiceChannel.guild.me.voice.setSuppressed(false);
+                    if (this.voiceChannel.type === ChannelType.GuildStageVoice)
+                        await this.voiceChannel.guild.members.me.voice.setSuppressed(false);
                 }
                 catch (e) {
                     return this.translator.translate("errors.cannot_become_speaker");

@@ -9,8 +9,8 @@ async function skip(msg: Message) {
     if (!msg.member?.voice.channel)
         return translator.translate("errors.not_in_any_voice");
 
-    if (msg.member.voice.channelId !== msg.guild.me.voice.channelId)
-        return translator.translate("errors.not_in_specific_voice", msg.guild.me.voice.channel.toString());
+    if (msg.member.voice.channelId !== msg.guild.members.me.voice.channelId)
+        return translator.translate("errors.not_in_specific_voice", msg.guild.members.me.voice.channel.toString());
 
     let player = musicPlayingGuilds.get(msg.guild);
     if (!player)

@@ -6,7 +6,7 @@ import { Translator } from "../../modules/misc/Translator";
 async function importEmoji(msg: Message, guildId: string, emojiName: string, newEmojiName: string = emojiName) {
     let translator = Translator.get(msg);
 
-    if (!msg.guild.me.permissions.has(Permissions.FLAGS.MANAGE_EMOJIS_AND_STICKERS))
+    if (!msg.guild.members.me.permissions.has("ManageEmojisAndStickers"))
         return translator.translate("errors.cannot_manage_emojis");
 
     let guild = client.guilds.resolve(guildId);
@@ -34,7 +34,7 @@ async function importEmoji(msg: Message, guildId: string, emojiName: string, new
 const command: Command = {
     name: "import",
     args: [2, 3, "<server id> <emoji name> [new emoji name]"],
-    managementPermissionLevel: "MANAGE_EMOJIS_AND_STICKERS",
+    managementPermissionLevel: "ManageEmojisAndStickers",
     func: importEmoji
 };
 export default command;

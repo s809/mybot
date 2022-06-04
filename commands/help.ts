@@ -1,5 +1,7 @@
-import { assert } from "console";
-import { BitFieldResolvable, DMChannel, Message, MessageActionRow, MessageSelectMenu, MessageSelectOption, MessageSelectOptionData, Permissions, PermissionString, SelectMenuInteraction } from "discord.js";
+import { ActionRowBuilder, SelectMenuBuilder } from "@discordjs/builders";
+import assert, { fail } from "assert";
+import { BitField, DMChannel, Message, MessageSelectOption, SelectMenuInteraction } from "discord.js";
+import { snakeCase } from "lodash-es";
 import { getRootCommands, toUsageString } from "../modules/commands";
 import { Command, CommandManagementPermissionLevel } from "../modules/commands/definitions";
 import { isCommandAllowedToUse } from "../modules/commands/permissions";
@@ -11,7 +13,7 @@ async function help(msg: Message) {
     let translator = Translator.get(msg);
 
     const filterCommands = (list: Command[]) => list.filter(command => {
-        if (command.managementPermissionLevel === "BOT_OWNER" &&
+        if (command.managementPermissionLevel === "BotOwner" &&
             !(msg.channel instanceof DMChannel))
             return false;
         return isCommandAllowedToUse(msg, command);
@@ -19,8 +21,8 @@ async function help(msg: Message) {
 
     let levelNameToPosition: Map<string, number> = new Map();
     let chain: {
-        row: MessageActionRow;
-        selectMenu: MessageSelectMenu;
+        row: ActionRowBuilder<SelectMenuBuilder>;
+        selectMenu: SelectMenuBuilder;
         commands: Map<string, Command>;
         selectOptions: MessageSelectOption[];
     }[] = [];
@@ -32,17 +34,15 @@ async function help(msg: Message) {
             label: x.name,
             value: `${levelName}_${x.name}`,
             default: false,
-        } as MessageSelectOptionData));
+        }));
 
-        let selectMenu = new MessageSelectMenu({
-            customId: levelName,
-            placeholder: translator.translate("embeds.help.select_command_menu"),
-            options: selectOptions
-        });
+        let selectMenu = new SelectMenuBuilder()
+            .setCustomId(levelName)
+            .setPlaceholder(translator.translate("embeds.help.select_command_menu"))
+            .setOptions(selectOptions);
 
-        let row = new MessageActionRow({
-            components: [selectMenu]
-        });
+        let row = new ActionRowBuilder<SelectMenuBuilder>()
+            .setComponents([selectMenu]);
 
         levelNameToPosition.set(levelName, chain.length);
         chain.push({
@@ -61,7 +61,7 @@ async function help(msg: Message) {
     };
     pushToChain(filterCommands(getRootCommands()));
 
-    const makeOptions = (command: Command = null) => {
+    const makeOptions = (command: Command) => {
         let embed;
 
         if (!command) {
@@ -76,18 +76,18 @@ async function help(msg: Message) {
 
                 if (typeof raw === "string") {
                     if (raw.match(/^\d+$/))
-                        return convertPermissions(new Permissions(raw as BitFieldResolvable<PermissionString, bigint>));
+                        return convertPermissions(new BitField(raw) as any);
                     else
-                        return capitalizeWords(raw.replaceAll("_", " "));
+                        return capitalizeWords(snakeCase(raw).replaceAll("_", " "));
                 }
 
-                if (raw instanceof Permissions)
+                if (raw instanceof BitField)
                     return convertPermissions(raw.toArray())
                 
                 if (Array.isArray(raw))
                     return raw.map(p => convertPermissions(p)).join(", ");
 
-                assert(false, "Permission conversion failed\nValue: %s", raw);
+                fail(`Permission type unmatched\nValue: ${raw}`);
             };
 
             let codeBlock = `\`\`\`\n${toUsageString(msg, command)}\`\`\`\n`;
@@ -105,13 +105,14 @@ async function help(msg: Message) {
             };
         }
 
-        return ({
+        return {
             embeds: [embed],
-            components: chain.map(x => x.row)
-        });
+            components: chain.map(x => new ActionRowBuilder<SelectMenuBuilder>()
+                .setComponents([x.selectMenu]))
+        };
     };
 
-    let resp = await msg.channel.send(makeOptions());
+    let resp = await msg.channel.send(makeOptions(null));
 
     resp.createMessageComponentCollector({
         idle: 60000,
@@ -132,13 +133,16 @@ async function help(msg: Message) {
         let entry = chain[pos];
         let command = entry.commands.get(interaction.values[0]);
         let subcommands = command.subcommands;
-        if (subcommands)
-            pushToChain(filterCommands([...subcommands.values()]));
+        if (subcommands) {
+            let filtered = filterCommands([...subcommands.values()])
+            if (filtered.length)
+                pushToChain(filtered);
+            else
+                assert(command.func, `Category without visible subcommands\nCommand: ${command.path}`)
+        }
 
-        entry.selectMenu.setOptions(entry.selectMenu.options.map(option => {
-            option.default = option.value === interaction.values[0];
-            return option as MessageSelectOptionData;
-        }));
+        for (const option of entry.selectMenu.options)
+            option.setDefault(option.data.value === interaction.values[0]);
 
         await interaction.update(makeOptions(command));
     }).on("end", () => {

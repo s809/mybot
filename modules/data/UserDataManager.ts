@@ -12,11 +12,11 @@ interface ItemRoot {
     modified?: boolean;
 }
 
-type UserDataSchemaList = {
+interface UserDataSchemaList {
     [key: string]: UserDataSchemaNode
 };
 
-type UserDataSchemaNode = {
+interface UserDataSchemaNode {
     fileType?: "string" | "object";
     children?: UserDataSchemaList;
     object?: any;
@@ -31,8 +31,8 @@ type UserDataList<List extends UserDataSchemaList> = {
 type UserDataObject<Node extends UserDataSchemaNode> = keyof Node["fileType"] extends undefined
     ? UserDataList<Node["children"]>
     : Node["fileType"] extends "string"
-        ? Record<string, string>
-        : Record<string, Node["object"] extends object ? Node["object"] : any>;
+    ? Record<string, string>
+    : Record<string, Node["object"] extends object ? Node["object"] : any>;
 
 export function getSrc(obj: any) {
     if (!obj)
@@ -57,6 +57,8 @@ export class UserDataManager<Schema extends UserDataSchemaList> {
         this.cache = new Map();
         this.saveLock = 0;
 
+        if (!existsSync(path))
+            mkdirSync(path);
         this.readSchema(this.root, schema, `${path}/`);
 
         const onSave = () => this.saveData();
@@ -72,29 +74,29 @@ export class UserDataManager<Schema extends UserDataSchemaList> {
     }
 
     readSchema(ref: any, schemaList: UserDataSchemaList, pathPart: PathLike) {
-        if (!existsSync(pathPart))
-            mkdirSync(pathPart);
-
         for (let [key, node] of Object.entries(schemaList)) {
             let nestedPathPart = `${pathPart}${key}/`;
+            if (!existsSync(nestedPathPart))
+                mkdirSync(nestedPathPart);
 
             ref[key] = {};
-            if (!node.fileType) {
+            if (node.fileType) {
+                if (node.children)
+                    throw new Error("Nodes with files cannot have children");
+
+                switch (node.fileType) {
+                    case "string":
+                        ref[key] = this.createStringDirectoryProxy(ref[key], nestedPathPart);
+                        break;
+                    case "object":
+                        ref[key] = this.createObjectDirectoryProxy(ref[key], nestedPathPart);
+                        break;
+                }
+            } else {
                 if (!node.children)
                     throw new Error("Empty nodes are not supported");
 
                 this.readSchema(ref[key], node.children, nestedPathPart);
-            } else if (node.children) {
-                throw new Error("Nodes with files cannot have children");
-            }
-
-            switch (node.fileType) {
-                case "string":
-                    ref[key] = this.createStringDirectoryProxy(ref[key], nestedPathPart);
-                    break;
-                case "object":
-                    ref[key] = this.createObjectDirectoryProxy(ref[key], nestedPathPart);
-                    break;
             }
         }
     }
