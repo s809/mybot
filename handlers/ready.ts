@@ -29,7 +29,7 @@ client.on("ready", async () => {
 
     // Execute startup scripts
     for (let scriptName of Object.getOwnPropertyNames(data.scripts.startup)) {
-        let result = await botEval(data.scripts.startup[scriptName]);
+        let result = await botEval(data.scripts.startup[scriptName], null, "startup/" + scriptName);
         console.log(`Executed ${scriptName}:\n${result}`);
     }
 

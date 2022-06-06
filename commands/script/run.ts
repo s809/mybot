@@ -14,7 +14,8 @@ async function runScript(msg: Message, name: string, ...args: string[]) {
 
     await sendLongText(msg.channel, sanitizePaths(await botEval(
         formatString(data.scripts.callable[name], ...args),
-        msg
+        msg,
+        "callable/" + name
     )));
 }
 

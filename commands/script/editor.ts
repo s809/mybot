@@ -2,11 +2,14 @@ import { ButtonBuilder, SelectMenuBuilder, TextInputBuilder } from "@discordjs/b
 import { ActionRowBuilder, ButtonInteraction, ButtonStyle, Formatters, Message, ModalSubmitInteraction, SelectMenuInteraction, TextInputStyle } from "discord.js";
 import { data } from "../../env";
 import { Command } from "../../modules/commands/definitions";
+import { botEval } from "../../modules/misc/eval";
 import { doRestart } from "../../modules/misc/restart";
+import { ScriptContext } from "../../modules/misc/ScriptContext";
 
 async function scriptEditor(msg: Message) {
     let type = Object.keys(data.scripts)[0];
     let name = Object.keys(data.scripts[type])[0];
+    let context = name ? ScriptContext.get(`${type}/${name}`) : null;
 
     let getNameOptions = () => {
         let options = Object.keys(data.scripts[type]).map(key => ({
@@ -25,7 +28,9 @@ async function scriptEditor(msg: Message) {
     let getOptions = () => ({
         embeds: [name && data.scripts[type][name]
             ? {
-                title: `Script editor: ${name}`,
+                title: `Script editor: ${name}` + (context
+                    ? (type === "startup" ? "" : " (running)")
+                    : type === "startup" ? " (stopped)" : ""),
                 description: Formatters.codeBlock("js", data.scripts[type][name])
             }
             : {
@@ -57,6 +62,18 @@ async function scriptEditor(msg: Message) {
                         .setLabel("Edit")
                         .setStyle(ButtonStyle.Primary)
                         .setDisabled(!data.scripts[type][name]),
+                    ...(type === "startup"
+                        ? [new ButtonBuilder()
+                            .setCustomId("reload")
+                            .setLabel("Reload")
+                            .setStyle(ButtonStyle.Primary)
+                            .setDisabled(!data.scripts[type][name])]
+                        : []),
+                    new ButtonBuilder()
+                        .setCustomId("stop")
+                        .setLabel("Stop")
+                        .setStyle(ButtonStyle.Primary)
+                        .setDisabled(!context),
                     new ButtonBuilder()
                         .setCustomId("delete")
                         .setLabel("Delete")
@@ -77,8 +94,10 @@ async function scriptEditor(msg: Message) {
         let newName = interaction.fields.getTextInputValue("name");
 
         data.scripts[type][newName] = interaction.fields.getTextInputValue("content");
-        if (!createNew && newName !== name)
+        if (!createNew && newName !== name) {
             delete data.scripts[type][name];
+            context.rename(`${type}/${newName}`);
+        }
         name = newName;
 
         await (interaction as any).update(getOptions()); // TODO remove cast once typings are added
@@ -131,7 +150,7 @@ async function scriptEditor(msg: Message) {
 
                 await interaction.awaitModalSubmit({
                     time: 600000
-                }).then(onModalSubmit).catch(() => { });
+                }).then(onModalSubmit);
             } else {
                 switch (interaction.customId) {
                     case "type":
@@ -142,7 +161,8 @@ async function scriptEditor(msg: Message) {
                         name = interaction.values[0];
                         break;
                 }
-
+                
+                context = name ? ScriptContext.get(`${type}/${name}`) : null;
                 await interaction.update(getOptions());
             }
         }
@@ -157,9 +177,28 @@ async function scriptEditor(msg: Message) {
                         time: 600000
                     }).then(onModalSubmit).catch(() => { });
                     break;
+                case "reload":
+                    context?.destroy();
+
+                    let result = await botEval(data.scripts[type][name], null, `${type}/${name}`);
+                    console.log(`Executed ${name}:\n${result}`);
+                    context = ScriptContext.get(`${type}/${name}`);
+                    
+                    await interaction.update(getOptions());
+                    break;
+                case "stop":
+                    context.destroy();
+                    context = null;
+
+                    await interaction.update(getOptions());
+                    break;
                 case "delete":
+                    context?.destroy();
                     delete data.scripts[type][name];
+                    
                     name = Object.keys(data.scripts[type])[0];
+                    context = name ? ScriptContext.get(`${type}/${name}`) : null;
+
                     await interaction.update(getOptions());
                     break;
                 case "restart":

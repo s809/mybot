@@ -2,6 +2,7 @@
 /* eslint-disable no-eval */
 import { inspect } from "util";
 import { Message } from "discord.js";
+import { ScriptContext } from "./ScriptContext";
 
 /**
  * Evaluate code from text.
@@ -9,14 +10,26 @@ import { Message } from "discord.js";
  * 
  * @param code Text to evaluate.
  * @param msg Context message, if present.
+ * @param scriptName Name of the script, if present.
  * @returns
  */
-export async function botEval(code: string, msg: Message = null) {
-    let response;
-
-    const { client, data } = await import("../../env");
+export async function botEval(code: string, msg: Message | null, scriptName: string = null) {
+    const { data, client: _client } = await import("../../env");
     const { getSrc } = await import("../data/UserDataManager");
 
+    const _context = scriptName ? ScriptContext.getOrCreate(_client, scriptName) : null;
+    
+    const {
+        setImmediate,
+        clearImmediate,
+        setTimeout,
+        clearTimeout,
+        setInterval,
+        clearInterval,
+    } = _context ? _context.functions : global;
+    const client = _context?.client ?? _client;
+
+    let response;
     try {
         try {
             response = await eval(`(async () => ${code})();`);
@@ -30,8 +43,16 @@ export async function botEval(code: string, msg: Message = null) {
         response = e;
     }
 
-    if (typeof response !== "string")
-        response = inspect(response, { depth: 1 });
+    switch (typeof response) {
+        case "function":
+            response = response.toString();
+            break;
+        case "string":
+            break;
+        default:
+            response = inspect(response, { depth: 1 });
+            break;
+    }
 
     return response;
 }
