@@ -184,7 +184,17 @@ async function scriptEditor(msg: Message) {
                     console.log(`Executed ${name}:\n${result}`);
                     context = ScriptContext.get(`${type}/${name}`);
                     
-                    await interaction.update(getOptions());
+                    if (result === "undefined") {
+                        await interaction.update(getOptions());
+                    } else {
+                        await message.edit(getOptions());
+                        await interaction.reply({
+                            embeds: [{
+                                description: Formatters.codeBlock("js", result)
+                            }],
+                            ephemeral: true
+                        });
+                    }
                     break;
                 case "stop":
                     context.destroy();
