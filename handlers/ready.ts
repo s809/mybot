@@ -17,7 +17,7 @@ client.on("ready", async () => {
     // Do NOT await anything before this block or some messages may get missed before copying.
     // Initialize buffers to get real time messages stay there until launch copy is started
     for (let [id] of Object.getOwnPropertyNames(data.guilds)
-        .flatMap(guildId => getLinks(guildId, "DESTINATION"))) {
+        .flatMap(guildId => getLinks(guildId, "Destination"))) {
         initBuffer(id);
     }
 
@@ -37,7 +37,7 @@ client.on("ready", async () => {
     console.log("Pre-fetching linked messages...");
     await Promise.all(
         Object.getOwnPropertyNames(data.guilds)
-            .flatMap(guildId => getLinks(guildId, "SOURCE"))
+            .flatMap(guildId => getLinks(guildId, "Source"))
             .map(([id, link]) => fetchAndCopyMessages(id, link))
     );
     console.log("Started copying messages.");

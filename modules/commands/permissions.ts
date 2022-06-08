@@ -22,9 +22,9 @@ export function isCommandAllowedToManage(msg: Message, command: Command): boolea
     const hasSpecifiedPermissions = () => isServerOwner() || (msg.member && msg.member.permissions.has(command.managementPermissionLevel as PermissionResolvable));
 
     switch (command.managementPermissionLevel) {
-        case "BOT_OWNER":
+        case "BotOwner":
             return isBotOwner(msg.author);
-        case "SERVER_OWNER":
+        case "ServerOwner":
             return isServerOwner();
         default:
             return hasSpecifiedPermissions();

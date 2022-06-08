@@ -12,7 +12,7 @@ export class ScriptContext {
         next: number
     }> = new Map();
     private _events: {
-        [event in keyof ClientEvents]?: (...args: ClientEvents[event]) => Awaitable<void>
+        [event in keyof ClientEvents]?: ((...args: ClientEvents[event]) => Awaitable<void>)[]
     } = {};
     private alive: boolean = true;
 
@@ -49,8 +49,10 @@ export class ScriptContext {
             this.clearInterval(id);
         for (let id of this._timeouts.keys())
             this.clearTimeout(id);
-        for (let [event, callback] of Object.entries(this._events))
-            this._client.removeListener(event, callback);
+        for (let [event, listeners] of Object.entries(this._events)) {
+            for (let listener of listeners)
+                this._client.removeListener(event, listener);
+        }
             
         ScriptContext._store.delete(this._scriptName);
         this.alive = false;
@@ -147,15 +149,20 @@ export class ScriptContext {
         this._timeouts.delete(id);
     }
 
-    private on<K extends keyof typeof this._events>(event: K, callback: typeof this._events[K]) {
+    private on<K extends keyof typeof this._events>(event: K, callback: typeof this._events[K][0]) {
         if (!this.alive) return;
 
         this._client.addListener(event, callback);
-        this._events[event] = callback;
+        
+        this._events[event] ??= [];
+        this._events[event].push(callback as any);
     }
 
-    private off<K extends keyof typeof this._events>(event: K, callback: typeof this._events[K]) {
+    private off<K extends keyof typeof this._events>(event: K, callback: typeof this._events[K][0]) {
         this._client.removeListener(event, callback);
-        delete this._events[event];
+
+        this._events[event]?.splice(this._events[event].indexOf(callback as any), 1);
+        if (this._events[event]?.length === 0)
+            delete this._events[event];
     }
 }

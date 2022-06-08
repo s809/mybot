@@ -12,7 +12,7 @@ async function getLinkedChannels(msg: Message) {
         let fromChannel = client.channels.resolve(id) as GuildTextBasedChannel;
         let toChannel = client.channels.resolve(link.channelId) as GuildTextBasedChannel;
 
-        if (link.role === "DESTINATION")
+        if (link.role === "Destination")
             [fromChannel, toChannel] = [toChannel, fromChannel];
 
         if (ids.has(fromChannel.id)) continue;

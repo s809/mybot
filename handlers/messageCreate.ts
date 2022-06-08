@@ -16,7 +16,7 @@ client.on("messageCreate", async msg => {
     if (msg.guild) {
         let link = data.guilds[msg.guildId].channels[msg.channelId]?.link;
 
-        if (link?.role === "SOURCE")
+        if (link?.role === "Source")
             await copyMessageToLinkedChannel(msg);
     }
 

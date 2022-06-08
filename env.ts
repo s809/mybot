@@ -34,7 +34,7 @@ export const client = new Client({
 });
 
 export function isBotOwner(user: User) {
-    if (client.application?.owner) return false;
+    if (!client.application?.owner) return false;
 
     return client.application.owner.id === user.id
         || (client.application.owner as Team).members?.map(x => x.user).includes(user)

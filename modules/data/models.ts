@@ -12,7 +12,7 @@ export interface PermissionData {
     allowedCommands: string[];
 }
 
-export type ChannelLinkRole = "SOURCE" | "DESTINATION";
+export type ChannelLinkRole = "Source" | "Destination";
 
 export interface ChannelLink {
     channelId: Snowflake;

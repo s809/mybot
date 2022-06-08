@@ -6,14 +6,14 @@ export async function linkChannel(src: GuildTextBasedChannel, dest: GuildTextBas
     let srcToDestLink = <ChannelLink>{
         channelId: dest.id,
         guildId: dest.guildId,
-        role: "SOURCE",
+        role: "Source",
         lastMessageId: (await src.messages.fetch({ limit: 1 })).firstKey() ?? null
     };
 
     let destFromSrcLink = <ChannelLink>{
         channelId: src.id,
         guildId: src.guildId,
-        role: "DESTINATION"
+        role: "Destination"
     };
 
     data.guilds[src.guildId].channels[src.id].link = srcToDestLink;
@@ -21,9 +21,9 @@ export async function linkChannel(src: GuildTextBasedChannel, dest: GuildTextBas
 }
 
 export function unlinkChannel(channel: TextChannel | {
-        id: Snowflake;
-        guildId: Snowflake;
-    }) {
+    id: Snowflake;
+    guildId: Snowflake;
+}) {
     let link = data.guilds[channel.guildId].channels[channel.id].link;
     if (!link) return;
 

@@ -10,7 +10,7 @@ async function stopBatchClone(msg: Message) {
     if (!isCopying(link.channelId))
         return Translator.get(msg).translate("errors.clone_not_pending");
 
-    stopCopying(link.role === "DESTINATION" ? msg.channelId : link.channelId);
+    stopCopying(link.role === "Destination" ? msg.channelId : link.channelId);
 }
 
 const command: Command = {
