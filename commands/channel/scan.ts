@@ -119,12 +119,7 @@ async function scanChannel(msg: Message, mode: string, fromChannelStr: string) {
 
         for (let invite of invites) {
             try {
-                let arr = invite.split("/");
-
-                let guildName = (await (client as any).api.invites(arr[arr.length - 1]).get()).guild.name;
-                if (!invite.includes("://"))
-                    invite = "https://" + invite;
-
+                let guildName = (await client.fetchInvite(invite)).guild.name;
                 result += `${invite} (${guildName})\n`;
                 aliveInviteCount++;
             }
