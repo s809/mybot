@@ -9,7 +9,7 @@ import { ScriptContext } from "../../modules/misc/ScriptContext";
 async function scriptEditor(msg: Message) {
     let type = Object.keys(data.scripts)[0];
     let name = Object.keys(data.scripts[type])[0];
-    let context = name ? ScriptContext.get(`${type}/${name}`) : null;
+    let context: ScriptContext;
 
     let getNameOptions = () => {
         let options = Object.keys(data.scripts[type]).map(key => ({
@@ -25,67 +25,70 @@ async function scriptEditor(msg: Message) {
         return options;
     };
 
-    let getOptions = () => ({
-        embeds: [name && data.scripts[type][name]
-            ? {
-                title: `Script editor: ${name}` + (context
-                    ? (type === "startup" ? "" : " (running)")
-                    : type === "startup" ? " (stopped)" : ""),
-                description: Formatters.codeBlock("js", data.scripts[type][name])
-            }
-            : {
-                title: "Script editor",
-                description: "No script selected"
-            }
-        ],
-        components: [
-            new ActionRowBuilder<SelectMenuBuilder>()
-                .addComponents([
-                    new SelectMenuBuilder()
-                        .setCustomId("type")
-                        .setOptions(Object.keys(data.scripts).map(key => ({
-                            value: key,
-                            label: key,
-                            default: key == type
-                        })))
-                ]),
-            new ActionRowBuilder<SelectMenuBuilder>()
-                .addComponents([
-                    new SelectMenuBuilder()
-                        .setCustomId("name")
-                        .setOptions(getNameOptions())
-                ]),
-            new ActionRowBuilder<ButtonBuilder>()
-                .addComponents([
-                    new ButtonBuilder()
-                        .setCustomId("edit")
-                        .setLabel("Edit")
-                        .setStyle(ButtonStyle.Primary)
-                        .setDisabled(!data.scripts[type][name]),
-                    ...(type === "startup"
-                        ? [new ButtonBuilder()
-                            .setCustomId("reload")
-                            .setLabel("Reload")
+    let getOptions = () => {
+        context = name ? ScriptContext.get(`${type}/${name}`) : null;
+        return {
+            embeds: [name && data.scripts[type][name]
+                ? {
+                    title: `Script editor: ${name}` + (context
+                        ? (type === "startup" ? "" : " (running)")
+                        : type === "startup" ? " (stopped)" : ""),
+                    description: Formatters.codeBlock("js", data.scripts[type][name])
+                }
+                : {
+                    title: "Script editor",
+                    description: "No script selected"
+                }
+            ],
+            components: [
+                new ActionRowBuilder<SelectMenuBuilder>()
+                    .addComponents([
+                        new SelectMenuBuilder()
+                            .setCustomId("type")
+                            .setOptions(Object.keys(data.scripts).map(key => ({
+                                value: key,
+                                label: key,
+                                default: key == type
+                            })))
+                    ]),
+                new ActionRowBuilder<SelectMenuBuilder>()
+                    .addComponents([
+                        new SelectMenuBuilder()
+                            .setCustomId("name")
+                            .setOptions(getNameOptions())
+                    ]),
+                new ActionRowBuilder<ButtonBuilder>()
+                    .addComponents([
+                        new ButtonBuilder()
+                            .setCustomId("edit")
+                            .setLabel("Edit")
                             .setStyle(ButtonStyle.Primary)
-                            .setDisabled(!data.scripts[type][name])]
-                        : []),
-                    new ButtonBuilder()
-                        .setCustomId("stop")
-                        .setLabel("Stop")
-                        .setStyle(ButtonStyle.Primary)
-                        .setDisabled(!context),
-                    new ButtonBuilder()
-                        .setCustomId("delete")
-                        .setLabel("Delete")
-                        .setStyle(ButtonStyle.Danger)
-                        .setDisabled(!data.scripts[type][name]),
-                    new ButtonBuilder()
-                        .setCustomId("restart")
-                        .setLabel("Restart")
-                        .setStyle(ButtonStyle.Secondary)
-                ])
-        ]
-    });
+                            .setDisabled(!data.scripts[type][name]),
+                        ...(type === "startup"
+                            ? [new ButtonBuilder()
+                                .setCustomId("reload")
+                                .setLabel("Reload")
+                                .setStyle(ButtonStyle.Primary)
+                                .setDisabled(!data.scripts[type][name])]
+                            : []),
+                        new ButtonBuilder()
+                            .setCustomId("stop")
+                            .setLabel("Stop")
+                            .setStyle(ButtonStyle.Primary)
+                            .setDisabled(!context),
+                        new ButtonBuilder()
+                            .setCustomId("delete")
+                            .setLabel("Delete")
+                            .setStyle(ButtonStyle.Danger)
+                            .setDisabled(!data.scripts[type][name]),
+                        new ButtonBuilder()
+                            .setCustomId("restart")
+                            .setLabel("Restart")
+                            .setStyle(ButtonStyle.Secondary)
+                    ])
+            ]
+        }
+    };
 
     let message = await msg.channel.send(getOptions());
 
@@ -162,7 +165,6 @@ async function scriptEditor(msg: Message) {
                         break;
                 }
                 
-                context = name ? ScriptContext.get(`${type}/${name}`) : null;
                 await interaction.update(getOptions());
             }
         }
@@ -182,7 +184,6 @@ async function scriptEditor(msg: Message) {
 
                     let result = await botEval(data.scripts[type][name], null, `${type}/${name}`);
                     console.log(`Executed ${name}:\n${result}`);
-                    context = ScriptContext.get(`${type}/${name}`);
                     
                     if (result === "undefined") {
                         await interaction.update(getOptions());
@@ -198,7 +199,6 @@ async function scriptEditor(msg: Message) {
                     break;
                 case "stop":
                     context.destroy();
-                    context = null;
 
                     await interaction.update(getOptions());
                     break;
@@ -207,7 +207,6 @@ async function scriptEditor(msg: Message) {
                     delete data.scripts[type][name];
                     
                     name = Object.keys(data.scripts[type])[0];
-                    context = name ? ScriptContext.get(`${type}/${name}`) : null;
 
                     await interaction.update(getOptions());
                     break;

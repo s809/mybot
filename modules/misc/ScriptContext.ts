@@ -25,7 +25,7 @@ export class ScriptContext {
     }
 
     static get(scriptName: string) {
-        return ScriptContext._store.get(scriptName);
+        return ScriptContext._store.get(scriptName) ?? null;
     }
 
     static getOrCreate(client: Client, scriptName: string) {
