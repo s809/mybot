@@ -1,6 +1,6 @@
 import { ButtonBuilder, SelectMenuBuilder, TextInputBuilder } from "@discordjs/builders";
 import { ActionRowBuilder, ButtonInteraction, ButtonStyle, Formatters, Message, ModalSubmitInteraction, SelectMenuInteraction, TextInputStyle } from "discord.js";
-import { data } from "../../env";
+import { client, data } from "../../env";
 import { log } from "../../log";
 import { Command } from "../../modules/commands/definitions";
 import { botEval } from "../../modules/misc/eval";
@@ -133,9 +133,10 @@ async function scriptEditor(msg: Message) {
         });
     }
 
-    message.createMessageComponentCollector({
-        idle: 600000,
-    }).on("collect", async interaction => {
+    const collector = message.createMessageComponentCollector({
+        idle: 2147483647,
+    })
+    .on("collect", async interaction => {
         if (interaction.user !== msg.author) {
             await interaction.reply({
                 content: "Nothing for you here.",
@@ -222,7 +223,20 @@ async function scriptEditor(msg: Message) {
                     break;
             }
         }
+    })
+    .on("end", () => {
+        client.off("messageCreate", event);
     });
+
+    const event = (message: Message) => {
+        if (message.channelId === msg.channelId) {
+            collector.resetTimer({
+                idle: 600000
+            });
+            client.off("messageCreate", event);
+        }
+    };
+    client.on("messageCreate", event);
 }
 
 const command: Command = {
