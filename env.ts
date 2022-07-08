@@ -9,17 +9,20 @@ import { dirname } from "path";
 import { fileURLToPath } from "url";
 import { MusicPlayer } from "./modules/music/MusicPlayer";
 import { ChannelLink, FlagData, InviteTrackerData, LanguageData, PermissionData, TextGenData } from "./modules/data/models";
+import { logDebug } from "./log";
 
 export const version: string = JSON.parse(readFileSync("./package.json", "utf8")).version;
 export const botDirectory = fileURLToPath(dirname(import.meta.url));
 
 export const {
-    isDebug,
+    debug,
     token,
+    logChannel,
     prefix: defaultPrefix
 }: {
-    isDebug: boolean,
+    debug: boolean,
     token: string,
+    logChannel: Snowflake,
     prefix: string
 } = JSON.parse(readFileSync("./config.json", "utf8"));
 
@@ -28,7 +31,7 @@ export const client = new Client({
     partials: [Partials.Channel],
     presence: {
         activities: [{
-            name: `v${version}${isDebug ? "-dev" : ""}`
+            name: `v${version}${debug ? "-dev" : ""}`
         }]
     }
 });
@@ -44,7 +47,7 @@ export function isBotOwner(user: User) {
 export const dataManager = new UserDataManager("./data", {
     guilds: {
         fileType: "object",
-        object: {} as {
+        object: <{
             prefix: string,
             inviteTracker: InviteTrackerData,
 
@@ -53,11 +56,11 @@ export const dataManager = new UserDataManager("./data", {
             channels: Record<string, {
                 link: ChannelLink;
             } & FlagData & TextGenData>,
-        } & LanguageData & FlagData
+        } & LanguageData & FlagData>{}
     },
     users: {
         fileType: "object",
-        object: {} as LanguageData & FlagData & PermissionData
+        object: <LanguageData & FlagData & PermissionData>{}
     },
     scripts: {
         children: {
@@ -73,7 +76,7 @@ export const dataManager = new UserDataManager("./data", {
 export const data = dataManager.root;
 
 export const voiceTimeouts = {
-    ...isDebug
+    ...debug
         ? {
             voiceReady: 15000,
             playerPlaying: 30000,
@@ -89,5 +92,4 @@ export const voiceTimeouts = {
 export const musicPlayingGuilds = new Map<Guild, MusicPlayer>();
 export const storedInviteCounts = new Map<Snowflake, Map<string, number>>();
 
-if (isDebug)
-    console.log("(Warn) Running in debug mode.");
+logDebug("Running in debug mode.");

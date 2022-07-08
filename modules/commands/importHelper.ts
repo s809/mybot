@@ -1,7 +1,6 @@
 import { readdir } from "fs/promises";
 import { dirname } from "path";
 import { fileURLToPath } from "url";
-import { isDebug } from "../../env";
 import { Command } from "./definitions";
 
 /**
@@ -34,8 +33,6 @@ export async function importCommands(modulePath: string) {
         .filter(entry =>
             entry.name !== "index.js" && entry.name.endsWith(".js")
             || entry.isDirectory())) {
-        if (isDebug)
-            console.log(`${dir}/${entry.name}`);
 
         modules.push({
             ...(await import(`${dir}/${entry.name}`)).default

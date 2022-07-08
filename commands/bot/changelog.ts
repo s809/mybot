@@ -4,9 +4,10 @@
 import { execSync } from "child_process";
 import sendLongText from "../../modules/messages/sendLongText";
 import Discord, { EmbedBuilder } from "discord.js";
-import { version as currentVersion, isDebug } from "../../env";
+import { version as currentVersion, debug } from "../../env";
 import { Translator } from "../../modules/misc/Translator";
 import { Command } from "../../modules/commands/definitions";
+import { log } from "../../log";
 
 /**
  * Prepares bot changelog based on Git commits.
@@ -14,10 +15,10 @@ import { Command } from "../../modules/commands/definitions";
  * @returns Changelog text.
  */
 function prepareChangelog() {
-    if (isDebug)
+    if (debug)
         return "*Changelog is not generated in debug mode.*";
 
-    console.log("Preparing changelog...");
+    log("Preparing changelog...");
 
     let commitCount = parseInt(execSync("git rev-list --count HEAD", { encoding: "utf8" }));
 
@@ -64,7 +65,7 @@ function prepareChangelog() {
     }
     str += `\n${lastVersion}:\n${lastMessage.slice(0, -1)}`;
 
-    console.log("Finished.");
+    log("Finished.");
     return str;
 }
 

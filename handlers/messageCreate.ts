@@ -11,6 +11,7 @@ import { hasFlag } from "../modules/data/flags";
 import { copyMessageToLinkedChannel } from "../modules/messages/messageCopying";
 import { getPrefix } from "../modules/data/getPrefix";
 import { Translator } from "../modules/misc/Translator";
+import { logError } from "../log";
 
 client.on("messageCreate", async msg => {
     if (msg.guild) {
@@ -69,7 +70,7 @@ client.on("messageCreate", async msg => {
             result = await command.func(msg, ...args);
         }
         catch (e) {
-            console.log(e.stack);
+            logError(e);
             await sendLongText(msg.channel, sanitizePaths(e.stack));
         }
 
@@ -83,6 +84,6 @@ client.on("messageCreate", async msg => {
         ]);
     }
     catch (e) {
-        console.error(e.stack);
+        logError(e);
     }
 });

@@ -1,6 +1,7 @@
 import { ButtonBuilder, SelectMenuBuilder, TextInputBuilder } from "@discordjs/builders";
 import { ActionRowBuilder, ButtonInteraction, ButtonStyle, Formatters, Message, ModalSubmitInteraction, SelectMenuInteraction, TextInputStyle } from "discord.js";
 import { data } from "../../env";
+import { log } from "../../log";
 import { Command } from "../../modules/commands/definitions";
 import { botEval } from "../../modules/misc/eval";
 import { doRestart } from "../../modules/misc/restart";
@@ -183,7 +184,7 @@ async function scriptEditor(msg: Message) {
                     context?.destroy();
 
                     let result = await botEval(data.scripts[type][name], null, `${type}/${name}`);
-                    console.log(`Executed ${name}:\n${result}`);
+                    log(`Executed ${name}:\n${result}`);
                     
                     if (result === "undefined") {
                         await interaction.update(getOptions());

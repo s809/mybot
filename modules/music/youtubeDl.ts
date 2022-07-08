@@ -1,6 +1,6 @@
 import { execFile, spawn } from "child_process";
 import { promisify } from "util";
-import { isDebug } from "../../env";
+import { debug } from "../../env";
 
 /**
  * Fetches video or playlist.
@@ -65,7 +65,7 @@ export async function getDownloadStream(url: string) {
         "-o", "-",
         url
     ]);
-    if (isDebug)
+    if (debug)
         video.stderr.pipe(process.stderr);
     return video.stdout;
 }

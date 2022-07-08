@@ -1,14 +1,15 @@
 import { spawn } from "child_process";
 import { once } from "events";
 import { Readable } from "stream";
-import { isDebug } from "../../env";
+import { debug } from "../../env";
+import { logDebug } from "../../log";
 
 async function detectOpusStream(readable: Readable) {
     let ffprobe = spawn("ffprobe", [
         "-hide_banner",
         "-i", "-"
     ]);
-    if (isDebug)
+    if (debug)
         ffprobe.stderr.pipe(process.stderr);
 
     let chunks: Buffer[] = [];
@@ -34,8 +35,7 @@ async function detectOpusStream(readable: Readable) {
 
 export async function makeOpusStream(readable: Readable) {
     let isOpus = await detectOpusStream(readable);
-    if (isDebug)
-        console.log(`Is opus: ${isOpus}`);
+    logDebug(`Is opus: ${isOpus}`);
 
     let ffmpeg = spawn("ffmpeg", [
         "-hide_banner",
@@ -49,7 +49,7 @@ export async function makeOpusStream(readable: Readable) {
     ]);
     ffmpeg.on("error", () => { /* Ignored */ });
     ffmpeg.stdout.on("close", () => ffmpeg.kill());
-    if (isDebug)
+    if (debug)
         ffmpeg.stderr.pipe(process.stderr);
 
     readable.pipe(ffmpeg.stdin);

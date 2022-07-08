@@ -1,5 +1,5 @@
 import { Message, Permissions } from "discord.js";
-import { client, isDebug } from "../../env";
+import { client, debug } from "../../env";
 import { Command } from "../../modules/commands/definitions";
 import { Translator } from "../../modules/misc/Translator";
 
@@ -24,7 +24,7 @@ async function importEmoji(msg: Message, guildId: string, emojiName: string, new
         await msg.guild.emojis.create(emoji.url, newEmojiName);
     }
     catch (e) {
-        if (isDebug)
+        if (debug)
             throw e;
 
         return translator.translate("errors.emoji_create_failed");

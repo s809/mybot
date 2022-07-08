@@ -1,6 +1,6 @@
 import { existsSync, mkdirSync, PathLike, readdirSync, readFileSync, rmSync, writeFileSync } from "fs";
 import { writeFile } from "fs/promises";
-import { isDebug } from "../../env";
+import { logDebug } from "../../log";
 
 interface ItemRoot {
     src: object | string;
@@ -310,8 +310,7 @@ export class UserDataManager<Schema extends UserDataSchemaList> {
      * @param {boolean} markAndDelete Whether to mark and delete items from cache.
      */
     async saveDataInternal(writeFileFunction: (file: string, data: string) => (void | Promise<void>), markAndDelete: boolean = true) {
-        if (isDebug)
-            console.log(`Saving data... (${writeFileFunction.name})`);
+        logDebug(`Saving data... (${writeFileFunction.name})`);
 
         for (let [path, item] of this.cache) {
             if (markAndDelete) {
@@ -328,8 +327,6 @@ export class UserDataManager<Schema extends UserDataSchemaList> {
             switch (typeof item.src) {
                 case "string":
                     promise = writeFileFunction(path, item.src);
-                    if (isDebug)
-                        console.log(`Written: ${path}`);
                     break;
                 case "object":
                     if (item.accessor?.deref() !== undefined)
@@ -337,8 +334,6 @@ export class UserDataManager<Schema extends UserDataSchemaList> {
                     if (item.modified) {
                         promise = writeFileFunction(path, JSON.stringify(item.src, null, 2));
                         item.modified = false;
-                        if (isDebug)
-                            console.log(`Written: ${path}`);
                     }
                     break;
             }
@@ -346,7 +341,6 @@ export class UserDataManager<Schema extends UserDataSchemaList> {
                 await promise;
         }
 
-        if (isDebug)
-            console.log("Saved.");
+        logDebug("Saved.");
     }
 }

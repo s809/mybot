@@ -2,13 +2,12 @@
  * @file Main bot file.
  */
 
-import { Team } from "discord.js";
 import {
     client,
     token
 } from "./env";
-import { loadCommands } from "./modules/commands/";
-import { wrapText } from "./util";
+import { logError } from "./log";
+import { loadCommands } from "./modules/commands";
 
 (async () => {
     await loadCommands();
@@ -19,21 +18,10 @@ import { wrapText } from "./util";
 
     process.on("uncaughtException", async (e, origin) => {
         if (["write EPIPE", "write EOF"].includes(e.message)) {
-            console.warn(e.stack);
+            logError(e);
             return;
         }
 
-        let text = wrapText(origin, e.stack);
-
-        if (client.user) {
-            try {
-                let userOrTeam = client.application.owner;
-                let user = userOrTeam instanceof Team ? userOrTeam.owner.user : userOrTeam;
-                await user.send({ content: text });
-            }
-            catch { /* Do nothing */ }
-        }
-
-        console.warn(text);
+        logError(e, origin);
     });
 })();

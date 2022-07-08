@@ -1,5 +1,6 @@
 import { HTTPError, Message, ActionRowBuilder, MessageType, TextChannel, Webhook } from "discord.js";
 import { inspect } from "util";
+import { log } from "../../log";
 
 /**
  * Sends a message through webhook.
@@ -33,7 +34,7 @@ export async function sendWebhookMessage(msg: Message, webhook: Webhook) {
                 e.message += `\nMessage length: ${msg.content.length}\nEmbeds: ${inspect(msg.embeds)}\nAttachments: ${inspect(msg.attachments)}`;
                 throw e;
             }
-            console.log(`Attempt ${attempt} to send webhook message failed: ${e.stack}`);
+            log(`Attempt ${attempt} to send webhook message failed: ${e.stack}`);
         }
     }
 }

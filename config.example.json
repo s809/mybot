@@ -1,5 +1,6 @@
 {
-  "isDebug": true,
+  "debug": true,
   "token": "Insert your token here",
-  "prefix": "!"
+  "prefix": "!",
+  "logChannel": null
 }
