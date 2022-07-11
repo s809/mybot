@@ -1,5 +1,5 @@
-import { existsSync, mkdirSync, PathLike, readdirSync, readFileSync, rmSync, writeFileSync } from "fs";
-import { writeFile } from "fs/promises";
+import { existsSync, mkdirSync, PathLike, readdirSync, readFileSync, renameSync, rmSync, writeFileSync } from "fs";
+import { rename, rm, writeFile } from "fs/promises";
 import { logDebug } from "../../log";
 
 interface ItemRoot {
@@ -102,7 +102,9 @@ export class UserDataManager<Schema extends UserDataSchemaList> {
     }
 
     ownKeys(path: string, extension: string): string[] {
-        let files = readdirSync(path).map(name => name.slice(0, -extension.length));
+        let files = readdirSync(path)
+            .filter(file => file.endsWith(extension))
+            .map(name => name.slice(0, -extension.length));
         let cacheKeys = [...this.cache.keys()]
             .filter(x => x.startsWith(path))
             .map(x => x.slice(path.length, -extension.length));
@@ -238,8 +240,23 @@ export class UserDataManager<Schema extends UserDataSchemaList> {
                     return undefined;
                 }
 
+                let src: any;
+                try {
+                    src = JSON.parse(str);
+                }
+                catch (e) {
+                    try {
+                        let oldFilepath = `${filepath}.old`;
+                        str = readFileSync(oldFilepath, "utf8");
+                        src = JSON.parse(str);
+                        renameSync(oldFilepath, filepath);
+                    } catch {
+                        throw e;
+                    }
+                }
+
                 let root: ItemRoot = {
-                    src: JSON.parse(str),
+                    src: src,
                     deleteFlag: false
                 };
                 let proxy = createProxy(root.src, root);
@@ -324,15 +341,34 @@ export class UserDataManager<Schema extends UserDataSchemaList> {
             }
 
             let promise: void | Promise<void>;
+
+            const backupAndWrite = (path: string, data: string) => {
+                let backupPath = `${path}.old`;
+
+                if (writeFileFunction === writeFileSync) {
+                    try {
+                        renameSync(path, backupPath);
+                    } catch { /* ignore */ }
+                    writeFileFunction(path, data);
+                    rmSync(backupPath, { force: true });
+                } else return (async () => {
+                    try {
+                        await rename(path, backupPath);
+                    } catch { /* ignore */ }
+                    await writeFileFunction(path, data);
+                    await rm(backupPath, { force: true });
+                })();
+            }
+
             switch (typeof item.src) {
                 case "string":
-                    promise = writeFileFunction(path, item.src);
+                    promise = backupAndWrite(path, item.src);
                     break;
                 case "object":
                     if (item.accessor?.deref() !== undefined)
                         item.deleteFlag = false;
                     if (item.modified) {
-                        promise = writeFileFunction(path, JSON.stringify(item.src, null, 2));
+                        promise = backupAndWrite(path, JSON.stringify(item.src, null, 2));
                         item.modified = false;
                     }
                     break;
