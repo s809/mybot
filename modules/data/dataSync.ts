@@ -1,6 +1,5 @@
-import { Channel, Guild, GuildBasedChannel, GuildChannel, GuildMember, Role, Snowflake, TextChannel, User } from "discord.js";
+import { Channel, Guild, GuildBasedChannel, GuildMember, Role, Snowflake, TextChannel, User } from "discord.js";
 import { data, defaultPrefix } from "../../env";
-import { unlinkChannel } from "./channelLinking";
 
 export function onChannelCreate(channel: GuildBasedChannel) {
     data.guilds[channel.guildId].channels[channel.id] = {
@@ -15,8 +14,6 @@ export function onChannelRemove(channel: Channel | {
         guildId: Snowflake;
 }) {
     if (!(channel instanceof TextChannel)) return;
-    
-    unlinkChannel(channel);
     delete data.guilds[channel.guildId].channels[channel.id];
 }
 
@@ -113,16 +110,5 @@ export async function onGuildCreate(guild: Guild) {
                 guild: guild
             });
         }
-    }
-}
-
-export function onGuildRemove(guild: Guild | {
-        id: Snowflake;
-    }) {
-    for (let channel of Object.getOwnPropertyNames(data.guilds[guild.id].channels)) {
-        unlinkChannel({
-            id: channel,
-            guildId: guild.id
-        });
     }
 }

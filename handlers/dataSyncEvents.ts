@@ -4,7 +4,6 @@ import {
     onChannelCreate,
     onChannelRemove,
     onGuildCreate,
-    onGuildRemove,
     onMemberCreate,
     onMemberRemove,
     onRoleCreate,
@@ -12,7 +11,6 @@ import {
 } from "../modules/data/dataSync";
 
 client.on("guildCreate", onGuildCreate);
-client.on("guildDelete", onGuildRemove);
 
 client.on("roleCreate", onRoleCreate);
 client.on("roleDelete", onRoleRemove);

@@ -8,19 +8,11 @@ import { isCommandAllowedToUse } from "../modules/commands/permissions";
 import sendLongText from "../modules/messages/sendLongText";
 import { sanitizePaths } from "../util";
 import { hasFlag } from "../modules/data/flags";
-import { copyMessageToLinkedChannel } from "../modules/messages/messageCopying";
 import { getPrefix } from "../modules/data/getPrefix";
 import { Translator } from "../modules/misc/Translator";
 import { logError } from "../log";
 
 client.on("messageCreate", async msg => {
-    if (msg.guild) {
-        let link = data.guilds[msg.guildId].channels[msg.channelId]?.link;
-
-        if (link?.role === "Source")
-            await copyMessageToLinkedChannel(msg);
-    }
-
     if (msg.author.bot || msg.webhookId) return;
 
     if (!isBotOwner(msg.author)) {
