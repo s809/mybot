@@ -16,9 +16,8 @@ const maxFetchMessages = 100;
  * @yields Messages from a channel.
  */
 async function* iterateMessagesFromTop(channel: TextBasedChannel, oldestId: Snowflake | null, latestId: Snowflake | null, count: number | null) {
-    let firstMessageId = oldestId ?? "0";
+    let firstMessageId = (BigInt(oldestId ?? "1") - 1n).toString();
 
-    // eslint-disable-next-line no-unmodified-loop-condition
     for (let collectedCount = 0; collectedCount < count || count === null; collectedCount += maxFetchMessages) {
         if (count === null)
             collectedCount = -maxFetchMessages;
@@ -34,7 +33,7 @@ async function* iterateMessagesFromTop(channel: TextBasedChannel, oldestId: Snow
         firstMessageId = messages[0].id;
 
         for (let message of messages.reverse()) {
-            if (BigInt(message.id) > BigInt(latestId ?? channel.lastMessageId) + 1n) return;
+            if (BigInt(message.id) > BigInt(latestId ?? channel.lastMessageId)) return;
             yield message;
         }
 
@@ -54,7 +53,6 @@ async function* iterateMessagesFromTop(channel: TextBasedChannel, oldestId: Snow
 async function* iterateMessagesFromBottom(channel: TextBasedChannel, latestId: Snowflake | null, oldestId: Snowflake | null, count: number | null) {
     let lastMessageId = (BigInt(latestId ?? channel.lastMessageId) + 1n).toString();
 
-    // eslint-disable-next-line no-unmodified-loop-condition
     for (let collectedCount = 0; collectedCount < count || count === null; collectedCount += maxFetchMessages) {
         if (count === null)
             collectedCount = -maxFetchMessages;
@@ -70,7 +68,7 @@ async function* iterateMessagesFromBottom(channel: TextBasedChannel, latestId: S
         lastMessageId = messages[messages.length - 1].id;
 
         for (let message of messages) {
-            if (BigInt(message.id) <= BigInt(oldestId ?? "0")) return;
+            if (BigInt(message.id) < BigInt(oldestId ?? "0")) return;
             yield message;
         }
 
@@ -100,12 +98,29 @@ export default async function* iterateMessages(channel: TextBasedChannel, startI
         throw new Error("Invalid count parameter.");
 
     let iterable;
-    if (BigInt(startId ?? 0) < BigInt(endId ?? channel.lastMessageId) + 1n || (startId && !endId))
-        iterable = iterateMessagesFromTop(channel, startId, endId, count);
-    else if (!startId && endId)
+
+    if (!startId)
         iterable = iterateMessagesFromBottom(channel, endId, startId, count);
-    else
-        iterable = iterateMessagesFromBottom(channel, startId, endId, count);
+    else if (!endId)
+        iterable = iterateMessagesFromTop(channel, startId, endId, count);
+    else {
+        let start, end;
+        try {
+            start = BigInt(startId);
+        } catch (e) {
+            throw new Error("Invalid startId parameter.");
+        }
+        try {
+            end = BigInt(endId);
+        } catch (e) {
+            throw new Error("Invalid endId parameter.");
+        }
+
+        if (start > end)
+            iterable = iterateMessagesFromBottom(channel, startId, endId, count);
+        else
+            iterable = iterateMessagesFromTop(channel, startId, endId, count);
+    }
 
     let message;
     try {
