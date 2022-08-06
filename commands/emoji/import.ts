@@ -21,7 +21,10 @@ async function importEmoji(msg: Message, guildId: string, emojiName: string, new
         return translator.translate("errors.emoji_already_exists");
 
     try {
-        await msg.guild.emojis.create(emoji.url, newEmojiName);
+        await msg.guild.emojis.create({
+            name: newEmojiName,
+            attachment: emoji.url
+        });
     }
     catch (e) {
         if (debug)

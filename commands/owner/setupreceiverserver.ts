@@ -5,16 +5,20 @@ async function setupReceiverServer(msg: Message) {
     for (let channel of msg.guild.channels.cache.values())
         await channel.delete();
 
-    let commandChannel = await msg.guild.channels.create("commands", {
+    let commandChannel = await msg.guild.channels.create({
+        name: "commands",
         type: ChannelType.GuildText
     });
-    let logChannel = await msg.guild.channels.create("logs", {
+    let logChannel = await msg.guild.channels.create({
+        name: "logs",
         type: ChannelType.GuildText
     });
-    let deletedCategory = await msg.guild.channels.create("Deleted Channels", {
+    let deletedCategory = await msg.guild.channels.create({
+        name: "Deleted Channels",
         type: ChannelType.GuildCategory
     });
-    let rootCategory = await msg.guild.channels.create("Root Category", {
+    let rootCategory = await msg.guild.channels.create({
+        name: "Root Category",
         type: ChannelType.GuildCategory
     });
 

@@ -49,7 +49,8 @@ async function cloneServer(msg: Message, guildId: Snowflake, mode: string) {
             for (let channel of ([...guild.channels.cache.values()]
                 .filter(x => x instanceof CategoryChannel) as CategoryChannel[])
                 .sort((x, y) => x.position - y.position)) {
-                channels.set(channel, await msg.guild.channels.create(channel.name, {
+                channels.set(channel, await msg.guild.channels.create({
+                    name: channel.name,
                     type: channel.type,
                     permissionOverwrites: roles.size === 0
                         ? undefined
@@ -70,7 +71,8 @@ async function cloneServer(msg: Message, guildId: Snowflake, mode: string) {
                 .filter(x => !(x instanceof CategoryChannel) && !(x instanceof ThreadChannel)) as NonCategoryOrThreadGuildBasedChannel[])
                 .sort((x, y) => (x.position ?? 0) - (y.position ?? 0))) {
                 try {
-                    await msg.guild.channels.create(channel.name, {
+                    await msg.guild.channels.create({
+                        name: channel.name,
                         type: channel.type,
                         topic: (<TextChannel>channel).topic,
                         nsfw: (<TextChannel>channel).nsfw,

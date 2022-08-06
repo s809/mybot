@@ -3,7 +3,8 @@ import { client } from "../../env";
 import { Command } from "../../modules/commands/definitions";
 
 async function createServer(msg: Message) {
-    let guild = await client.guilds.create("testGuild", {
+    let guild = await client.guilds.create({
+        name: "Test Server",
         icon: client.user.displayAvatarURL(),
         defaultMessageNotifications: GuildDefaultMessageNotifications.OnlyMentions,
         channels: [{
