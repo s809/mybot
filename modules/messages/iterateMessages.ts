@@ -32,10 +32,7 @@ async function* iterateMessagesFromTop(channel: TextBasedChannel, oldestId: Snow
 
         firstMessageId = messages[0].id;
 
-        for (let message of messages.reverse()) {
-            if (BigInt(message.id) > BigInt(latestId ?? channel.lastMessageId)) return;
-            yield message;
-        }
+        yield messages.reverse().filter(message => BigInt(message.id) <= BigInt(latestId ?? channel.lastMessageId));
 
         if (messages.length < maxFetchMessages) return;
     }
@@ -67,10 +64,7 @@ async function* iterateMessagesFromBottom(channel: TextBasedChannel, latestId: S
 
         lastMessageId = messages[messages.length - 1].id;
 
-        for (let message of messages) {
-            if (BigInt(message.id) < BigInt(oldestId ?? "0")) return;
-            yield message;
-        }
+        yield messages.filter(message => BigInt(message.id) >= BigInt(oldestId ?? "0"));
 
         if (messages.length < maxFetchMessages) return;
     }
@@ -93,7 +87,7 @@ async function* iterateMessagesFromBottom(channel: TextBasedChannel, latestId: S
  * @param count Amount of messages to iterate.
  * @yields Messages from a channel.
  */
-export default async function* iterateMessages(channel: TextBasedChannel, startId: Snowflake | null = null, endId: Snowflake | null = null, count: number | null = null) {
+export async function* iterateMessagesChunked(channel: TextBasedChannel, startId: Snowflake | null = null, endId: Snowflake | null = null, count: number | null = null) {
     if (count !== null && (typeof count !== "number" || count < 1))
         throw new Error("Invalid count parameter.");
 
@@ -122,13 +116,23 @@ export default async function* iterateMessages(channel: TextBasedChannel, startI
             iterable = iterateMessagesFromTop(channel, startId, endId, count);
     }
 
-    let message;
+    let messages;
     try {
-        for await (message of iterable)
-            yield message;
+        for await (messages of iterable)
+            yield messages;
     }
     catch (e) {
-        e.message += `\nMessage: ${message?.url}`;
+        e.message += `\nMessages: ${messages?.[0].url} - ${messages?.[messages.length - 1].url}`;
         throw e;
+    }
+}
+
+/**
+ * @see {@link iterateMessagesChunked}
+ */
+export async function* iterateMessages(channel: TextBasedChannel, startId: Snowflake | null = null, endId: Snowflake | null = null, count: number | null = null) {
+    for await (let messages of iterateMessagesChunked(channel, startId, endId, count)) {
+        for (let message of messages)
+            yield message;
     }
 }

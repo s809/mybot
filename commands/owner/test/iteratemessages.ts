@@ -1,6 +1,6 @@
 import { Message } from "discord.js";
 import { Command } from "../../../modules/commands/definitions";
-import iterateMessages from "../../../modules/messages/iterateMessages";
+import { iterateMessages } from "../../../modules/messages/iterateMessages";
 
 async function test(msg: Message) {
     const channel = await msg.guild.channels.create({

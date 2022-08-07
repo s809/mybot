@@ -1,6 +1,6 @@
 import { APIEmbed, EmbedBuilder, Message, TextChannel, User } from "discord.js";
 import { client } from "../../env";
-import iterateMessages from "../../modules/messages/iterateMessages";
+import { iterateMessages } from "../../modules/messages/iterateMessages";
 import { parseChannelMention } from "../../util";
 import { sendAlwaysLastMessage } from "../../modules/messages/AlwaysLastMessage";
 import sendLongText from "../../modules/messages/sendLongText";
