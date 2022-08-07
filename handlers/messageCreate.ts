@@ -69,7 +69,7 @@ client.on("messageCreate", async msg => {
 
             result = await Promise.race([
                 promise,
-                setTimeout(500)
+                setTimeout(1000)
             ]);
 
             if (!finished) {
