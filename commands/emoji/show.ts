@@ -1,11 +1,13 @@
-import { Message } from "discord.js";
+import { APIEmoji, Collection, GuildEmoji, Message, parseEmoji } from "discord.js";
 import { Command } from "../../modules/commands/definitions";
 import { Translator } from "../../modules/misc/Translator";
 
-async function showEmoji(msg: Message, emojiName: string) {
+async function showEmoji(msg: Message, emojiOrName: string) {
     let translator = Translator.get(msg);
 
-    let emoji = msg.guild.emojis.cache.find(x => x.name === emojiName);
+    let emoji: APIEmoji | GuildEmoji = parseEmoji(emojiOrName);
+    if (!emoji.id)
+        emoji = (await msg.guild.emojis.fetch()).find(x => x.name === emojiOrName);
     if (!emoji)
         return translator.translate("errors.unknown_emoji");
 
@@ -13,7 +15,9 @@ async function showEmoji(msg: Message, emojiName: string) {
         embeds: [{
             title: translator.translate(!emoji.animated ? "embeds.emoji_show.title_for_normal" : "embeds.emoji_show.title_for_animated", emoji.name),
             image: {
-                url: emoji.url
+                url: emoji instanceof GuildEmoji
+                    ? emoji.url
+                    : `https://cdn.discordapp.com/emojis/${emoji.id}.${emoji.animated ? "gif" : "png"}`
             }
         }]
     });
@@ -21,7 +25,7 @@ async function showEmoji(msg: Message, emojiName: string) {
 
 const command: Command = {
     name: "show",
-    args: [1, 1, "<emoji name>"],
+    args: [1, 1, "<emoji or emoji name>"],
     func: showEmoji
 };
 export default command;

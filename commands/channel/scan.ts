@@ -199,6 +199,7 @@ async function scanChannel(msg: Message, mode: string, fromChannelStr: string) {
 const command: Command = {
     name: "scan",
     args: [1, 2, "<mode{daily,weekly,monthly}> [channel]"],
-    func: scanChannel
+    func: scanChannel,
+    managementPermissionLevel: "BotOwner"
 };
 export default command;
