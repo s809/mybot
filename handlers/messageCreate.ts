@@ -11,6 +11,8 @@ import { hasFlag } from "../modules/data/flags";
 import { getPrefix } from "../modules/data/getPrefix";
 import { Translator } from "../modules/misc/Translator";
 import { logError } from "../log";
+import { setTimeout } from "timers/promises";
+import { MessageReaction } from "discord.js";
 
 client.on("messageCreate", async msg => {
     if (msg.author.bot || msg.webhookId) return;
@@ -55,11 +57,25 @@ client.on("messageCreate", async msg => {
     }
 
     try {
-        let reaction = await msg.react("🔄");
-
+        let reaction;
         let result: string | void;
         try {
-            result = await command.func(msg, ...args);
+            let finished = false;
+
+            const promise = Promise.resolve(command.func(msg, ...args)).then((result: any) => {
+                finished = true;
+                return result;
+            });
+
+            result = await Promise.race([
+                promise,
+                setTimeout(500)
+            ]);
+
+            if (!finished) {
+                reaction = msg.react("🔄").catch(() => { });
+                result = await promise;
+            }
         }
         catch (e) {
             logError(e);
@@ -67,12 +83,18 @@ client.on("messageCreate", async msg => {
         }
 
         await Promise.allSettled([
-            msg.react(typeof result !== "string" ? "✅" : "❌"),
-            reaction.users.remove(),
-            (async () => {
-                if (typeof result === "string")
-                    await msg.channel.send(result);
-            })()
+            // update status if reaction is present
+            reaction
+                ? msg.react(typeof result !== "string" ? "✅" : "❌")
+                : undefined,
+            
+            // remove reaction if it's present
+            Promise.resolve(reaction).then((reaction: MessageReaction) => reaction?.users.remove()),
+
+            // send result if it was returned
+            typeof result === "string"
+                ? msg.channel.send(result)
+                : undefined
         ]);
     }
     catch (e) {
