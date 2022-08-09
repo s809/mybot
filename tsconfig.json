@@ -1,18 +1,17 @@
 {
   "compilerOptions": {
     "moduleResolution": "node",
-    "allowSyntheticDefaultImports": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
 
     "removeComments": true,
     "noImplicitAny": true,
+    //"strictNullChecks": true, // TODO enable when are going to rework the code
 
     "outDir": "./build",
     "sourceMap": true,
     "incremental": true,
 
-    "allowJs": true,
     "target": "ESNext",
     "module": "ESNext",
     "lib": [

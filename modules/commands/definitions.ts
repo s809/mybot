@@ -3,6 +3,7 @@
  */
 
 import { Awaitable, Message, PermissionResolvable } from "discord.js";
+import { CommandRequirement } from "./requirements";
 
 export interface Command {
     name: string;
@@ -10,14 +11,8 @@ export interface Command {
     args?: [number, number, string];
     func?: CommandHandler;
     subcommands?: Map<string, Command>;
-    managementPermissionLevel?: CommandManagementPermissionLevel;
+    requirements?: CommandRequirement | CommandRequirement[];
 }
-
-/** Elevation level for managing specific command. */
-export type CommandManagementPermissionLevel =
-    PermissionResolvable
-    | "BotOwner"
-    | "ServerOwner";
 
 /** Handler function of a command. */
 export interface CommandHandler {

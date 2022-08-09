@@ -7,6 +7,7 @@ import sendLongText from "../../modules/messages/sendLongText";
 import { once } from "events";
 import { Translator } from "../../modules/misc/Translator";
 import { Command } from "../../modules/commands/definitions";
+import { BotOwner } from "../../modules/commands/requirements";
 
 async function scanChannel(msg: Message, mode: string, fromChannelStr: string) {
     let translator = Translator.get(msg);
@@ -200,6 +201,6 @@ const command: Command = {
     name: "scan",
     args: [1, 2, "<mode{daily,weekly,monthly}> [channel]"],
     func: scanChannel,
-    managementPermissionLevel: "BotOwner"
+    requirements: BotOwner
 };
 export default command;

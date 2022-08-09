@@ -1,5 +1,6 @@
 import { Message } from "discord.js";
 import { Command } from "../modules/commands/definitions";
+import { BotOwner } from "../modules/commands/requirements";
 import { getPrefix } from "../modules/data/getPrefix";
 import sendLongText from "../modules/messages/sendLongText";
 import { botEval } from "../modules/misc/eval";
@@ -18,6 +19,6 @@ const command: Command = {
     name: "eval",
     args: [0, Infinity, "<code...>"],
     func: evalCommand,
-    managementPermissionLevel: "BotOwner"
+    requirements: BotOwner
 }
 export default command;

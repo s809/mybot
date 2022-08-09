@@ -4,7 +4,7 @@ import {
     isBotOwner
 } from "../env";
 import { resolveCommand, toUsageString } from "../modules/commands";
-import { isCommandAllowedToUse } from "../modules/commands/permissions";
+import { checkRequirementsBeforeRunning } from "../modules/commands/requirements";
 import sendLongText from "../modules/messages/sendLongText";
 import { sanitizePaths } from "../util";
 import { hasFlag } from "../modules/data/flags";
@@ -38,7 +38,14 @@ client.on("messageCreate", async msg => {
     }
 
     let command = resolveCommand(args, true);
-    if (command && !isCommandAllowedToUse(msg, command)) return;
+    if (command) {
+        let checkResult = checkRequirementsBeforeRunning(msg, command);
+        if (!checkResult.allowed) {
+            if (checkResult.message)
+                await msg.channel.send(checkResult.message);
+            return;
+        }
+    }
 
     if (!command || !command.func) return;
 

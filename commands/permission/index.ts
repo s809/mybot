@@ -3,7 +3,7 @@ import { client, data, isBotOwner } from "../../env";
 import { resolveCommand } from "../../modules/commands";
 import { Command } from "../../modules/commands/definitions";
 import { importCommands } from "../../modules/commands/importHelper";
-import { isCommandAllowedToManage } from "../../modules/commands/permissions";
+import { isCommandAllowedToManage } from "../../modules/commands/requirements";
 import { Translator } from "../../modules/misc/Translator";
 
 async function permission(msg: Message, id: string, commandPath: string) {

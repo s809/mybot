@@ -25,10 +25,10 @@ function prepareSubcommands(list: Map<string, Command>, inheritedOptions?: any) 
         };
 
         command.path = path;
-        if (command.managementPermissionLevel)
-            options.managementPermissionLevel = command.managementPermissionLevel;
-        if (options.managementPermissionLevel && !command.managementPermissionLevel)
-            command.managementPermissionLevel = options.managementPermissionLevel;
+        if (command.requirements)
+            options.requirements = command.requirements;
+        if (options.requirements && !command.requirements)
+            command.requirements = options.requirements;
 
         prepareSubcommands(command.subcommands, options);
     }

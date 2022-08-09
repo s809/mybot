@@ -1,10 +1,10 @@
 import { ActionRowBuilder, SelectMenuBuilder } from "@discordjs/builders";
 import assert, { fail } from "assert";
-import { BitField, DMChannel, Message, MessageSelectOption, SelectMenuInteraction } from "discord.js";
+import { BitField, Message, MessageSelectOption, SelectMenuInteraction } from "discord.js";
 import { snakeCase } from "lodash-es";
 import { getRootCommands, toUsageString } from "../modules/commands";
-import { Command, CommandManagementPermissionLevel } from "../modules/commands/definitions";
-import { isCommandAllowedToUse } from "../modules/commands/permissions";
+import { Command } from "../modules/commands/definitions";
+import { checkRequirementsBeforeRunning } from "../modules/commands/requirements";
 import { getPrefix } from "../modules/data/getPrefix";
 import { Translator } from "../modules/misc/Translator";
 import { capitalizeWords } from "../util";
@@ -12,12 +12,8 @@ import { capitalizeWords } from "../util";
 async function help(msg: Message) {
     let translator = Translator.get(msg);
 
-    const filterCommands = (list: Command[]) => list.filter(command => {
-        if (command.managementPermissionLevel === "BotOwner" &&
-            !(msg.channel instanceof DMChannel))
-            return false;
-        return isCommandAllowedToUse(msg, command);
-    });
+    const filterCommands = (list: Command[]) =>
+        list.filter(command => !checkRequirementsBeforeRunning(msg, command)?.hideCommand);
 
     let levelNameToPosition: Map<string, number> = new Map();
     let chain: {
@@ -70,31 +66,16 @@ async function help(msg: Message) {
                 description: `${translator.translate("embeds.help.select_command")}`
             };
         } else {
-            const convertPermissions = (raw: CommandManagementPermissionLevel): string => {
-                if (typeof raw === "bigint")
-                    raw = raw.toString() as CommandManagementPermissionLevel;
-
-                if (typeof raw === "string") {
-                    if (raw.match(/^\d+$/))
-                        return convertPermissions(new BitField(raw) as any);
-                    else
-                        return capitalizeWords(snakeCase(raw).replaceAll("_", " "));
-                }
-
-                if (raw instanceof BitField)
-                    return convertPermissions(raw.toArray())
-                
-                if (Array.isArray(raw))
-                    return raw.map(p => convertPermissions(p)).join(", ");
-
-                fail(`Permission type unmatched\nValue: ${raw}`);
-            };
-
             let codeBlock = `\`\`\`\n${toUsageString(msg, command)}\`\`\`\n`;
             let description = `${translator.tryTranslate("command_descriptions." + command.path.replaceAll("/", "_")) ?? translator.translate("embeds.help.no_description")}`;
-            let requiredPermissions = command.managementPermissionLevel
-                ? `\n${translator.translate("embeds.help.required_permissions", convertPermissions(command.managementPermissionLevel))}`
-                : ""
+            let requiredPermissions = Array.isArray(command.requirements)
+                ? command.requirements.filter(x => !x.hideInDescription).map(x => x.name).join(", ")
+                : command.requirements?.name;
+            
+            if (requiredPermissions)
+                requiredPermissions = `\n${translator.translate("embeds.help.required_permissions", requiredPermissions)}`;
+            else
+                requiredPermissions = "";
 
             embed = {
                 title: translator.translate("embeds.help.title"),

@@ -1,6 +1,7 @@
-import { Message } from "discord.js";
+import { Message, PermissionFlagsBits } from "discord.js";
 import { Command } from "../../modules/commands/definitions";
 import { importCommands } from "../../modules/commands/importHelper";
+import { ServerPermissions } from "../../modules/commands/requirements";
 import { getInviteTrackerDataOrClean } from "../../modules/misc/inviteTracker";
 import { Translator } from "../../modules/misc/Translator";
 
@@ -24,7 +25,7 @@ async function inviteTrackerInfo(msg: Message) {
 
 const command: Command = {
     name: "invitetracker",
-    managementPermissionLevel: "ManageGuild",
+    requirements: ServerPermissions(PermissionFlagsBits.ManageGuild | PermissionFlagsBits.CreateInstantInvite),
     func: inviteTrackerInfo,
     subcommands: await importCommands(import.meta.url)
 };
