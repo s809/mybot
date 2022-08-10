@@ -8,6 +8,7 @@ import { importCommands } from "./importHelper";
 import { Command } from "./definitions";
 import { Message } from "discord.js";
 import { getPrefix } from "../data/getPrefix";
+import { CommandRequirement } from "./requirements";
 
 var commands: Map<string, Command>;
 
@@ -19,14 +20,24 @@ function prepareSubcommands(list: Map<string, Command>, inheritedOptions?: any) 
             ? `${inheritedOptions.path}/${command.name}`
             : command.name;
 
-        let options = {
+        let options: {
+            path: string;
+            requirements: CommandRequirement[];
+        } = {
             ...inheritedOptions,
             path: path
         };
 
         command.path = path;
-        if (command.requirements)
-            options.requirements = command.requirements;
+        if (command.requirements) {
+            const requirements = Array.isArray(command.requirements)
+                ? command.requirements
+                : [command.requirements];
+            
+            options.requirements ??= [];
+            options.requirements = [...options.requirements, ...requirements];
+        }
+            
         if (options.requirements && !command.requirements)
             command.requirements = options.requirements;
 

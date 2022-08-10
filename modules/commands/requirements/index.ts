@@ -14,13 +14,12 @@ export interface CommandRequirement {
 }
 
 /**
- * Checks command's requirement.
+ * Checks a provided command requirement against a message.
  * 
- * {@link allowed} is true if the requirement is (one of):
+ * `allowed` is true if the requirement is (at least one of):
  * - overridable and {@link override} is true
  * - satisfied with and its subrequirements are satisfied
  * - satisfied by any of alternatives
- * 
  */
 function checkRequirement(
     msg: Message,
@@ -63,9 +62,10 @@ function checkRequirement(
     }
 
     if (requirements.satisfiedBy) {
-        if (!Array.isArray(requirements.satisfiedBy))
-            requirements.satisfiedBy = [requirements.satisfiedBy];
-        const result = requirements.satisfiedBy.some(r => checkRequirement(msg, r, override).allowed);
+        const satisfiedBy = Array.isArray(requirements.satisfiedBy)
+            ? requirements.satisfiedBy
+            : [requirements.satisfiedBy];
+        const result = satisfiedBy.some(r => checkRequirement(msg, r, override).allowed);
         if (result) {
             return {
                 allowed,
@@ -81,6 +81,15 @@ function checkRequirement(
     };
 }
 
+/**
+ * Checks a list of requirements against a message.
+ * 
+ * `allowed` is true if all requirements are satisfied. \
+ * `message` is the message of the first failed requirement if all failed requirements have messages, otherwise undefined. \
+ * `hideCommand` is true if any requirement has {@link CommandRequirement.hideCommand hideCommand} set to true.
+ * 
+ * @see checkRequirement
+ */
 export function checkRequirements(
     msg: Message,
     requirements: CommandRequirement[],
@@ -101,28 +110,33 @@ export function checkRequirements(
     }
 }
 
+/**
+ * Checks if a command was overridden to allow it to be used in a specific context.
+ * Checked override levels:
+ * - global user
+ * - guild role
+ * - guild member
+ */
 export function isCommandOverridden(msg: Message, command: Command): boolean {
-    /** @type {string[]} */
-    let allowedCommands: string[] = [
+    const allowedCommands = [
         // Global user
-        ...data.users[msg.author.id].allowedCommands
+        ...data.users[msg.author.id].allowedCommands,
+        ...(msg.member
+            ? [
+                // Server roles
+                ...msg.member.roles.cache.map(role => data.guilds[msg.guildId!].roles[role.id].allowedCommands).flat(),
+                // Server member
+                ...data.guilds[msg.guildId!].members[msg.author.id].allowedCommands
+            ]
+            : [])
     ];
-
-    if (msg.member) {
-        allowedCommands.push(
-            // Server role
-            ...[...msg.member.roles.cache.values()]
-                .flatMap(role => data.guilds[msg.guildId!].roles[role.id].allowedCommands),
-            // Server member
-            ...data.guilds[msg.guildId!].members[msg.author.id].allowedCommands
-        );
-    }
 
     return allowedCommands.some(path => command.path.startsWith(path));
 }
 
 /**
  * Checks if requirements are satisfied to manage command in their context.
+ * Requires the command not to be overridden.
  *
  * @param msg Context message.
  * @param command Command to check.
@@ -139,6 +153,7 @@ export function isCommandAllowedToManage(msg: Message, command: Command): boolea
 
 /**
  * Checks if user has required permissions to execute command in their context.
+ * Takes into account command overrides.
  *
  * @param msg Context message.
  * @param command Command to check.
@@ -161,3 +176,4 @@ export { InServer } from "./InServer";
 export { ServerOwner } from "./ServerOwner";
 export { ServerPermissions } from "./ServerPermissions";
 export { InVoiceChannel } from "./InVoiceChannel";
+export { InVoiceWithBot } from "./InVoiceWithBot";

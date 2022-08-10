@@ -1,6 +1,7 @@
 import { Message } from "discord.js";
 import { musicPlayingGuilds } from "../../env";
 import { Command } from "../../modules/commands/definitions";
+import { InVoiceWithBot } from "../../modules/commands/requirements";
 import { Translator } from "../../modules/misc/Translator";
 
 async function pause(msg: Message) {
@@ -21,6 +22,7 @@ async function pause(msg: Message) {
 
 const command: Command = {
     name: "pause",
-    func: pause
+    func: pause,
+    requirements: InVoiceWithBot
 };
 export default command;
