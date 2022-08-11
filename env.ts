@@ -49,7 +49,7 @@ export const dataManager = new UserDataManager("./data", {
         fileType: "object",
         object: <{
             prefix: string,
-            inviteTracker: InviteTrackerData,
+            inviteTracker?: InviteTrackerData,
 
             roles: Record<string, PermissionData>,
             members: Record<string, PermissionData>,

@@ -3,6 +3,7 @@
  */
 import { Message, TextBasedChannel } from "discord.js";
 import EventEmitter from "events";
+import { Overwrite } from "../../util";
 
 type MessageSendOptions = Parameters<TextBasedChannel["send"]>[0];
 
@@ -12,7 +13,7 @@ type MessageSendOptions = Parameters<TextBasedChannel["send"]>[0];
 export class AlwaysLastMessage extends EventEmitter {
     message: Message;
     editing: boolean = false;
-    lastOptions: Parameters<Message["edit"]>[0];
+    lastOptions?: Parameters<Message["edit"]>[0];
 
     /**
      * Constructs AlwaysLastMessage instance.
@@ -41,7 +42,7 @@ export class AlwaysLastMessage extends EventEmitter {
     }
 
     private async editInternal() {
-        let options: this["lastOptions"];
+        let options: this["lastOptions"] = undefined;
         this.editing = true;
 
         let resendFunc = async () => {
@@ -49,7 +50,7 @@ export class AlwaysLastMessage extends EventEmitter {
         };
 
         while (options !== this.lastOptions) {
-            options = this.lastOptions;
+            options = this.lastOptions!;
 
             if (this.message.channel.lastMessageId !== this.message.id)
                 await Promise.all([
@@ -71,17 +72,8 @@ export class AlwaysLastMessage extends EventEmitter {
      */
     async editWithoutDeleting(options: this["lastOptions"]) {
         if (!this.editing)
-            this.message.edit(options);
+            this.message.edit(options!);
     }
-}
-
-type Overwrite<T, U> = Pick<T, Exclude<keyof T, keyof U>> & U;
-
-function wrapALMessage(msg: Message) {
-    let data = new AlwaysLastMessage(msg);
-    return new Proxy(data, {
-        get: (target, name) => ((name in target ? target : data.message as any)[name])
-    }) as Overwrite<Message, AlwaysLastMessage>;
 }
 
 /**
@@ -93,5 +85,9 @@ function wrapALMessage(msg: Message) {
  */
 export async function sendAlwaysLastMessage(channel: TextBasedChannel, options: MessageSendOptions) {
     let message = await channel.send(options);
-    return wrapALMessage(message);
+
+    let data = new AlwaysLastMessage(message);
+    return new Proxy(data, {
+        get: (target, name) => ((name in target ? target : data.message as any)[name])
+    }) as Overwrite<Message, AlwaysLastMessage>;
 }

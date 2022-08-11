@@ -17,13 +17,14 @@ async function testTokens(msg: Message, ...tokens: string[]) {
             intents: (131072 - 1)
                 ^ GatewayIntentBits.GuildMembers
                 ^ GatewayIntentBits.GuildPresences
-                ^ GatewayIntentBits.MessageContent
+                ^ GatewayIntentBits.MessageContent,
+            presence: {
+                status: "invisible"
+            }
         });
 
         try {
             await client.login(token);
-            client.user.setPresence({ status: "invisible" });
-
             await once(client, "ready");
 
             let guilds = client.guilds.cache.map(guild => ({

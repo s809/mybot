@@ -5,10 +5,13 @@ import { tryInitTrackedGuild } from "../../modules/misc/inviteTracker";
 import { Translator } from "../../modules/misc/Translator";
 import { parseChannelMention } from "../../util";
 
-async function enableInviteTracker(msg: Message, channelResolvable: string) {
-    let translator = Translator.get(msg);
+async function enableInviteTracker(msg: Message<true>, channelResolvable: string) {
+    let translator = Translator.getOrDefault(msg);
 
-    let channel = msg.guild?.channels.resolve(parseChannelMention(channelResolvable));
+    const channelId = parseChannelMention(channelResolvable);
+    if (!channelId)
+        return translator.translate("errors.invalid_channel");
+    let channel = msg.guild.channels.resolve(channelId);
     if (!(channel instanceof TextChannel))
         return translator.translate("errors.unknown_channel");
 

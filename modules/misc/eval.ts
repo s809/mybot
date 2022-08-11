@@ -13,7 +13,7 @@ import { ScriptContext } from "./ScriptContext";
  * @param scriptName Name of the script, if present.
  * @returns
  */
-export async function botEval(code: string, msg: Message | null, scriptName: string = null) {
+export async function botEval(code: string, msg: Message | null, scriptName: string | null = null) {
     const { data, client: _client } = await import("../../env");
     const { getSrc } = await import("../data/UserDataManager");
 

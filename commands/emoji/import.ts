@@ -1,13 +1,13 @@
-import { Message, PermissionFlagsBits, Permissions } from "discord.js";
+import { Guild, Message, PermissionFlagsBits, Permissions } from "discord.js";
 import { client, debug } from "../../env";
 import { Command } from "../../modules/commands/definitions";
 import { ServerPermissions } from "../../modules/commands/requirements";
 import { Translator } from "../../modules/misc/Translator";
 
-async function importEmoji(msg: Message, guildId: string, emojiName: string, newEmojiName: string = emojiName) {
-    let translator = Translator.get(msg);
+async function importEmoji(msg: Message<true>, guildId: string, emojiName: string, newEmojiName: string = emojiName) {
+    let translator = Translator.getOrDefault(msg);
 
-    if (!msg.guild.members.me.permissions.has("ManageEmojisAndStickers"))
+    if (!msg.guild.members.me!.permissions.has("ManageEmojisAndStickers"))
         return translator.translate("errors.cannot_manage_emojis");
 
     let guild = client.guilds.resolve(guildId);

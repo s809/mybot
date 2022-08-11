@@ -142,7 +142,7 @@ async function sendPagedTextWithButtons(channel: TextBasedChannel, pages: string
     ];
 
     let page = 0;
-    const makeOptions = (components: ActionRowBuilder<ButtonBuilder>[]) => ({
+    const makeOptions = (components: ActionRowBuilder<ButtonBuilder>[] | null) => ({
         embeds: embed !== null ? [{
             ...embed,
             title: (embed.data.title ?? "") + (!embed.data.title ? title : titleAlt).replace("%page%", (page + 1).toString()).replace("%pagecount%", pages.length.toString()),
@@ -192,14 +192,14 @@ export default async function sendLongText(channel: TextBasedChannel, text: stri
     multipleMessages = false
 }: {
     /** Type of optional code block. */
-    code?: string,
+    code?: string | null,
     /** Template for embed of message. */
     embed?: EmbedBuilder,
     /** 
      * Delimiter for splitting text in pages.
      * If not specified, text will be split by characters.
      */
-    delimiter?: string,
+    delimiter?: string | null,
     /** Whether to send multiple messages instead of using single interactable message. */
     multipleMessages?: boolean
     } = {}): Promise<void> {

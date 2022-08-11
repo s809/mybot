@@ -1,11 +1,10 @@
-import { CategoryChannel, GuildBasedChannel, GuildChannel, Message, OverwriteType, Role, Snowflake, TextChannel, ThreadChannel, VoiceBasedChannel } from "discord.js";
+import { CategoryChannel, GuildBasedChannel, GuildChannel, Message, NonThreadGuildBasedChannel, OverwriteType, Role, Snowflake, TextChannel, ThreadChannel, VoiceBasedChannel } from "discord.js";
 import { client } from "../../env";
 import { Command } from "../../modules/commands/definitions";
+import { InServer } from "../../modules/commands/requirements";
 
-type NonCategoryOrThreadGuildBasedChannel = Exclude<GuildBasedChannel, CategoryChannel | ThreadChannel>;
-
-async function cloneServer(msg: Message, guildId: Snowflake, mode: string) {
-    let guild = client.guilds.resolve(guildId);
+async function cloneServer(msg: Message<true>, guildId: Snowflake, mode: string) {
+    let guild = await client.guilds.fetch(guildId);
 
     let channels = new Map();
     let roles = new Map();
@@ -14,7 +13,7 @@ async function cloneServer(msg: Message, guildId: Snowflake, mode: string) {
     let role: Role;
     try {
         if (mode === "both" || mode === "roles") {
-            await msg.member.roles.add(
+            await msg.member!.roles.add(
                 await msg.guild.roles.create({
                     name: "Server Owner",
                     permissions: "Administrator"
@@ -37,7 +36,7 @@ async function cloneServer(msg: Message, guildId: Snowflake, mode: string) {
         }
     }
     catch (e) {
-        e.message += `\nRole: ${role.id}`;
+        e.message += `\nRole: ${role!.id}`;
         throw e;
     }
 
@@ -68,13 +67,13 @@ async function cloneServer(msg: Message, guildId: Snowflake, mode: string) {
 
             // Normal channels
             for (let channel of ([...guild.channels.cache.values()]
-                .filter(x => !(x instanceof CategoryChannel) && !(x instanceof ThreadChannel)) as NonCategoryOrThreadGuildBasedChannel[])
+                .filter(x => !(x instanceof CategoryChannel) && !(x instanceof ThreadChannel)) as Exclude<NonThreadGuildBasedChannel, CategoryChannel>[])
                 .sort((x, y) => (x.position ?? 0) - (y.position ?? 0))) {
                 try {
                     await msg.guild.channels.create({
                         name: channel.name,
                         type: channel.type,
-                        topic: (<TextChannel>channel).topic,
+                        topic: (<TextChannel>channel).topic ?? undefined,
                         nsfw: (<TextChannel>channel).nsfw,
                         bitrate: (<VoiceBasedChannel>channel).bitrate,
                         userLimit: (<VoiceBasedChannel>channel).userLimit,
@@ -104,7 +103,7 @@ async function cloneServer(msg: Message, guildId: Snowflake, mode: string) {
         }
     }
     catch (e) {
-        e.message += `\nChannel: ${channel.id}`;
+        e.message += `\nChannel: ${channel!.id}`;
         throw e;
     }
 
@@ -115,6 +114,7 @@ async function cloneServer(msg: Message, guildId: Snowflake, mode: string) {
 const command: Command = {
     name: "clone",
     args: [2, 2, "<id> <mode{channels,roles,both}>"],
+    requirements: InServer,
     func: cloneServer
 };
 export default command;

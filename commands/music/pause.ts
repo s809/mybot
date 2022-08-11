@@ -4,14 +4,8 @@ import { Command } from "../../modules/commands/definitions";
 import { InVoiceWithBot } from "../../modules/commands/requirements";
 import { Translator } from "../../modules/misc/Translator";
 
-async function pause(msg: Message) {
-    let translator = Translator.get(msg);
-
-    if (!msg.member?.voice.channel)
-        return translator.translate("errors.not_in_any_voice");
-
-    if (msg.member.voice.channelId !== msg.guild.members.me.voice.channelId)
-        return translator.translate("errors.not_in_specific_voice", msg.guild.members.me.voice.channel.toString());
+async function pause(msg: Message<true>) {
+    let translator = Translator.getOrDefault(msg)!;
 
     let player = musicPlayingGuilds.get(msg.guild);
     if (!player)

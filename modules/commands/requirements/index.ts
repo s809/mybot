@@ -121,17 +121,17 @@ export function isCommandOverridden(msg: Message, command: Command): boolean {
     const allowedCommands = [
         // Global user
         ...data.users[msg.author.id].allowedCommands,
-        ...(msg.member
+        ...(msg.inGuild()
             ? [
                 // Server roles
-                ...msg.member.roles.cache.map(role => data.guilds[msg.guildId!].roles[role.id].allowedCommands).flat(),
+                ...msg.member!.roles.cache.map(role => data.guilds[msg.guildId].roles[role.id].allowedCommands).flat(),
                 // Server member
-                ...data.guilds[msg.guildId!].members[msg.author.id].allowedCommands
+                ...data.guilds[msg.guildId].members[msg.author.id].allowedCommands
             ]
             : [])
     ];
 
-    return allowedCommands.some(path => command.path.startsWith(path));
+    return allowedCommands.some(path => command.path!.startsWith(path));
 }
 
 /**

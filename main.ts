@@ -14,7 +14,7 @@ import { loadCommands } from "./modules/commands";
     
     await import("./handlers");
     await client.login(token);
-    await client.application.fetch();
+    await client.application!.fetch();
 
     process.on("uncaughtException", async (e, origin) => {
         if (["write EPIPE", "write EOF"].includes(e.message)) {

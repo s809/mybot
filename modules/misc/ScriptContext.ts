@@ -16,7 +16,7 @@ export class ScriptContext {
     } = {};
     private alive: boolean = true;
 
-    private _proxiedClient: Client;
+    private _proxiedClient?: Client;
 
     private static _store: Map<string, ScriptContext> = new Map();
 
@@ -149,19 +149,19 @@ export class ScriptContext {
         this._timeouts.delete(id);
     }
 
-    private on<K extends keyof typeof this._events>(event: K, callback: typeof this._events[K][0]) {
+    private on<K extends keyof typeof this._events>(event: K, callback: Exclude<typeof this._events[K], undefined>) {
         if (!this.alive) return;
 
-        this._client.addListener(event, callback);
+        this._client.addListener(event, callback as any);
         
         this._events[event] ??= [];
-        this._events[event].push(callback as any);
+        this._events[event]!.push(callback as any);
     }
 
-    private off<K extends keyof typeof this._events>(event: K, callback: typeof this._events[K][0]) {
-        this._client.removeListener(event, callback);
+    private off<K extends keyof typeof this._events>(event: K, callback: Exclude<typeof this._events[K], undefined>) {
+        this._client.removeListener(event, callback as any);
 
-        this._events[event]?.splice(this._events[event].indexOf(callback as any), 1);
+        this._events[event]?.splice(this._events[event]!.indexOf(callback as any), 1);
         if (this._events[event]?.length === 0)
             delete this._events[event];
     }

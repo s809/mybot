@@ -1,7 +1,7 @@
 import { Guild, GuildResolvable, Message, Snowflake } from "discord.js";
 import { readdirSync, readFileSync } from "fs";
 import { get } from "lodash-es";
-import { data } from "../../env";
+import { client, data } from "../../env";
 import { formatString } from "../../util";
 
 export class Translator {
@@ -20,10 +20,7 @@ export class Translator {
     }
 
     /**
-     * Returns a translator by language name or given context.
-     * 
-     * @param nameOrContext Message or name to use.
-     * @returns
+     * @see Translator.getOrDefault
      */
     static get(nameOrContext: string | Message | GuildResolvable): Translator | null {
         let language: string;
@@ -32,13 +29,25 @@ export class Translator {
             language = nameOrContext;
         } else if (nameOrContext instanceof Guild) {
             language = data.guilds[nameOrContext.id].language
+        } else if (nameOrContext.guild) {
+            language = data.guilds[nameOrContext.guild.id].language;
+        } else if (nameOrContext instanceof Message) {
+            language = data.users[nameOrContext.author.id].language;
         } else {
-            language = (nameOrContext instanceof Message && nameOrContext.guild) || !(nameOrContext instanceof Message)
-                ? data.guilds[nameOrContext.guild.id].language
-                : data.users[nameOrContext.author.id].language;
+            throw new Error("Invalid context type.");
         }
 
         return Translator.translators.get(language) ?? null;
+    }
+
+    /**
+     * Returns a translator by language name or given context.
+     * 
+     * @param nameOrContext Message or name to use.
+     * @returns
+     */
+    static getOrDefault(nameOrContext: string | Message | GuildResolvable): Translator {
+        return Translator.get(nameOrContext) ?? Translator.translators.get("en")!;
     }
 
     /**

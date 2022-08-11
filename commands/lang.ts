@@ -4,15 +4,15 @@ import { Command } from "../modules/commands/definitions";
 import { Translator } from "../modules/misc/Translator";
 
 function lang(msg: Message, newLang: string) {
-    let translator = Translator.get(msg);
+    let translator = Translator.getOrDefault(msg);
 
-    if (msg.guild && !msg.member.permissions.has("ManageGuild"))
+    if (msg.member && !msg.member.permissions.has("ManageGuild"))
         return translator.translate("errors.cannot_manage_language");
 
-    if (!Translator.get(newLang))
+    if (!Translator.getOrDefault(newLang))
         return translator.translate("errors.invalid_language");
 
-    if (msg.guild)
+    if (msg.guildId)
         data.guilds[msg.guildId].language = newLang;
     else
         data.users[msg.author.id].language = newLang;

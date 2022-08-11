@@ -25,10 +25,10 @@ function getUptimeStr(diff: number, translator: Translator) {
 }
 
 async function uptime(msg: Message) {
-    let bot = new Date(client.uptime);
+    let bot = new Date(client.uptime!);
     let host = new Date(os.uptime() * 1000);
 
-    let translator = Translator.get(msg);
+    let translator = Translator.getOrDefault(msg);
     await msg.channel.send({
         embeds: [{
             title: translator.translate("embeds.bot_uptime.title"),

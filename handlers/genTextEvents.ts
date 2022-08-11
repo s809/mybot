@@ -4,7 +4,7 @@ import { validateContext, makeGenSample } from "../modules/messages/genText";
 
 // Collect words from messages
 client.on("messageCreate", msg => {
-    if (!msg.guild) return;
+    if (!msg.guildId) return;
     if (msg.author.bot || msg.webhookId) return;
 
     let channelData = data.guilds[msg.guildId].channels[msg.channelId];
@@ -16,14 +16,14 @@ client.on("messageCreate", msg => {
     for (let i = 0; i < words.length - 1; i++) {
         let word = words[i];
         let nextWord = words[i + 1];
-        let genCounters = channelData.genCounters;
+        let genCounters = channelData.genCounters!;
         genCounters[word] ??= 0;
 
         if (typeof genCounters[word] !== "number")
             continue;
 
-        channelData.genData[word] ??= {};
-        let wordData = channelData.genData[word];
+        channelData.genData![word] ??= {};
+        let wordData = channelData.genData![word];
 
         if (nextWord === "__genEnd" && Object.getOwnPropertyNames(wordData).includes("__genEnd"))
             continue;
@@ -42,12 +42,12 @@ client.on("messageCreate", msg => {
 
 // Message generation
 client.on("messageCreate", async msg => {
-    if (!msg.guild) return;
+    if (!msg.inGuild()) return;
     if (msg.author.bot || msg.webhookId) return;
     if (!validateContext(msg)) return;
-    if (!hasFlag((await resolveFlaggableItem(msg, msg.channel.id)).dataEntry, "genText")) return;
+    if (!hasFlag((await resolveFlaggableItem(msg, msg.channel.id))!.dataEntry, "genText")) return;
 
-    let genData = data.guilds[msg.guildId].channels[msg.channelId].genData;
+    let genData = data.guilds[msg.guildId].channels[msg.channelId].genData!;
     let text = "";
     for (let i = 0; i < 10; i++) {
         let newText = makeGenSample(genData);

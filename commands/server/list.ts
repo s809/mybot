@@ -6,7 +6,7 @@ async function getOwnedServers(msg: Message) {
     let result = "";
 
     for (let guild of client.guilds.cache.values()) {
-        if (guild.ownerId !== client.user.id) continue;
+        if (guild.ownerId !== client.user!.id) continue;
 
         let channel = [...guild.channels.cache.values()].find(channel => channel instanceof TextChannel) as TextChannel;
         let invite = await channel.createInvite();

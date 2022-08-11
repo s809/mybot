@@ -2,7 +2,7 @@ import { Message } from "discord.js";
 import { Command } from "../../../modules/commands/definitions";
 import { iterateMessages } from "../../../modules/messages/iterateMessages";
 
-async function test(msg: Message) {
+async function test(msg: Message<true>) {
     const channel = await msg.guild.channels.create({
         name: "iterate-messages"
     });
@@ -11,7 +11,7 @@ async function test(msg: Message) {
     for (let i = 1; i <= 5; i++)
         messages.push(await channel.send(i.toString()));
     
-    const doTest = async (title: string, reference: string, iterable: AsyncGenerator<Message<boolean>, void, unknown>) => {
+    const doTest = async (title: string, reference: string, iterable: AsyncGenerator<Message, void, unknown>) => {
         let result = await msg.channel.send(`--- ${title} ---\nReference: ${reference}\nResult: `);
         for await (const message of iterable)
             result = await result.edit(result.content + " " + message.content);

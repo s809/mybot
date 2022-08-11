@@ -23,10 +23,10 @@ export async function fetchVideoOrPlaylist(urlOrQuery: string) {
     }[] = JSON.parse(`[${stdout.replaceAll("\n{", ",\n{")}]`);
 
     return json.map(item => ({
-        url: item.webpage_url ?? item.url,
-        title: item.title,
-        uploader: item.uploader,
-        duration: item.duration
+        url: item.webpage_url ?? item.url!,
+        title: item.title ?? null,
+        uploader: item.uploader ?? null,
+        duration: item.duration ?? null
     }));
 }
 
@@ -53,8 +53,8 @@ export async function fetchVideoByUrl(url: string) {
     return {
         url: url,
         title: json.title,
-        uploader: json.uploader,
-        duration: json.duration
+        uploader: json.uploader ?? null,
+        duration: json.duration ?? null
     };
 }
 

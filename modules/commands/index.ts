@@ -12,7 +12,7 @@ import { CommandRequirement } from "./requirements";
 
 var commands: Map<string, Command>;
 
-function prepareSubcommands(list: Map<string, Command>, inheritedOptions?: any) {
+function prepareSubcommands(list?: Map<string, Command>, inheritedOptions?: any) {
     if (!list) return;
 
     for (let command of list.values()) {
@@ -65,9 +65,9 @@ export function resolveCommand(path: string | string[], allowPartialResolve: boo
         path = path.split("/");
 
     let command;
-    let list = commands;
+    let list: Map<string, Command> | undefined = commands;
     do {
-        let found = list.get(path[0]);
+        let found: Command | undefined = list.get(path[0]);
         if (!found) break;
 
         command = found;
@@ -121,5 +121,5 @@ export function* iterateCommands() {
  * @returns Usage string of a command.
  */
 export function toUsageString(msg: Message, command: Command) {
-    return `${getPrefix(msg.guildId)}${command.path.replaceAll("/", " ")} ${command.args?.[2] ?? ""}`
+    return `${getPrefix(msg.guildId)}${command.path!.replaceAll("/", " ")} ${command.args?.[2] ?? ""}`
 }

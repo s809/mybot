@@ -1,15 +1,13 @@
 import { Translator } from "../modules/misc/Translator";
-import { GuildChannel, Message, PermissionFlagsBits } from "discord.js";
+import { GuildTextBasedChannel, Message, PermissionFlagsBits } from "discord.js";
 import { Command } from "../modules/commands/definitions";
 import { iterateMessagesChunked } from "../modules/messages/iterateMessages";
 import { ServerPermissions } from "../modules/commands/requirements";
 
-async function deleteRange(msg: Message, start: string, end: string) {
-    const translator = Translator.get(msg);
+async function deleteRange(msg: Message<true>, start: string, end: string) {
+    const translator = Translator.getOrDefault(msg);
 
-    if (!(msg.channel instanceof GuildChannel))
-        return translator.translate("errors.not_in_server");
-    if (!msg.channel.permissionsFor(msg.guild.members.me).has(PermissionFlagsBits.ManageMessages))
+    if (!(msg.channel as GuildTextBasedChannel).permissionsFor(msg.guild.members.me!).has(PermissionFlagsBits.ManageMessages))
         return translator.translate("errors.cannot_manage_messages");
 
     try {
@@ -21,7 +19,7 @@ async function deleteRange(msg: Message, start: string, end: string) {
 
     try {
         for await (let chunk of iterateMessagesChunked(msg.channel, start, end)) {
-            const bulkDeleted = await msg.channel.bulkDelete(chunk, true);
+            const bulkDeleted = await (msg.channel as GuildTextBasedChannel).bulkDelete(chunk, true);
             
             for (let message of chunk.filter(message => !bulkDeleted.has(message.id)))
                 await message.delete();

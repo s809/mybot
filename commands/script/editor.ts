@@ -10,7 +10,7 @@ import { ScriptContext } from "../../modules/misc/ScriptContext";
 async function scriptEditor(msg: Message) {
     let type = Object.keys(data.scripts)[0];
     let name = Object.keys(data.scripts[type])[0];
-    let context: ScriptContext;
+    let context: ScriptContext | null;
 
     let getNameOptions = () => {
         let options = Object.keys(data.scripts[type]).map(key => ({
@@ -100,7 +100,7 @@ async function scriptEditor(msg: Message) {
         data.scripts[type][newName] = interaction.fields.getTextInputValue("content");
         if (!createNew && newName !== name) {
             delete data.scripts[type][name];
-            context.rename(`${type}/${newName}`);
+            context?.rename(`${type}/${newName}`);
         }
         name = newName;
 
@@ -200,7 +200,7 @@ async function scriptEditor(msg: Message) {
                     }
                     break;
                 case "stop":
-                    context.destroy();
+                    context!.destroy();
 
                     await interaction.update(getOptions());
                     break;

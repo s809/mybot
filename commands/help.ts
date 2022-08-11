@@ -10,7 +10,7 @@ import { Translator } from "../modules/misc/Translator";
 import { capitalizeWords } from "../util";
 
 async function help(msg: Message) {
-    let translator = Translator.get(msg);
+    let translator = Translator.getOrDefault(msg);
 
     const filterCommands = (list: Command[]) =>
         list.filter(command => !checkRequirementsBeforeRunning(msg, command)?.hideCommand);
@@ -57,7 +57,7 @@ async function help(msg: Message) {
     };
     pushToChain(filterCommands(getRootCommands()));
 
-    const makeOptions = (command: Command) => {
+    const makeOptions = (command: Command | null) => {
         let embed;
 
         if (!command) {
@@ -67,7 +67,7 @@ async function help(msg: Message) {
             };
         } else {
             let codeBlock = `\`\`\`\n${toUsageString(msg, command)}\`\`\`\n`;
-            let description = `${translator.tryTranslate("command_descriptions." + command.path.replaceAll("/", "_")) ?? translator.translate("embeds.help.no_description")}`;
+            let description = `${translator.tryTranslate("command_descriptions." + command.path!.replaceAll("/", "_")) ?? translator.translate("embeds.help.no_description")}`;
             let requiredPermissions = Array.isArray(command.requirements)
                 ? command.requirements.filter(x => !x.hideInDescription).map(x => x.name).join(", ")
                 : command.requirements?.name;
@@ -107,12 +107,12 @@ async function help(msg: Message) {
             return;
         }
 
-        let pos = levelNameToPosition.get(interaction.customId);
+        let pos = levelNameToPosition.get(interaction.customId)!;
         if (pos < chain.length - 1)
             popFromChain(pos);
 
         let entry = chain[pos];
-        let command = entry.commands.get(interaction.values[0]);
+        let command = entry.commands.get(interaction.values[0])!;
         let subcommands = command.subcommands;
         if (subcommands) {
             let filtered = filterCommands([...subcommands.values()])

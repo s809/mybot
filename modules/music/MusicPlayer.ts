@@ -14,28 +14,28 @@ import { once } from "events";
 
 export class MusicPlayer {
     /** Current voice connection. */
-    private connection: VoiceConnection;
+    private connection!: VoiceConnection;
     /** Current voice channel. */
     private voiceChannel: VoiceBasedChannel;
 
     /** Current audio player. */
-    private player: AudioPlayer;
+    private player: AudioPlayer | null = null;
     /** Current audio resource. */
-    private resource: AudioResource;
+    private resource: AudioResource | null = null;
     /** Underlying audio stream. */
-    private readable: Readable;
+    private readable: Readable | null = null;
 
     /** Queue object. */
     readonly queue: MusicPlayerQueue;
     /** Current entry. */
-    private currentVideo: MusicPlayerQueueEntry;
+    private currentVideo: MusicPlayerQueueEntry | null = null;
 
     /** Status message. */
-    private statusMessage: AlwaysLastMessage;
+    private statusMessage!: AlwaysLastMessage;
     /** Translator of this entry. */
     private translator: Translator;
     /** Custom text. */
-    private text: string;
+    private text: string | null = null;
 
     constructor(voiceChannel: VoiceBasedChannel, initialEntries: MusicPlayerQueueEntry[], translator: Translator) {
         this.voiceChannel = voiceChannel;
@@ -75,20 +75,20 @@ export class MusicPlayer {
                 description: (this.currentVideo
                     ? this.translator.translate("embeds.music.now_playing", currentTitleStr, currentDurationStr)
                     : "")
-                    + queueData.text || null,
-                footer: {
-                    text: this.queue.entries.length
-                        ? this.translator.translate("embeds.music.queue_summary",
-                            this.queue.entries.length.toString(),
-                            queueData.formattedDuration)
-                        + (remainingToLoad
-                            ? this.translator.translate("embeds.music.load_remaining", remainingToLoad.toString())
-                            : "")
-                        + (this.queue.hadErrors
-                            ? this.translator.translate("embeds.music.some_removed")
-                            : "")
-                        : null
-                }
+                    + queueData.text || undefined,
+                footer: this.queue.entries.length
+                    ? {
+                        text: this.translator.translate("embeds.music.queue_summary",
+                                this.queue.entries.length.toString(),
+                                queueData.formattedDuration)
+                            + (remainingToLoad
+                                ? this.translator.translate("embeds.music.load_remaining", remainingToLoad.toString())
+                                : "")
+                            + (this.queue.hadErrors
+                                ? this.translator.translate("embeds.music.some_removed")
+                                : "")
+                    }
+                    : undefined
             }]
         };
 
@@ -173,7 +173,7 @@ export class MusicPlayer {
 
                 try {
                     if (this.voiceChannel.type === ChannelType.GuildStageVoice)
-                        await this.voiceChannel.guild.members.me.voice.setSuppressed(false);
+                        await this.voiceChannel.guild.members.me!.voice.setSuppressed(false);
                 }
                 catch (e) {
                     return this.translator.translate("errors.cannot_become_speaker");

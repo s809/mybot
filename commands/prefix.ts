@@ -5,9 +5,9 @@ import { ServerPermissions } from "../modules/commands/requirements";
 import { Translator } from "../modules/misc/Translator";
 
 function prefix(msg: Message, newPrefix: string) {
-    let translator = Translator.get(msg);
+    let translator = Translator.getOrDefault(msg);
 
-    if (!msg.guild)
+    if (!msg.guildId)
         return translator.translate("errors.not_in_server");
 
     data.guilds[msg.guildId].prefix = newPrefix;

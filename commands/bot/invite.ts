@@ -6,7 +6,7 @@ import { Translator } from "../../modules/misc/Translator";
 async function botInvite(msg: Message) {
     await msg.channel.send({
         embeds: [{
-            title: Translator.get(msg).translate("embeds.bot_invite.title"),
+            title: Translator.getOrDefault(msg)!.translate("embeds.bot_invite.title"),
             description: client.generateInvite({
                 scopes: [OAuth2Scopes.Bot],
                 permissions: Object.values(PermissionFlagsBits)

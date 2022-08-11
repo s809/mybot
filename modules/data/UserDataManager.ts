@@ -29,7 +29,7 @@ type UserDataList<List extends UserDataSchemaList> = {
 };
 
 type UserDataObject<Node extends UserDataSchemaNode> = keyof Node["fileType"] extends undefined
-    ? UserDataList<Node["children"]>
+    ? UserDataList<Exclude<Node["children"], undefined>>
     : Node["fileType"] extends "string"
     ? Record<string, string>
     : Record<string, Node["object"] extends object ? Node["object"] : any>;
@@ -121,7 +121,7 @@ export class UserDataManager<Schema extends UserDataSchemaList> {
                 let filepath = `${path}${name.toString()}.txt`;
 
                 if (this.cache.has(filepath)) {
-                    let data = this.cache.get(filepath);
+                    let data = this.cache.get(filepath)!;
                     data.deleteFlag = false;
                     return data.src;
                 }
@@ -218,13 +218,13 @@ export class UserDataManager<Schema extends UserDataSchemaList> {
 
                 // If object is cached, return it and update flag
                 if (this.cache.has(filepath)) {
-                    let item = this.cache.get(filepath);
+                    let item = this.cache.get(filepath)!;
                     item.deleteFlag = false;
 
                     let proxy = item.accessor?.deref();
                     if (proxy === undefined) {
                         proxy = createProxy(item.src, item);
-                        item.accessor = new WeakRef(proxy);
+                        item.accessor = new WeakRef(proxy as any);
                     }
 
                     return proxy;

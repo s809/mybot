@@ -4,10 +4,10 @@ import { Command } from "../../modules/commands/definitions";
 import { cleanTrackedGuild } from "../../modules/misc/inviteTracker";
 import { Translator } from "../../modules/misc/Translator";
 
-function disableInviteTracker(msg: Message) {
+function disableInviteTracker(msg: Message<true>) {
     let guildData = data.guilds[msg.guildId];
     if (!guildData.inviteTracker)
-        return Translator.get(msg).translate("errors.already_disabled");
+        return Translator.getOrDefault(msg).translate("errors.already_disabled");
 
     cleanTrackedGuild(msg.guildId);
 }

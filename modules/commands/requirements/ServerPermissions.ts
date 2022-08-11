@@ -27,10 +27,10 @@ function permissionsToString(raw: PermissionResolvable): string {
 export function ServerPermissions(permissions: PermissionResolvable): CommandRequirement {
     return {
         name: permissionsToString(permissions),
-        check: msg => msg.member.permissions.has(permissions),
+        check: msg => msg.member!.permissions.has(permissions),
         hideCommand: true,
-        satisfiedBy: [ServerOwner],
-        requires: [InServer],
+        satisfiedBy: ServerOwner,
+        requires: InServer,
         overridable: true
     }
 };

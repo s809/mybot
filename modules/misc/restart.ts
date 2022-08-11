@@ -7,7 +7,7 @@ export async function doRestart(callback?: () => Awaitable<void>) {
     if (!debug)
         await promisify(exec)("git pull && npm install");
     
-    await callback();
+    await callback?.();
 
     dataManager.saveDataSync();
     if (process.argv.includes("--started-by-script"))

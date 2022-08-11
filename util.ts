@@ -25,7 +25,7 @@ export function parseMention(text: string, prefix: string): string | null {
         return text;
 
     let regex = new RegExp(`^<${prefix}(\\d+)>$`)
-    return regex.test(text) ? text.match(regex)[1] : null;
+    return text.match(regex)?.[1] ?? null;
 }
 
 /**
@@ -151,3 +151,5 @@ export function formatString(text: string, ...args: string[]) {
 export function capitalizeWords(text: string) {
     return text.toLowerCase().replace(/(^\w|\s\w)/g, m => m.toUpperCase());
 }
+
+export type Overwrite<T, U> = Pick<T, Exclude<keyof T, keyof U>> & U;

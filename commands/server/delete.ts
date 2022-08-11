@@ -1,7 +1,7 @@
 import { Message } from "discord.js";
 import { Command } from "../../modules/commands/definitions";
 
-async function deleteServer(msg: Message) {
+async function deleteServer(msg: Message<true>) {
     await msg.guild.delete();
 }
 

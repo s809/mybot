@@ -5,7 +5,7 @@ import { Command } from "../../modules/commands/definitions";
 async function createServer(msg: Message) {
     let guild = await client.guilds.create({
         name: "Test Server",
-        icon: client.user.displayAvatarURL(),
+        icon: client.user!.displayAvatarURL(),
         defaultMessageNotifications: GuildDefaultMessageNotifications.OnlyMentions,
         channels: [{
             name: "general"

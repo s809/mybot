@@ -6,7 +6,7 @@ import { wrapText } from "./util";
 
 const wrappedMessageMaxLength = 2000 - 7;
 
-let lastMessage: Message;
+let lastMessage: Message | null;
 let lineQueue: string[] = [];
 let pendingEdit = false;
 
@@ -21,14 +21,16 @@ async function sendMessage(message: string, ping = false) {
 
     const sendFunction = async (message: string, ping = false) => {
         try {
-            const userOrTeam = client.application.owner;
-            const user = userOrTeam instanceof Team ? userOrTeam.owner.user : userOrTeam;
+            const userOrTeam = client.application!.owner;
+            const user = userOrTeam instanceof Team ? userOrTeam.owner!.user : userOrTeam;
 
             const channel = <TextBasedChannel>client.channels.resolve(logChannel);
             return (channel ?? user).send(ping
-                ? `${user.toString()}\n${message}`
+                ? `${user!.toString()}\n${message}`
                 : ("```\n" + message + "```"));
-        } catch { /* Do nothing */ }
+        } catch { 
+            return null;
+        }
     };
 
     if (ping) {
@@ -72,10 +74,10 @@ export function log(...args: any[]) {
     sendMessage("I: " + argsToString(args));
 }
 
-export function logError(e: Error, origin: NodeJS.UncaughtExceptionOrigin = null) {
+export function logError(e: Error, origin: NodeJS.UncaughtExceptionOrigin | null = null) {
     console.error(e);
     if (origin)
-        sendMessage(wrapText(origin, e.stack), true);
+        sendMessage(wrapText(origin, e.stack!), true);
     else
         sendMessage("E: " + e.stack);
 }

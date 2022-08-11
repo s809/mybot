@@ -34,7 +34,7 @@ function prepareChangelog() {
                 .slice(1);
 
             if (!hardVersion.match(/\d(\.\d)+/))
-                hardVersion = undefined;
+                hardVersion = "";
         }
         catch {
             hardVersion = "";
@@ -80,7 +80,7 @@ async function changelog(msg: Discord.Message) {
     await sendLongText(msg.channel, logstr, {
         code: null,
         embed: new EmbedBuilder({
-            title: Translator.get(msg).translate("embeds.bot_changelog.title")
+            title: Translator.getOrDefault(msg)!.translate("embeds.bot_changelog.title")
         })
     });
 }

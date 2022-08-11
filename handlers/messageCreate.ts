@@ -22,14 +22,14 @@ client.on("messageCreate", async msg => {
         if (hasFlag(data.users[msg.author.id], "banned")) return;
 
         // Guild ban
-        if (msg.guild)
+        if (msg.guildId)
             if (hasFlag(data.guilds[msg.guildId], "banned")) return;
     }
 
     const prefix = getPrefix(msg.guildId);
     if (!msg.content.startsWith(prefix)) return;
 
-    let args = msg.content.slice(prefix.length).match(/[^"\s]+|"(?:\\"|[^"])+"/g);
+    let args = msg.content.slice(prefix.length).match(/[^"\s]+|"(?:\\"|[^"])+"/g) ?? [];
     for (let [i, str] of args.entries()) {
         if (str.match(/^".*"$/))
             str = str.slice(1, -1);
@@ -52,7 +52,7 @@ client.on("messageCreate", async msg => {
     let minArgs = command.args?.[0] ?? 0;
     let maxArgs = command.args?.[1] ?? 0;
     if (args.length < minArgs || args.length > maxArgs) {
-        let translator = Translator.get(msg);
+        let translator = Translator.getOrDefault(msg);
         let errorStr = args.length < minArgs
             ? translator.translate("errors.too_few_arguments")
             : translator.translate("errors.too_many_arguments");

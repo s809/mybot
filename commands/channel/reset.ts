@@ -3,7 +3,7 @@ import { Command } from "../../modules/commands/definitions";
 import { Translator } from "../../modules/misc/Translator";
 
 async function resetChannel(msg: Message) {
-    let translator = Translator.get(msg);
+    let translator = Translator.getOrDefault(msg);
 
     if (!(msg.channel instanceof GuildChannel))
         return translator.translate("errors.not_in_server");

@@ -8,5 +8,7 @@ import { data, defaultPrefix } from "../../env";
  * @returns Retrieved prefix, or default if guild was not specified.
  */
 export function getPrefix(guildId: Snowflake | null): string {
-    return data.guilds[guildId]?.prefix ?? defaultPrefix;
+    return guildId
+        ? data.guilds[guildId].prefix
+        : defaultPrefix;
 }

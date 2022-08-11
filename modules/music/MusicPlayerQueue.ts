@@ -5,9 +5,9 @@ import { fetchVideoByUrl } from "./youtubeDl";
 
 export interface MusicPlayerQueueEntry {
     url: string;
-    title: string;
-    uploader: string;
-    duration: number;
+    title: string | null;
+    uploader: string | null;
+    duration: number | null;
 }
 
 export interface MusicPlayerQueue {
@@ -50,7 +50,7 @@ export class MusicPlayerQueue extends EventEmitter {
 
     splice(start: number, deleteCount?: number, ...items: MusicPlayerQueueEntry[]) {
         this.modified = true;
-        return this._entries.splice(start, deleteCount, ...items);
+        return this._entries.splice(start, deleteCount!, ...items);
     }
 
     getQueueData(translator: Translator) {

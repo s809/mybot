@@ -5,10 +5,10 @@ import { FlagData, TextGenData } from "../../modules/data/models";
 import { Translator } from "../../modules/misc/Translator";
 
 async function disableTextGen(msg: Message) {
-    const item = <FlagData & TextGenData>(await resolveFlaggableItem(msg, msg.channel.id)).dataEntry;
+    const item = <FlagData & TextGenData>(await resolveFlaggableItem(msg, msg.channel.id))!.dataEntry;
 
     if (!hasFlag(item, "genText"))
-        return Translator.get(msg).translate("errors.already_disabled");
+        return Translator.getOrDefault(msg).translate("errors.already_disabled");
     
     removeFlag(item, "genText");
     delete item.genCounters;

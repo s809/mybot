@@ -10,7 +10,7 @@ import { Command } from "../../modules/commands/definitions";
 import { BotOwner } from "../../modules/commands/requirements";
 
 async function scanChannel(msg: Message, mode: string, fromChannelStr: string) {
-    let translator = Translator.get(msg);
+    let translator = Translator.getOrDefault(msg);
 
     const inviteLink = /(https?:\/\/)?(www.)?(discord.(gg|io|me|li)|discordapp.com\/invite)\/[^\s/]+?(?=\b)/g;
     const getWeekNumber = (d: Date) => {
@@ -29,15 +29,19 @@ async function scanChannel(msg: Message, mode: string, fromChannelStr: string) {
         return translator.translate("errors.mode_not_defined");
 
     let fromChannel;
-    if (fromChannelStr)
-        fromChannel = await client.channels.fetch(parseChannelMention(fromChannelStr));
-    else
+    if (fromChannelStr) {
+        const mention = parseChannelMention(fromChannelStr);
+        if (!mention)
+            return translator.translate("errors.channel_not_found");
+        fromChannel = await client.channels.fetch(mention);
+    } else {
         fromChannel = msg.channel;
+    }
     
     if (!(fromChannel instanceof TextChannel))
         return translator.translate("errors.non_text_channel");
 
-    if (!(fromChannel.permissionsFor(client.user).has(["ViewChannel", "ReadMessageHistory"])))
+    if (!(fromChannel.permissionsFor(client.user!)?.has(["ViewChannel", "ReadMessageHistory"])))
         return translator.translate("errors.cannot_read_channel");
 
     let authors: Map<string, User> = new Map();
@@ -73,20 +77,18 @@ async function scanChannel(msg: Message, mode: string, fromChannelStr: string) {
 
         Array.from(message.content.matchAll(inviteLink), x => x[0]).forEach(x => invites.add(x));
 
-        if (!userMessages.has(author)) {
-            userMessages.set(author, {
-                first: message,
-                last: undefined,
-                dailyCount: new Map()
-            });
-        }
-
         let entry = userMessages.get(author);
+        if (!entry) {
+            entry = {
+                first: message,
+                last: message,
+                dailyCount: new Map()
+            };
+            userMessages.set(author, entry);
+        }
         entry.last = message;
 
-        if (!entry.dailyCount.get(date))
-            entry.dailyCount.set(date, 0);
-        entry.dailyCount.set(date, entry.dailyCount.get(date) + 1);
+        entry.dailyCount.set(date, (entry.dailyCount.get(date) ?? 0) + 1);
 
         totalLength++;
         if (!(totalLength % 100)) {
@@ -120,7 +122,7 @@ async function scanChannel(msg: Message, mode: string, fromChannelStr: string) {
 
         for (let invite of invites) {
             try {
-                let guildName = (await client.fetchInvite(invite)).guild.name;
+                let guildName = (await client.fetchInvite(invite)).guild?.name;
                 result += `${invite} (${guildName})\n`;
                 aliveInviteCount++;
             }
@@ -145,17 +147,17 @@ async function scanChannel(msg: Message, mode: string, fromChannelStr: string) {
         let sendAndClean = async () => {
             await msg.channel.send({
                 embeds: embeds,
-                files: files.map((x, i) => (x ? {
+                files: files.filter(x => x).map((x, i) => ({
                     name: `statistics${i + 1}.txt`,
                     attachment: Buffer.from(x, "utf8")
-                } : null)).filter(x => x)
+                }))
             });
             embeds = [];
             files = [];
         };
 
         for (let entry of userMessages.entries()) {
-            let author = authors.get(entry[0]);
+            let author = authors.get(entry[0])!;
             let data = entry[1];
 
             let result = "";

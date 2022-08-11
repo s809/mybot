@@ -1,13 +1,14 @@
+import assert from "assert";
 import { Message } from "discord.js";
 import { client, data, isBotOwner } from "../../env";
 import { resolveCommand } from "../../modules/commands";
 import { Command } from "../../modules/commands/definitions";
 import { importCommands } from "../../modules/commands/importHelper";
-import { isCommandAllowedToManage } from "../../modules/commands/requirements";
+import { InServer, isCommandAllowedToManage } from "../../modules/commands/requirements";
 import { Translator } from "../../modules/misc/Translator";
 
-async function permission(msg: Message, id: string, commandPath: string) {
-    let translator = Translator.get(msg);
+async function permission(msg: Message<true>, id: string, commandPath: string) {
+    let translator = Translator.getOrDefault(msg);
 
     let command = resolveCommand(commandPath);
     if (!command)
@@ -23,8 +24,11 @@ async function permission(msg: Message, id: string, commandPath: string) {
                 resolvedType = "role";
             else if (await msg.guild.members.fetch(id))
                 resolvedType = "member";
-        } else if (await client.users.fetch(id))
+        } else if (await client.users.fetch(id)) {
             resolvedType = "user";
+        }
+
+        assert(resolvedType!);
     }
     catch (e) {
         return translator.translate("errors.invalid_id");
@@ -58,6 +62,7 @@ async function permission(msg: Message, id: string, commandPath: string) {
 const command: Command = {
     name: "permission",
     args: [2, 2, "<id> <permission>"],
+    requirements: InServer,
     func: permission,
     subcommands: await importCommands(import.meta.url)
 };

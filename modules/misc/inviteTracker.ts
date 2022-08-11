@@ -28,7 +28,7 @@ export async function tryInitTrackedGuild(guild: Guild) {
         for (let [code, invite] of await guild.invites.fetch())
             map.set(code, invite.uses);
 
-        await channel.send(Translator.get(guild).translate("embeds.invitetracker.tracking_started", map.size.toString()));
+        await channel!.send(Translator.getOrDefault(guild).translate("embeds.invitetracker.tracking_started", map.size.toString()));
         return true;
     }
     catch (e) {

@@ -10,7 +10,7 @@ import { Command } from "../../modules/commands/definitions";
 import { MusicPlayerQueueEntry } from "../../modules/music/MusicPlayerQueue";
 
 async function play(msg: Message, url: string, startPositionStr: string) {
-    let translator = Translator.get(msg);
+    let translator = Translator.getOrDefault(msg);
 
     if (url?.match(/(\\|'|")/))
         return translator.translate("errors.invalid_url");
@@ -21,15 +21,13 @@ async function play(msg: Message, url: string, startPositionStr: string) {
 
     let player = musicPlayingGuilds.get(voiceChannel.guild);
     
-    if (player) {
-        if (msg.member.voice.channelId !== msg.guild.members.me.voice.channelId)
-            return translator.translate("errors.not_in_specific_voice", msg.guild.members.me.voice.channel.toString());
-
-        if (!url && player.resume()) return;
+    if (!url) {
+        if (player?.resume())
+            return;
+        else
+            return translator.translate("errors.no_url");
     }
-
-    if (!url)
-        return translator.translate("errors.no_url");
+        
 
     let videos: MusicPlayerQueueEntry[] = await fetchVideoOrPlaylist(url);
 

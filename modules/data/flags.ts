@@ -15,13 +15,13 @@ import { FlagData } from "./models";
 export async function resolveFlaggableItem(msg: Message, id: string): Promise<{
     item: GuildBasedChannel | Guild | User;
     dataEntry: FlagData;
-}> {
+} | null> {
     // Channel (current guild)
-    if (msg.guild) {
+    if (msg.inGuild()) {
         let channelData = data.guilds[msg.guildId].channels[id];
         if (channelData) {
             return {
-                item: msg.guild.channels.resolve(id),
+                item: msg.guild.channels.resolve(id)!,
                 dataEntry: channelData
             };
         }
@@ -34,7 +34,7 @@ export async function resolveFlaggableItem(msg: Message, id: string): Promise<{
         let channelData = data.guilds[ids[0]]?.channels[ids[1]];
         if (channelData) {
             return {
-                item: client.guilds.resolve(ids[0]).channels.resolve(ids[1]),
+                item: (await client.guilds.fetch(ids[0])).channels.resolve(ids[1])!,
                 dataEntry: channelData
             };
         }
@@ -45,7 +45,7 @@ export async function resolveFlaggableItem(msg: Message, id: string): Promise<{
         let guild = data.guilds[id];
         if (guild) {
             return {
-                item: client.guilds.resolve(id),
+                item: await client.guilds.fetch(id),
                 dataEntry: guild
             };
         }

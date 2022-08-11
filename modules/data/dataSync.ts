@@ -3,8 +3,10 @@ import { data, defaultPrefix } from "../../env";
 
 export function onChannelCreate(channel: GuildBasedChannel) {
     data.guilds[channel.guildId].channels[channel.id] = {
-        link: null,
-        flags: [],
+        ...{
+            link: null,
+            flags: [],
+        },
         ...data.guilds[channel.guildId].channels[channel.id]
     };
 }
@@ -19,7 +21,9 @@ export function onChannelRemove(channel: Channel | {
 
 export function onRoleCreate(role: Role) {
     data.guilds[role.guild.id].roles[role.id] = {
-        allowedCommands: [],
+        ...{
+            allowedCommands: []
+        },
         ...data.guilds[role.guild.id].roles[role.id]
     };
 }
@@ -35,9 +39,11 @@ export function onRoleRemove(role: Role | {
 
 export function createUser(user: User) {
     data.users[user.id] = {
-        allowedCommands: [],
-        flags: [],
-        language: "en",
+        ...{
+            allowedCommands: [],
+            flags: [],
+            language: "en"
+        },
         ...data.users[user.id]
     };
 }
@@ -46,7 +52,9 @@ export function onMemberCreate(member: GuildMember) {
     createUser(member.user);
 
     data.guilds[member.guild.id].members[member.id] = {
-        allowedCommands: [],
+        ...{
+            allowedCommands: []
+        },
         ...data.guilds[member.guild.id].members[member.id]
     };
 }
@@ -62,12 +70,14 @@ export function onMemberRemove(member: GuildMember | {
 
 export async function onGuildCreate(guild: Guild) {
     data.guilds[guild.id] = {
-        roles: {},
-        members: {},
-        channels: {},
-        flags: [],
-        prefix: defaultPrefix,
-        language: "en",
+        ...{
+            roles: {},
+            members: {},
+            channels: {},
+            flags: [],
+            prefix: defaultPrefix,
+            language: "en"
+        },
         ...data.guilds[guild.id]
     };
     let guildData = data.guilds[guild.id];

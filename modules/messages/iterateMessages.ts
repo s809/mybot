@@ -18,11 +18,11 @@ const maxFetchMessages = 100;
 async function* iterateMessagesFromTop(channel: TextBasedChannel, oldestId: Snowflake | null, latestId: Snowflake | null, count: number | null) {
     let firstMessageId = (BigInt(oldestId ?? "1") - 1n).toString();
 
-    for (let collectedCount = 0; collectedCount < count || count === null; collectedCount += maxFetchMessages) {
+    for (let collectedCount = 0; count === null || collectedCount < count; collectedCount += maxFetchMessages) {
         if (count === null)
             collectedCount = -maxFetchMessages;
 
-        let fetchCount = Math.min(count - collectedCount, maxFetchMessages);
+        let fetchCount = Math.min((count ?? 0) - collectedCount, maxFetchMessages);
 
         let messages = [...(await channel.messages.fetch({
             after: firstMessageId,
@@ -32,7 +32,7 @@ async function* iterateMessagesFromTop(channel: TextBasedChannel, oldestId: Snow
 
         firstMessageId = messages[0].id;
 
-        yield messages.reverse().filter(message => BigInt(message.id) <= BigInt(latestId ?? channel.lastMessageId));
+        yield messages.reverse().filter(message => BigInt(message.id) <= BigInt(latestId ?? channel.lastMessageId!));
 
         if (messages.length < maxFetchMessages) return;
     }
@@ -48,13 +48,13 @@ async function* iterateMessagesFromTop(channel: TextBasedChannel, oldestId: Snow
  * @yields Messages from a channel.
  */
 async function* iterateMessagesFromBottom(channel: TextBasedChannel, latestId: Snowflake | null, oldestId: Snowflake | null, count: number | null) {
-    let lastMessageId = (BigInt(latestId ?? channel.lastMessageId) + 1n).toString();
+    let lastMessageId = (BigInt(latestId ?? channel.lastMessageId!) + 1n).toString();
 
-    for (let collectedCount = 0; collectedCount < count || count === null; collectedCount += maxFetchMessages) {
+    for (let collectedCount = 0; count === null || collectedCount < count; collectedCount += maxFetchMessages) {
         if (count === null)
             collectedCount = -maxFetchMessages;
 
-        let fetchCount = Math.min(count - collectedCount, maxFetchMessages);
+        let fetchCount = Math.min((count ?? 0) - collectedCount, maxFetchMessages);
 
         let messages = [...(await channel.messages.fetch({
             before: lastMessageId,

@@ -3,17 +3,17 @@ import { Command } from "../../modules/commands/definitions";
 import { Translator } from "../../modules/misc/Translator";
 
 async function showEmoji(msg: Message, emojiOrName: string) {
-    let translator = Translator.get(msg);
+    let translator = Translator.getOrDefault(msg);
 
-    let emoji: APIEmoji | GuildEmoji = parseEmoji(emojiOrName);
-    if (!emoji.id)
-        emoji = (await msg.guild.emojis.fetch()).find(x => x.name === emojiOrName);
+    let emoji: APIEmoji | GuildEmoji | null = parseEmoji(emojiOrName);
+    if (!emoji?.id)
+        emoji = (await msg.guild?.emojis.fetch())?.find(x => x.name === emojiOrName) ?? null;
     if (!emoji)
         return translator.translate("errors.unknown_emoji");
 
     await msg.channel.send({
         embeds: [{
-            title: translator.translate(!emoji.animated ? "embeds.emoji_show.title_for_normal" : "embeds.emoji_show.title_for_animated", emoji.name),
+            title: translator.translate(!emoji.animated ? "embeds.emoji_show.title_for_normal" : "embeds.emoji_show.title_for_animated", emoji.name!),
             image: {
                 url: emoji instanceof GuildEmoji
                     ? emoji.url

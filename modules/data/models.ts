@@ -26,6 +26,6 @@ export interface InviteTrackerData {
 }
 
 export interface TextGenData {
-    genData: Record<string, Record<string, number>>;
-    genCounters: Record<string, number>;
+    genData?: Record<string, Record<string, number>>;
+    genCounters?: Record<string, number>;
 }

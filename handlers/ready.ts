@@ -4,7 +4,7 @@ import { botEval } from "../modules/misc/eval";
 import { log } from "../log";
 
 client.on("ready", async () => {
-    log(`Logged in as ${client.user.tag}.`);
+    log(`Logged in as ${client.user!.tag}.`);
 
     // Add new guilds
     for (let guild of client.guilds.cache.values())

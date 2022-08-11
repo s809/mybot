@@ -6,7 +6,8 @@
 
     "removeComments": true,
     "noImplicitAny": true,
-    //"strictNullChecks": true, // TODO enable when are going to rework the code
+    "strictNullChecks": true,
+    "strictPropertyInitialization": true,
 
     "outDir": "./build",
     "sourceMap": true,
