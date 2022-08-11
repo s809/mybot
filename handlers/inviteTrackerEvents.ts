@@ -12,7 +12,7 @@ client.on("inviteCreate", async invite => {
     if (!inviteTrackerData) return;
 
     storedInviteCounts.get(invite.guild!.id)!.set(invite.code, invite.uses!);
-    await channel!.send(Translator.getOrDefault(invite).translate("embeds.invitetracker.invite_created", invite.code, invite.inviter!.tag))
+    await channel!.send(Translator.getOrDefault(invite).translate("embeds.invitetracker.invite_created", invite.code, invite.inviter?.tag ?? "REPORT THIS"))
         .catch(() => cleanTrackedGuild(invite.guild!.id));
 });
 
