@@ -1,5 +1,5 @@
 import { Message } from "discord.js";
-import { Command } from "../../../modules/commands/definitions";
+import { CommandDefinition } from "../../../modules/commands/definitions";
 import { iterateMessages } from "../../../modules/messages/iterateMessages";
 
 async function test(msg: Message<true>) {
@@ -32,7 +32,7 @@ async function test(msg: Message<true>) {
     await channel.delete();
 }
 
-const command: Command = {
+const command: CommandDefinition = {
     name: "iteratemessages",
     func: test
 };

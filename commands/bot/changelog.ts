@@ -6,7 +6,7 @@ import sendLongText from "../../modules/messages/sendLongText";
 import Discord, { EmbedBuilder } from "discord.js";
 import { version as currentVersion, debug } from "../../env";
 import { Translator } from "../../modules/misc/Translator";
-import { Command } from "../../modules/commands/definitions";
+import { CommandDefinition } from "../../modules/commands/definitions";
 import { log } from "../../log";
 
 /**
@@ -85,7 +85,7 @@ async function changelog(msg: Discord.Message) {
     });
 }
 
-const command: Command = {
+const command: CommandDefinition = {
     name: "changelog",
     func: changelog,
 };

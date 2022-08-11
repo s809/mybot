@@ -1,11 +1,11 @@
 import { Message } from "discord.js";
-import { Command } from "../../modules/commands/definitions";
+import { CommandDefinition } from "../../modules/commands/definitions";
 
 async function deleteServer(msg: Message<true>) {
     await msg.guild.delete();
 }
 
-const command: Command = {
+const command: CommandDefinition = {
     name: "delete",
     func: deleteServer,
     alwaysReactOnSuccess: true

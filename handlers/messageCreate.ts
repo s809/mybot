@@ -49,8 +49,8 @@ client.on("messageCreate", async msg => {
 
     if (!command || !command.func) return;
 
-    let minArgs = command.args?.[0] ?? 0;
-    let maxArgs = command.args?.[1] ?? 0;
+    let minArgs = command.args[0];
+    let maxArgs = command.args[1];
     if (args.length < minArgs || args.length > maxArgs) {
         let translator = Translator.getOrDefault(msg);
         let errorStr = args.length < minArgs

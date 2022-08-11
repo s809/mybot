@@ -2,7 +2,7 @@
  * @file Restart command.
  */
 import { Message } from "discord.js";
-import { Command } from "../../modules/commands/definitions";
+import { CommandDefinition } from "../../modules/commands/definitions";
 import { doRestart } from "../../modules/misc/restart";
 
 async function restart(msg: Message) {
@@ -12,7 +12,7 @@ async function restart(msg: Message) {
     });
 }
 
-const command: Command = {
+const command: CommandDefinition = {
     name: "restart",
     func: restart
 };

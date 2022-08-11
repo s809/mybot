@@ -1,5 +1,5 @@
 import { GuildChannel, Message } from "discord.js";
-import { Command } from "../../modules/commands/definitions";
+import { CommandDefinition } from "../../modules/commands/definitions";
 import { Translator } from "../../modules/misc/Translator";
 
 async function resetChannel(msg: Message) {
@@ -17,7 +17,7 @@ async function resetChannel(msg: Message) {
     ]);
 }
 
-const command: Command = {
+const command: CommandDefinition = {
     name: "reset",
     func: resetChannel
 };

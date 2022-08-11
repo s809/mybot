@@ -1,5 +1,5 @@
 import { EmbedBuilder, Message } from "discord.js";
-import { Command } from "../../../modules/commands/definitions";
+import { CommandDefinition } from "../../../modules/commands/definitions";
 import sendLongText from "../../../modules/messages/sendLongText";
 
 async function test(msg: Message) {
@@ -12,7 +12,7 @@ async function test(msg: Message) {
     });
 }
 
-const command: Command = {
+const command: CommandDefinition = {
     name: "longtextembed",
     func: test
 };

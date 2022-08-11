@@ -6,7 +6,7 @@ import { fetchVideoOrPlaylist } from "../../modules/music/youtubeDl";
 import { Translator } from "../../modules/misc/Translator";
 import { MusicPlayer } from "../../modules/music/MusicPlayer";
 import { GuildTextBasedChannel, Message } from "discord.js";
-import { Command } from "../../modules/commands/definitions";
+import { CommandDefinition } from "../../modules/commands/definitions";
 import { MusicPlayerQueueEntry } from "../../modules/music/MusicPlayerQueue";
 
 async function play(msg: Message, url: string, startPositionStr: string) {
@@ -55,7 +55,7 @@ async function play(msg: Message, url: string, startPositionStr: string) {
     player.runPlayer(msg.channel as GuildTextBasedChannel);
 }
 
-const command: Command = {
+const command: CommandDefinition = {
     name: "play",
     args: [0, 2, "[url|\"query\"] [startPos (0-99)]"],
     func: play

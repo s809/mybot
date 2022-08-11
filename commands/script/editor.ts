@@ -2,7 +2,7 @@ import { ButtonBuilder, SelectMenuBuilder, TextInputBuilder } from "@discordjs/b
 import { ActionRowBuilder, ButtonInteraction, ButtonStyle, Formatters, Message, ModalSubmitInteraction, SelectMenuInteraction, TextInputStyle } from "discord.js";
 import { client, data } from "../../env";
 import { log } from "../../log";
-import { Command } from "../../modules/commands/definitions";
+import { CommandDefinition } from "../../modules/commands/definitions";
 import { botEval } from "../../modules/misc/eval";
 import { doRestart } from "../../modules/misc/restart";
 import { ScriptContext } from "../../modules/misc/ScriptContext";
@@ -239,7 +239,7 @@ async function scriptEditor(msg: Message) {
     client.on("messageCreate", event);
 }
 
-const command: Command = {
+const command: CommandDefinition = {
     name: "editor",
     func: scriptEditor
 };

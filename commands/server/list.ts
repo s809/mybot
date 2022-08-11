@@ -1,6 +1,6 @@
 import { Message, TextChannel } from "discord.js";
 import { client } from "../../env";
-import { Command } from "../../modules/commands/definitions";
+import { CommandDefinition } from "../../modules/commands/definitions";
 
 async function getOwnedServers(msg: Message) {
     let result = "";
@@ -17,7 +17,7 @@ async function getOwnedServers(msg: Message) {
         await msg.channel.send(result);
 }
 
-const command: Command = {
+const command: CommandDefinition = {
     name: "list",
     func: getOwnedServers,
     alwaysReactOnSuccess: true

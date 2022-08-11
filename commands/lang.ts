@@ -1,6 +1,6 @@
 import { Message } from "discord.js";
 import { data } from "../env";
-import { Command } from "../modules/commands/definitions";
+import { CommandDefinition } from "../modules/commands/definitions";
 import { Translator } from "../modules/misc/Translator";
 
 function lang(msg: Message, newLang: string) {
@@ -18,7 +18,7 @@ function lang(msg: Message, newLang: string) {
         data.users[msg.author.id].language = newLang;
 }
 
-const command: Command = {
+const command: CommandDefinition = {
     name: "lang",
     args: [1, 1, "<newLang>"],
     func: lang,

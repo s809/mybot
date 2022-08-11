@@ -1,7 +1,7 @@
 import { Message } from "discord.js";
 import os from "os";
 import { client } from "../../env";
-import { Command } from "../../modules/commands/definitions";
+import { CommandDefinition } from "../../modules/commands/definitions";
 import { Translator } from "../../modules/misc/Translator";
 
 function getUptimeStr(diff: number, translator: Translator) {
@@ -39,7 +39,7 @@ async function uptime(msg: Message) {
     });
 }
 
-const command: Command = {
+const command: CommandDefinition = {
     name: "uptime",
     func: uptime,
 };

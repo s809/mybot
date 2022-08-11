@@ -5,52 +5,60 @@
 import { pathToFileURL } from "url";
 import { botDirectory } from "../../env";
 import { importCommands } from "./importHelper";
-import { Command } from "./definitions";
+import { Command, CommandDefinition } from "./definitions";
 import { Message } from "discord.js";
 import { getPrefix } from "../data/getPrefix";
 import { CommandRequirement } from "./requirements";
 
 var commands: Map<string, Command>;
 
-function prepareSubcommands(list?: Map<string, Command>, inheritedOptions?: any) {
-    if (!list) return;
+function prepareSubcommands(list: CommandDefinition[], inheritedOptions?: {
+    path: string;
+    requirements: CommandRequirement[];
+}): Map<string, Command> {
+    const map = new Map<string, Command>();
 
-    for (let command of list.values()) {
-        let path = inheritedOptions?.path
-            ? `${inheritedOptions.path}/${command.name}`
-            : command.name;
-
+    for (let definition of list.values()) {
         let options: {
             path: string;
             requirements: CommandRequirement[];
         } = {
-            ...inheritedOptions,
-            path: path
+            requirements: inheritedOptions?.requirements.slice() ?? [],
+            path: inheritedOptions?.path
+                ? `${inheritedOptions.path}/${definition.name}`
+                : definition.name
         };
 
-        command.path = path;
-        if (command.requirements) {
-            const requirements = Array.isArray(command.requirements)
-                ? command.requirements
-                : [command.requirements];
+        if (definition.requirements) {
+            const requirements = Array.isArray(definition.requirements)
+                ? definition.requirements
+                : [definition.requirements];
             
-            options.requirements ??= [];
-            options.requirements = [...options.requirements, ...requirements];
+            options.requirements.push(...requirements);
         }
-            
-        if (options.requirements && !command.requirements)
-            command.requirements = options.requirements;
-
-        prepareSubcommands(command.subcommands, options);
+        
+        map.set(definition.name, {
+            name: definition.name,
+            path: options.path,
+            args: definition.args ?? [0, 0, ""],
+            func: definition.func ?? null,
+            alwaysReactOnSuccess: definition.alwaysReactOnSuccess ?? false,
+            requirements: options.requirements,
+            subcommands: definition.subcommands
+                ? prepareSubcommands(definition.subcommands, options)
+                : new Map<string, Command>(),
+        })
     }
+
+    return map;
 }
 
 /**
- * Loads commands to internal cache.
+ * Loads commands into internal cache.
  */
 export async function loadCommands() {
-    commands ??= await importCommands(pathToFileURL(botDirectory + "/commands/foo").toString());
-    prepareSubcommands(commands);
+    const definitions = await importCommands(pathToFileURL(botDirectory + "/commands/foo").toString());
+    commands = prepareSubcommands(definitions);
 }
 
 /**
@@ -121,5 +129,5 @@ export function* iterateCommands() {
  * @returns Usage string of a command.
  */
 export function toUsageString(msg: Message, command: Command) {
-    return `${getPrefix(msg.guildId)}${command.path!.replaceAll("/", " ")} ${command.args?.[2] ?? ""}`
+    return `${getPrefix(msg.guildId)}${command.path.replaceAll("/", " ")} ${command.args[2]}`
 }

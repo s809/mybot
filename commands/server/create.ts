@@ -1,6 +1,6 @@
 import { GuildDefaultMessageNotifications, Message, PermissionFlagsBits, TextChannel } from "discord.js";
 import { client } from "../../env";
-import { Command } from "../../modules/commands/definitions";
+import { CommandDefinition } from "../../modules/commands/definitions";
 
 async function createServer(msg: Message) {
     let guild = await client.guilds.create({
@@ -23,7 +23,7 @@ async function createServer(msg: Message) {
     await msg.channel.send(invite.url);
 }
 
-const command: Command = {
+const command: CommandDefinition = {
     name: "create",
     func: createServer,
     alwaysReactOnSuccess: true

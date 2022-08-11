@@ -5,7 +5,7 @@ import { skipStringAfter } from "../../util";
 import sendLongText from "../../modules/messages/sendLongText";
 import { Message } from "discord.js";
 import { getPrefix } from "../../modules/data/getPrefix";
-import { Command } from "../../modules/commands/definitions";
+import { CommandDefinition } from "../../modules/commands/definitions";
 
 async function shell(msg: Message) {
     let command = skipStringAfter(msg.content,
@@ -22,7 +22,7 @@ async function shell(msg: Message) {
         await msg.react("✅").catch(() => {});
 }
 
-const command: Command = {
+const command: CommandDefinition = {
     name: "shell",
     args: [1, Infinity, "<code...>"],
     func: shell

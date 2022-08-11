@@ -1,6 +1,6 @@
 import { Message } from "discord.js";
 import { data } from "../../env";
-import { Command } from "../../modules/commands/definitions";
+import { CommandDefinition } from "../../modules/commands/definitions";
 import { TextGenData } from "../../modules/data/models";
 import { Translator } from "../../modules/misc/Translator";
 
@@ -72,7 +72,7 @@ async function textGenInfo(msg: Message<true>, branchCutoffStr: string, branchCo
     await msg.channel.send(text);
 }
 
-const command: Command = {
+const command: CommandDefinition = {
     name: "info",
     func: textGenInfo,
     args: [2, 2, "<branch cutoff> <branch counter depth>"]

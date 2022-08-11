@@ -1,7 +1,7 @@
 import assert from "assert";
 import { GuildMember, Message, Role, User } from "discord.js";
 import { client, data } from "../../env";
-import { Command } from "../../modules/commands/definitions";
+import { CommandDefinition } from "../../modules/commands/definitions";
 import { Translator } from "../../modules/misc/Translator";
 
 async function permissionList(msg: Message, id: string = msg.author.id) {
@@ -91,7 +91,7 @@ async function permissionList(msg: Message, id: string = msg.author.id) {
     });
 }
 
-const command: Command = {
+const command: CommandDefinition = {
     name: "list",
     args: [0, 1, "[id]"],
     func: permissionList

@@ -1,6 +1,6 @@
 import { Message } from "discord.js";
 import { musicPlayingGuilds } from "../../env";
-import { Command } from "../../modules/commands/definitions";
+import { CommandDefinition } from "../../modules/commands/definitions";
 import { InVoiceWithBot } from "../../modules/commands/requirements";
 import { Translator } from "../../modules/misc/Translator";
 
@@ -14,7 +14,7 @@ async function pause(msg: Message<true>) {
     player.pause();
 }
 
-const command: Command = {
+const command: CommandDefinition = {
     name: "pause",
     func: pause,
     alwaysReactOnSuccess: true,

@@ -1,5 +1,5 @@
 import { Message } from "discord.js";
-import { Command } from "../../../modules/commands/definitions";
+import { CommandDefinition } from "../../../modules/commands/definitions";
 import { Translator } from "../../../modules/misc/Translator";
 
 async function test(msg: Message) {
@@ -12,7 +12,7 @@ async function test(msg: Message) {
     );
 }
 
-const command: Command = {
+const command: CommandDefinition = {
     name: "translations",
     func: test
 };

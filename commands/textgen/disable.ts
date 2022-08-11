@@ -1,5 +1,5 @@
 import { Message } from "discord.js";
-import { Command } from "../../modules/commands/definitions";
+import { CommandDefinition } from "../../modules/commands/definitions";
 import { hasFlag, resolveFlaggableItem, removeFlag } from "../../modules/data/flags";
 import { FlagData, TextGenData } from "../../modules/data/models";
 import { Translator } from "../../modules/misc/Translator";
@@ -15,7 +15,7 @@ async function disableTextGen(msg: Message) {
     delete item.genData;
 }
 
-const command: Command = {
+const command: CommandDefinition = {
     name: "disable",
     func: disableTextGen,
     alwaysReactOnSuccess: true

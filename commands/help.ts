@@ -1,19 +1,17 @@
 import { ActionRowBuilder, SelectMenuBuilder } from "@discordjs/builders";
-import assert, { fail } from "assert";
-import { BitField, Message, MessageSelectOption, SelectMenuInteraction } from "discord.js";
-import { snakeCase } from "lodash-es";
+import assert from "assert";
+import { Message, MessageSelectOption, SelectMenuInteraction } from "discord.js";
 import { getRootCommands, toUsageString } from "../modules/commands";
-import { Command } from "../modules/commands/definitions";
+import { Command, CommandDefinition } from "../modules/commands/definitions";
 import { checkRequirementsBeforeRunning } from "../modules/commands/requirements";
 import { getPrefix } from "../modules/data/getPrefix";
 import { Translator } from "../modules/misc/Translator";
-import { capitalizeWords } from "../util";
 
 async function help(msg: Message) {
     let translator = Translator.getOrDefault(msg);
 
     const filterCommands = (list: Command[]) =>
-        list.filter(command => !checkRequirementsBeforeRunning(msg, command)?.hideCommand);
+        list.filter(command => !checkRequirementsBeforeRunning(msg, command).hideCommand);
 
     let levelNameToPosition: Map<string, number> = new Map();
     let chain: {
@@ -68,9 +66,7 @@ async function help(msg: Message) {
         } else {
             let codeBlock = `\`\`\`\n${toUsageString(msg, command)}\`\`\`\n`;
             let description = `${translator.tryTranslate("command_descriptions." + command.path!.replaceAll("/", "_")) ?? translator.translate("embeds.help.no_description")}`;
-            let requiredPermissions = Array.isArray(command.requirements)
-                ? command.requirements.filter(x => !x.hideInDescription).map(x => x.name).join(", ")
-                : command.requirements?.name;
+            let requiredPermissions = command.requirements.filter(x => !x.hideInDescription).map(x => x.name).join(", ");
             
             if (requiredPermissions)
                 requiredPermissions = `\n${translator.translate("embeds.help.required_permissions", requiredPermissions)}`;
@@ -134,7 +130,7 @@ async function help(msg: Message) {
     });
 }
 
-const command: Command = {
+const command: CommandDefinition = {
     name: "help",
     func: help
 }

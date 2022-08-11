@@ -2,7 +2,7 @@ import assert from "assert";
 import { Message } from "discord.js";
 import { client, data, isBotOwner } from "../../env";
 import { resolveCommand } from "../../modules/commands";
-import { Command } from "../../modules/commands/definitions";
+import { CommandDefinition } from "../../modules/commands/definitions";
 import { importCommands } from "../../modules/commands/importHelper";
 import { InServer, isCommandAllowedToManage } from "../../modules/commands/requirements";
 import { Translator } from "../../modules/misc/Translator";
@@ -59,7 +59,7 @@ async function permission(msg: Message<true>, id: string, commandPath: string) {
         resolvedItem.allowedCommands.splice(resolvedItem.allowedCommands.indexOf(commandPath));
 }
 
-const command: Command = {
+const command: CommandDefinition = {
     name: "permission",
     args: [2, 2, "<id> <permission>"],
     requirements: InServer,

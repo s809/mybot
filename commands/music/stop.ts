@@ -1,6 +1,6 @@
 import { Message } from "discord.js";
 import { musicPlayingGuilds } from "../../env";
-import { Command } from "../../modules/commands/definitions";
+import { CommandDefinition } from "../../modules/commands/definitions";
 import { InVoiceWithBot } from "../../modules/commands/requirements";
 import { Translator } from "../../modules/misc/Translator";
 
@@ -14,7 +14,7 @@ async function stop(msg: Message<true>) {
     player.stop();
 }
 
-const command: Command = {
+const command: CommandDefinition = {
     name: "stop",
     func: stop,
     alwaysReactOnSuccess: true,

@@ -1,6 +1,6 @@
 import { CategoryChannel, GuildBasedChannel, GuildChannel, Message, NonThreadGuildBasedChannel, OverwriteType, Role, Snowflake, TextChannel, ThreadChannel, VoiceBasedChannel } from "discord.js";
 import { client } from "../../env";
-import { Command } from "../../modules/commands/definitions";
+import { CommandDefinition } from "../../modules/commands/definitions";
 import { InServer } from "../../modules/commands/requirements";
 
 async function cloneServer(msg: Message<true>, guildId: Snowflake, mode: string) {
@@ -111,7 +111,7 @@ async function cloneServer(msg: Message<true>, guildId: Snowflake, mode: string)
         await msg.channel.send("Some channels were skipped as this server is not community-enabled.");
 }
 
-const command: Command = {
+const command: CommandDefinition = {
     name: "clone",
     args: [2, 2, "<id> <mode{channels,roles,both}>"],
     requirements: InServer,

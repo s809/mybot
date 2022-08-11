@@ -1,22 +1,7 @@
 import { readdir } from "fs/promises";
 import { dirname } from "path";
 import { fileURLToPath } from "url";
-import { Command } from "./definitions";
-
-/**
- * Converts modules to a map keyed by command names.
- * 
- * @param modules Array of modules.
- * @returns Map with command names as keys.
- */
-function makeSubCommands(modules: any[]): Map<string, Command> {
-    let map = new Map();
-
-    for (let module of modules)
-        map.set(module.name, module);
-
-    return map;
-}
+import { CommandDefinition } from "./definitions";
 
 /**
  * Imports modules in directory of {@link modulePath} as child commands.
@@ -25,19 +10,16 @@ function makeSubCommands(modules: any[]): Map<string, Command> {
  * @param modulePath Path to module.
  * @returns Imported commands.
  */
-export async function importCommands(modulePath: string) {
-    let dir = dirname(modulePath);
+export async function importCommands(modulePath: string): Promise<CommandDefinition[]> {
+    const dir = dirname(modulePath);
     let modules = [];
 
-    for (let entry of (await readdir(fileURLToPath(dir), { withFileTypes: true }))
-        .filter(entry =>
-            entry.name !== "index.js" && entry.name.endsWith(".js")
-            || entry.isDirectory())) {
+    for (let entry of (await readdir(fileURLToPath(dir), { withFileTypes: true }))) {
+        if (!entry.isDirectory() && (entry.name === "index.js" || !entry.name.endsWith(".js")))
+            continue;
 
-        modules.push({
-            ...(await import(`${dir}/${entry.name}`)).default
-        });
+        modules.push(import(`${dir}/${entry.name}`).then(m => m.default));
     }
 
-    return makeSubCommands(modules);
+    return Promise.all(modules);
 }

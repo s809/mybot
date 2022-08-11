@@ -1,5 +1,5 @@
 import { client } from "../../env";
-import { Command } from "../../modules/commands/definitions";
+import { CommandDefinition } from "../../modules/commands/definitions";
 
 async function delAllServers() {
     for (let guild of client.guilds.cache.values()) {
@@ -9,7 +9,7 @@ async function delAllServers() {
     }
 }
 
-const command: Command = {
+const command: CommandDefinition = {
     name: "delall",
     func: delAllServers
 };

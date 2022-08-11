@@ -1,6 +1,6 @@
 import { Message } from "discord.js";
 import { data } from "../../env";
-import { Command } from "../../modules/commands/definitions";
+import { CommandDefinition } from "../../modules/commands/definitions";
 import { cleanTrackedGuild } from "../../modules/misc/inviteTracker";
 import { Translator } from "../../modules/misc/Translator";
 
@@ -12,7 +12,7 @@ function disableInviteTracker(msg: Message<true>) {
     cleanTrackedGuild(msg.guildId);
 }
 
-const command: Command = {
+const command: CommandDefinition = {
     name: "disable",
     func: disableInviteTracker,
     alwaysReactOnSuccess: true

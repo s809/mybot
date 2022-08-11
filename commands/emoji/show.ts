@@ -1,5 +1,5 @@
 import { APIEmoji, Collection, GuildEmoji, Message, parseEmoji } from "discord.js";
-import { Command } from "../../modules/commands/definitions";
+import { CommandDefinition } from "../../modules/commands/definitions";
 import { Translator } from "../../modules/misc/Translator";
 
 async function showEmoji(msg: Message, emojiOrName: string) {
@@ -23,7 +23,7 @@ async function showEmoji(msg: Message, emojiOrName: string) {
     });
 }
 
-const command: Command = {
+const command: CommandDefinition = {
     name: "show",
     args: [1, 1, "<emoji or emoji name>"],
     func: showEmoji

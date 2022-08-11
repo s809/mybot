@@ -6,7 +6,7 @@ import { sendAlwaysLastMessage } from "../../modules/messages/AlwaysLastMessage"
 import sendLongText from "../../modules/messages/sendLongText";
 import { once } from "events";
 import { Translator } from "../../modules/misc/Translator";
-import { Command } from "../../modules/commands/definitions";
+import { CommandDefinition } from "../../modules/commands/definitions";
 import { BotOwner } from "../../modules/commands/requirements";
 
 async function scanChannel(msg: Message, mode: string, fromChannelStr: string) {
@@ -199,7 +199,7 @@ async function scanChannel(msg: Message, mode: string, fromChannelStr: string) {
     }
 }
 
-const command: Command = {
+const command: CommandDefinition = {
     name: "scan",
     args: [1, 2, "<mode{daily,weekly,monthly}> [channel]"],
     func: scanChannel,

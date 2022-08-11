@@ -1,5 +1,5 @@
 import { Message } from "discord.js";
-import { Command } from "../modules/commands/definitions";
+import { CommandDefinition } from "../modules/commands/definitions";
 import { BotOwner } from "../modules/commands/requirements";
 import { getPrefix } from "../modules/data/getPrefix";
 import sendLongText from "../modules/messages/sendLongText";
@@ -15,7 +15,7 @@ async function evalCommand(msg: Message) {
     );
 }
 
-const command: Command = {
+const command: CommandDefinition = {
     name: "eval",
     args: [0, Infinity, "<code...>"],
     func: evalCommand,

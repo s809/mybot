@@ -3,7 +3,7 @@ import { data } from "../../env";
 import { botEval } from "../../modules/misc/eval";
 import { formatString, sanitizePaths } from "../../util";
 import sendLongText from "../../modules/messages/sendLongText";
-import { Command } from "../../modules/commands/definitions";
+import { CommandDefinition } from "../../modules/commands/definitions";
 
 async function runScript(msg: Message, name: string, ...args: string[]) {
     if (name.match(/[/\\]/))
@@ -19,7 +19,7 @@ async function runScript(msg: Message, name: string, ...args: string[]) {
     )));
 }
 
-const command: Command = {
+const command: CommandDefinition = {
     name: "run",
     args: [1, Infinity, "<name> <args...>"],
     func: runScript

@@ -1,5 +1,5 @@
 import { Message, PermissionFlagsBits } from "discord.js";
-import { Command } from "../../modules/commands/definitions";
+import { CommandDefinition } from "../../modules/commands/definitions";
 import { importCommands } from "../../modules/commands/importHelper";
 import { ServerPermissions } from "../../modules/commands/requirements";
 import { getInviteTrackerDataOrClean } from "../../modules/misc/inviteTracker";
@@ -23,7 +23,7 @@ async function inviteTrackerInfo(msg: Message<true>) {
     });
 }
 
-const command: Command = {
+const command: CommandDefinition = {
     name: "invitetracker",
     requirements: ServerPermissions(PermissionFlagsBits.ManageGuild | PermissionFlagsBits.CreateInstantInvite),
     func: inviteTrackerInfo,

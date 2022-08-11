@@ -1,6 +1,6 @@
 import { Message, TextChannel } from "discord.js";
 import { data } from "../../env";
-import { Command } from "../../modules/commands/definitions";
+import { CommandDefinition } from "../../modules/commands/definitions";
 import { tryInitTrackedGuild } from "../../modules/misc/inviteTracker";
 import { Translator } from "../../modules/misc/Translator";
 import { parseChannelMention } from "../../util";
@@ -25,7 +25,7 @@ async function enableInviteTracker(msg: Message<true>, channelResolvable: string
         return translator.translate("errors.tracker_init_failed");
 }
 
-const command: Command = {
+const command: CommandDefinition = {
     name: "enable",
     args: [1, 1, "<channel|id>"],
     func: enableInviteTracker,

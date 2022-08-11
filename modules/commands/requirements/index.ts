@@ -131,7 +131,7 @@ export function isCommandOverridden(msg: Message, command: Command): boolean {
             : [])
     ];
 
-    return allowedCommands.some(path => command.path!.startsWith(path));
+    return allowedCommands.some(path => command.path.startsWith(path));
 }
 
 /**

@@ -1,6 +1,6 @@
 import { Translator } from "../modules/misc/Translator";
 import { GuildTextBasedChannel, Message, PermissionFlagsBits } from "discord.js";
-import { Command } from "../modules/commands/definitions";
+import { CommandDefinition } from "../modules/commands/definitions";
 import { iterateMessagesChunked } from "../modules/messages/iterateMessages";
 import { ServerPermissions } from "../modules/commands/requirements";
 
@@ -29,7 +29,7 @@ async function deleteRange(msg: Message<true>, start: string, end: string) {
     }
 }
 
-const command: Command = {
+const command: CommandDefinition = {
     name: "delrange",
     args: [2, 2, "<startid> <endid>"],
     requirements: ServerPermissions(PermissionFlagsBits.ManageMessages),

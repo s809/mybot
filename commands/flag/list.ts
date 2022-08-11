@@ -1,5 +1,5 @@
 import { Message, User } from "discord.js";
-import { Command } from "../../modules/commands/definitions";
+import { CommandDefinition } from "../../modules/commands/definitions";
 import { resolveFlaggableItem } from "../../modules/data/flags";
 
 async function flagList(msg: Message, id: string) {
@@ -20,7 +20,7 @@ async function flagList(msg: Message, id: string) {
     });
 }
 
-const command: Command = {
+const command: CommandDefinition = {
     name: "list",
     args: [1, 1, "<id>"],
     func: flagList

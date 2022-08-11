@@ -1,6 +1,6 @@
 import { Message, OAuth2Scopes, PermissionFlagsBits } from "discord.js";
 import { client } from "../../env";
-import { Command } from "../../modules/commands/definitions";
+import { CommandDefinition } from "../../modules/commands/definitions";
 import { Translator } from "../../modules/misc/Translator";
 
 async function botInvite(msg: Message) {
@@ -15,7 +15,7 @@ async function botInvite(msg: Message) {
     });
 }
 
-const command: Command = {
+const command: CommandDefinition = {
     name: "invite",
     func: botInvite,
 };

@@ -3,7 +3,7 @@ import { Client, GatewayIntentBits, Message } from "discord.js";
 import sendLongText from "../../modules/messages/sendLongText";
 import { sendAlwaysLastMessage } from "../../modules/messages/AlwaysLastMessage";
 import { once } from "events";
-import { Command } from "../../modules/commands/definitions";
+import { CommandDefinition } from "../../modules/commands/definitions";
 
 async function testTokens(msg: Message, ...tokens: string[]) {
     let status = await sendAlwaysLastMessage(msg.channel, "Loading...");
@@ -83,7 +83,7 @@ async function testTokens(msg: Message, ...tokens: string[]) {
     }
 }
 
-const command: Command = {
+const command: CommandDefinition = {
     name: "testtokens",
     args: [1, Infinity, "<tokens...>"],
     func: testTokens
