@@ -17,6 +17,7 @@ async function enableTextGen(msg: Message) {
 
 const command: Command = {
     name: "enable",
-    func: enableTextGen
+    func: enableTextGen,
+    alwaysReactOnSuccess: true
 };
 export default command;

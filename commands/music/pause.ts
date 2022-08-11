@@ -17,6 +17,7 @@ async function pause(msg: Message<true>) {
 const command: Command = {
     name: "pause",
     func: pause,
+    alwaysReactOnSuccess: true,
     requirements: InVoiceWithBot
 };
 export default command;

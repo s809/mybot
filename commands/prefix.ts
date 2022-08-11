@@ -17,6 +17,7 @@ const command: Command = {
     name: "prefix",
     args: [1, 1, "<newPrefix>"],
     func: prefix,
+    alwaysReactOnSuccess: true,
     requirements: ServerPermissions(PermissionFlagsBits.ManageGuild)
 }
 export default command;

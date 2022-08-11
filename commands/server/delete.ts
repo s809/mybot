@@ -7,6 +7,7 @@ async function deleteServer(msg: Message<true>) {
 
 const command: Command = {
     name: "delete",
-    func: deleteServer
+    func: deleteServer,
+    alwaysReactOnSuccess: true
 };
 export default command;

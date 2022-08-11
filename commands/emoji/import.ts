@@ -1,4 +1,4 @@
-import { Guild, Message, PermissionFlagsBits, Permissions } from "discord.js";
+import { Message, PermissionFlagsBits } from "discord.js";
 import { client, debug } from "../../env";
 import { Command } from "../../modules/commands/definitions";
 import { ServerPermissions } from "../../modules/commands/requirements";
@@ -38,7 +38,8 @@ async function importEmoji(msg: Message<true>, guildId: string, emojiName: strin
 const command: Command = {
     name: "import",
     args: [2, 3, "<server id> <emoji name> [new emoji name]"],
-    requirements: ServerPermissions(PermissionFlagsBits.ManageEmojisAndStickers),
-    func: importEmoji
+    func: importEmoji,
+    alwaysReactOnSuccess: true,
+    requirements: ServerPermissions(PermissionFlagsBits.ManageEmojisAndStickers)
 };
 export default command;

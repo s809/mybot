@@ -28,6 +28,7 @@ async function enableInviteTracker(msg: Message<true>, channelResolvable: string
 const command: Command = {
     name: "enable",
     args: [1, 1, "<channel|id>"],
-    func: enableInviteTracker
+    func: enableInviteTracker,
+    alwaysReactOnSuccess: true
 };
 export default command;

@@ -18,6 +18,8 @@ async function shell(msg: Message) {
         await sendLongText(msg.channel, "--- stdout ---\n" + stdout);
     if (stderr.length)
         await sendLongText(msg.channel, "--- stderr ---\n" + stderr);
+    if (!stdout.length && !stderr.length)
+        await msg.react("✅").catch(() => {});
 }
 
 const command: Command = {

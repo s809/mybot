@@ -65,7 +65,7 @@ client.on("messageCreate", async msg => {
 
     try {
         let reaction;
-        let result: string | void;
+        let result: string | undefined;
         try {
             let finished = false;
 
@@ -89,18 +89,19 @@ client.on("messageCreate", async msg => {
             await sendLongText(msg.channel, sanitizePaths(e.stack));
         }
 
+        const success = typeof result !== "string";
         await Promise.allSettled([
             // update status if reaction is present
-            reaction
-                ? msg.react(typeof result !== "string" ? "✅" : "❌")
+            reaction || (command.alwaysReactOnSuccess && success)
+                ? msg.react(success ? "✅" : "❌")
                 : undefined,
             
             // remove reaction if it's present
-            Promise.resolve(reaction).then((reaction: MessageReaction) => reaction?.users.remove()),
+            reaction?.then(reaction => reaction?.users.remove()),
 
             // send result if it was returned
-            typeof result === "string"
-                ? msg.channel.send(result)
+            !success
+                ? msg.channel.send(result!)
                 : undefined
         ]);
     }

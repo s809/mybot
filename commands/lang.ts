@@ -9,7 +9,7 @@ function lang(msg: Message, newLang: string) {
     if (msg.member && !msg.member.permissions.has("ManageGuild"))
         return translator.translate("errors.cannot_manage_language");
 
-    if (!Translator.getOrDefault(newLang))
+    if (!Translator.get(newLang))
         return translator.translate("errors.invalid_language");
 
     if (msg.guildId)
@@ -21,6 +21,7 @@ function lang(msg: Message, newLang: string) {
 const command: Command = {
     name: "lang",
     args: [1, 1, "<newLang>"],
-    func: lang
+    func: lang,
+    alwaysReactOnSuccess: true,
 }
 export default command;

@@ -64,6 +64,7 @@ const command: Command = {
     args: [2, 2, "<id> <permission>"],
     requirements: InServer,
     func: permission,
+    alwaysReactOnSuccess: true,
     subcommands: await importCommands(import.meta.url)
 };
 export default command;

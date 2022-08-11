@@ -17,6 +17,7 @@ async function skip(msg: Message<true>) {
 const command: Command = {
     name: "skip",
     func: skip,
+    alwaysReactOnSuccess: true,
     requirements: InVoiceWithBot
 };
 export default command;

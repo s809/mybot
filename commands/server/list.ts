@@ -19,6 +19,7 @@ async function getOwnedServers(msg: Message) {
 
 const command: Command = {
     name: "list",
-    func: getOwnedServers
+    func: getOwnedServers,
+    alwaysReactOnSuccess: true
 };
 export default command;

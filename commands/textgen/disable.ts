@@ -17,6 +17,7 @@ async function disableTextGen(msg: Message) {
 
 const command: Command = {
     name: "disable",
-    func: disableTextGen
+    func: disableTextGen,
+    alwaysReactOnSuccess: true
 };
 export default command;

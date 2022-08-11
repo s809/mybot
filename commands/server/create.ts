@@ -25,6 +25,7 @@ async function createServer(msg: Message) {
 
 const command: Command = {
     name: "create",
-    func: createServer
+    func: createServer,
+    alwaysReactOnSuccess: true
 };
 export default command;

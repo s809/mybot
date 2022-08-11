@@ -17,6 +17,7 @@ async function stop(msg: Message<true>) {
 const command: Command = {
     name: "stop",
     func: stop,
+    alwaysReactOnSuccess: true,
     requirements: InVoiceWithBot
 };
 export default command;

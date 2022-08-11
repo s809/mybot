@@ -17,6 +17,7 @@ const command: Command = {
     name: "flag",
     args: [2, 2, "<id> <flag>"],
     requirements: BotOwner,
+    alwaysReactOnSuccess: true,
     func: flag,
     subcommands: await importCommands(import.meta.url)
 };

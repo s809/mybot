@@ -14,6 +14,7 @@ function disableInviteTracker(msg: Message<true>) {
 
 const command: Command = {
     name: "disable",
-    func: disableInviteTracker
+    func: disableInviteTracker,
+    alwaysReactOnSuccess: true
 };
 export default command;
