@@ -6,48 +6,153 @@ import { pathToFileURL } from "url";
 import { botDirectory } from "../../env";
 import { importCommands } from "./importHelper";
 import { Command, CommandDefinition } from "./definitions";
-import { Message } from "discord.js";
+import { LocaleString, Message } from "discord.js";
 import { getPrefix } from "../data/getPrefix";
 import { CommandRequirement } from "./requirements";
+import { CommandMessage } from "./appCommands";
+import { Translator } from "../misc/Translator";
+import { hasSameKeys } from "../../util";
 
 var commands: Map<string, Command>;
 
 function prepareSubcommands(list: CommandDefinition[], inheritedOptions?: {
     path: string;
     requirements: CommandRequirement[];
+    usableAsAppCommand: boolean;
 }): Map<string, Command> {
     const map = new Map<string, Command>();
 
     for (let definition of list.values()) {
-        let options: {
+        const options: {
             path: string;
             requirements: CommandRequirement[];
+            usableAsAppCommand: boolean;
         } = {
             requirements: inheritedOptions?.requirements.slice() ?? [],
             path: inheritedOptions?.path
-                ? `${inheritedOptions.path}/${definition.name}`
-                : definition.name
+                ? `${inheritedOptions.path}/${definition.key}`
+                : definition.key,
+            usableAsAppCommand: inheritedOptions?.usableAsAppCommand ?? false
         };
 
-        if (definition.requirements) {
-            const requirements = Array.isArray(definition.requirements)
-                ? definition.requirements
-                : [definition.requirements];
+        try {
+            const translationPath = `commands.${options.path.replaceAll("/", "_")}`;
+            const getLocalizations = (key: string) => Object.fromEntries([...Translator.translators.values()]
+                .flatMap(t => t.localeStrings.map(l => [l, t.tryTranslate(`${translationPath}.${key}`)] as [LocaleString, string | null]))
+                .filter(([, translation]) => translation !== null)) as Record<LocaleString, string>;
+
+            // Definitions' requirements are additive.
+            if (definition.requirements) {
+                const requirements = Array.isArray(definition.requirements)
+                    ? definition.requirements
+                    : [definition.requirements];
             
-            options.requirements.push(...requirements);
+                options.requirements.push(...requirements);
+            }
+
+            // If a command is marked as usable as app command, this mark
+            // is inherited to all subcommands unless overridden later.
+            if (definition.usableAsAppCommand !== undefined) {
+                if (definition.usableAsAppCommand && options.path.includes("/"))
+                    throw new Error("Subcommands cannot be marked as usable as app commands.");
+                else if (!definition.usableAsAppCommand && !options.path.includes("/"))
+                    throw new Error("Root commands cannot be marked as unusable as app commands.");
+            
+                options.usableAsAppCommand = definition.usableAsAppCommand;
+            }
+
+            // Make sure that command is fully translated.
+            const nameTranslations = getLocalizations("name")
+            const descriptionTranslations = getLocalizations("description");
+            if (!hasSameKeys(nameTranslations, descriptionTranslations))
+                throw new Error("Command is not fully translated.");
+            if (!nameTranslations[Translator.fallbackLocale])
+                throw new Error("Command is not translated to the fallback locale.");
+
+            let minArgs = 0;
+            let maxArgs = 0;
+            let optionalArgsStarted = false;
+
+            const argStringTranslations = {} as Record<LocaleString, string>;
+
+            map.set(definition.key, {
+                key: definition.key,
+
+                path: options.path,
+                translationPath,
+                nameTranslations,
+                descriptionTranslations,
+
+                args: {
+                    list: definition.args?.map(arg => {
+                        try {
+                            // Make sure that argument's translation is consistent with command's translation.
+                            const commandNameTranslations = nameTranslations;
+                            const nameLocalizations = getLocalizations(`args.${arg.translationKey}.name`);
+                            const descriptionLocalizations = getLocalizations(`args.${arg.translationKey}.description`);
+                            if (!hasSameKeys(commandNameTranslations, nameLocalizations) || !hasSameKeys(commandNameTranslations, descriptionLocalizations))
+                                throw new Error("Translation of the argument is not consistent with the command's translation.");
+
+                            if (arg.required === false)
+                                optionalArgsStarted = true; // If an optional argument is found, all following arguments are optional.
+                            else if (optionalArgsStarted)
+                                throw new Error("Optional arguments must be defined after all required arguments.");
+                            else
+                                minArgs++;
+                            maxArgs++;
+
+                            for (const [locale, translation] of Object.entries(nameLocalizations)) {
+                                const argString = arg.required === false ? `[${translation}]` : `<${translation}>`;
+                                if (!argStringTranslations[locale as LocaleString])
+                                    argStringTranslations[locale as LocaleString] = argString;
+                                else
+                                    argStringTranslations[locale as LocaleString] += ` ${argString}`;
+                            }
+
+                            const a = {
+                                ...arg,
+
+                                name: nameLocalizations[Translator.fallbackLocale],
+                                nameLocalizations,
+                                description: descriptionLocalizations[Translator.fallbackLocale],
+                                descriptionLocalizations,
+                                choices: arg.choices?.map(choice => {
+                                    const nameLocalizations = getLocalizations(`args.${arg.translationKey}.choices.${choice.translationKey}.name`);
+                                    if (!hasSameKeys(commandNameTranslations, nameLocalizations))
+                                        throw new Error(`Translation of the choice ${choice.translationKey} is not consistent with the argument's translation.`);
+
+                                    return {
+                                        name: nameLocalizations[Translator.fallbackLocale],
+                                        nameLocalizations,
+                                        value: choice.value
+                                    };
+                                }),
+                                required: arg.required ?? true,
+                            };
+                            delete (a as { translationKey?: string })["translationKey"];
+                            return a;
+                        } catch (e) {
+                            e.message += `\nArgument: ${arg.translationKey}`;
+                            throw e;
+                        }
+                    }) as Command["args"]["list"] ?? [],
+                    min: minArgs,
+                    max: maxArgs,
+                    stringTranslations: argStringTranslations
+                },
+                usableAsAppCommand: options.usableAsAppCommand,
+                handler: definition.handler ?? null,
+                alwaysReactOnSuccess: definition.alwaysReactOnSuccess ?? false,
+
+                requirements: options.requirements,
+                subcommands: definition.subcommands
+                    ? prepareSubcommands(definition.subcommands, options)
+                    : new Map<string, Command>(),
+            });
+        } catch (e) {
+            e.message += `\nPath: ${options.path}`;
+            throw e;
         }
-        
-        map.set(definition.name, {
-            name: definition.name,
-            path: options.path,
-            args: definition.args ?? [0, 0, ""],
-            func: definition.func ?? null,
-            alwaysReactOnSuccess: definition.alwaysReactOnSuccess ?? false,
-            requirements: options.requirements,
-            subcommands: definition.subcommands
-                ? prepareSubcommands(definition.subcommands, options)
-                : new Map<string, Command>(),
-        })
     }
 
     return map;
@@ -128,6 +233,6 @@ export function* iterateCommands() {
  * @param command Command which usage needs to be printed.
  * @returns Usage string of a command.
  */
-export function toUsageString(msg: Message, command: Command) {
-    return `${getPrefix(msg.guildId)}${command.path.replaceAll("/", " ")} ${command.args[2]}`
+export function toUsageString(msg: Message | CommandMessage, command: Command, translator: Translator): string {
+    return `${getPrefix(msg.guildId)}${command.path.replaceAll("/", " ")} ${command.args.stringTranslations[translator.localeStrings[0]] ?? ""}`;
 }

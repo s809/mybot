@@ -12,15 +12,6 @@ export interface PermissionData {
     allowedCommands: string[];
 }
 
-export type ChannelLinkRole = "Source" | "Destination";
-
-export interface ChannelLink {
-    channelId: Snowflake;
-    guildId: Snowflake;
-    role: ChannelLinkRole;
-    lastMessageId?: Snowflake;
-}
-
 export interface InviteTrackerData {
     logChannelId: Snowflake;
 }

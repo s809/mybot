@@ -3,11 +3,12 @@
  */
 import { execSync } from "child_process";
 import sendLongText from "../../modules/messages/sendLongText";
-import Discord, { EmbedBuilder } from "discord.js";
+import { EmbedBuilder } from "discord.js";
 import { version as currentVersion, debug } from "../../env";
 import { Translator } from "../../modules/misc/Translator";
 import { CommandDefinition } from "../../modules/commands/definitions";
 import { log } from "../../log";
+import { CommandMessage } from "../../modules/commands/appCommands";
 
 /**
  * Prepares bot changelog based on Git commits.
@@ -76,8 +77,8 @@ const logstr = prepareChangelog();
  * 
  * @param msg Message a command was sent from.
  */
-async function changelog(msg: Discord.Message) {
-    await sendLongText(msg.channel, logstr, {
+async function changelog(msg: CommandMessage) {
+    await sendLongText(msg, logstr, {
         code: null,
         embed: new EmbedBuilder({
             title: Translator.getOrDefault(msg)!.translate("embeds.bot_changelog.title")
@@ -86,7 +87,7 @@ async function changelog(msg: Discord.Message) {
 }
 
 const command: CommandDefinition = {
-    name: "changelog",
-    func: changelog,
+    key: "changelog",
+    handler: changelog,
 };
 export default command;

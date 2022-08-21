@@ -1,13 +1,14 @@
 import { ActionRowBuilder, SelectMenuBuilder } from "@discordjs/builders";
 import assert from "assert";
-import { Message, MessageSelectOption, SelectMenuInteraction } from "discord.js";
+import { MessageSelectOption, SelectMenuInteraction } from "discord.js";
 import { getRootCommands, toUsageString } from "../modules/commands";
+import { CommandMessage } from "../modules/commands/appCommands";
 import { Command, CommandDefinition } from "../modules/commands/definitions";
 import { checkRequirementsBeforeRunning } from "../modules/commands/requirements";
 import { getPrefix } from "../modules/data/getPrefix";
 import { Translator } from "../modules/misc/Translator";
 
-async function help(msg: Message) {
+async function help(msg: CommandMessage) {
     let translator = Translator.getOrDefault(msg);
 
     const filterCommands = (list: Command[]) =>
@@ -25,8 +26,8 @@ async function help(msg: Message) {
         const levelName = `level${chain.length}`;
 
         let selectOptions = commands.map(x => ({
-            label: x.name,
-            value: `${levelName}_${x.name}`,
+            label: x.nameTranslations[translator.localeStrings[0]],
+            value: `${levelName}_${x.key}`,
             default: false,
         }));
 
@@ -64,8 +65,8 @@ async function help(msg: Message) {
                 description: `${translator.translate("embeds.help.select_command")}`
             };
         } else {
-            let codeBlock = `\`\`\`\n${toUsageString(msg, command)}\`\`\`\n`;
-            let description = `${translator.tryTranslate("command_descriptions." + command.path!.replaceAll("/", "_")) ?? translator.translate("embeds.help.no_description")}`;
+            let codeBlock = `\`\`\`\n${toUsageString(msg, command, translator)}\`\`\`\n`;
+            let description = `${command.descriptionTranslations[translator.localeStrings[0]] ?? translator.translate("embeds.help.no_description")}`;
             let requiredPermissions = command.requirements.filter(x => !x.hideInDescription).map(x => x.name).join(", ");
             
             if (requiredPermissions)
@@ -75,7 +76,7 @@ async function help(msg: Message) {
 
             embed = {
                 title: translator.translate("embeds.help.title"),
-                description: (command.func
+                description: (command.handler
                     ? codeBlock + description
                     : translator.translate("embeds.help.select_command_in_category"))
                     + requiredPermissions
@@ -89,7 +90,7 @@ async function help(msg: Message) {
         };
     };
 
-    let resp = await msg.channel.send(makeOptions(null));
+    let resp = await msg.reply(makeOptions(null));
 
     resp.createMessageComponentCollector({
         idle: 60000,
@@ -115,7 +116,7 @@ async function help(msg: Message) {
             if (filtered.length)
                 pushToChain(filtered);
             else
-                assert(command.func, `Category without visible subcommands\nCommand: ${command.path}`)
+                assert(command.handler, `Category without visible subcommands\nCommand: ${command.path}`)
         }
 
         for (const option of entry.selectMenu.options)
@@ -131,7 +132,7 @@ async function help(msg: Message) {
 }
 
 const command: CommandDefinition = {
-    name: "help",
-    func: help
+    key: "help",
+    handler: help
 }
 export default command;

@@ -1,10 +1,11 @@
 import assert from "assert";
-import { GuildMember, Message, Role, User } from "discord.js";
+import { ApplicationCommandOptionType, GuildMember, Message, Role, User } from "discord.js";
 import { client, data } from "../../env";
+import { CommandMessage } from "../../modules/commands/appCommands";
 import { CommandDefinition } from "../../modules/commands/definitions";
 import { Translator } from "../../modules/misc/Translator";
 
-async function permissionList(msg: Message, id: string = msg.author.id) {
+async function permissionList(msg: CommandMessage, id: string = msg.author.id) {
     let translator = Translator.getOrDefault(msg);
 
     let resolvedType: "user" | "role" | "member";
@@ -74,7 +75,7 @@ async function permissionList(msg: Message, id: string = msg.author.id) {
         });
     }
 
-    await msg.channel.send({
+    await msg.reply({
         embeds: [{
             title: translator.translate("embeds.permission_list.title",
                 (resolvedItem as Role).name ??
@@ -92,8 +93,11 @@ async function permissionList(msg: Message, id: string = msg.author.id) {
 }
 
 const command: CommandDefinition = {
-    name: "list",
-    args: [0, 1, "[id]"],
-    func: permissionList
+    key: "list",
+    args: [{
+        translationKey: "id",
+        type: ApplicationCommandOptionType.String,
+    }],
+    handler: permissionList
 };
 export default command;

@@ -5,11 +5,12 @@ import { musicPlayingGuilds } from "../../env";
 import { fetchVideoOrPlaylist } from "../../modules/music/youtubeDl";
 import { Translator } from "../../modules/misc/Translator";
 import { MusicPlayer } from "../../modules/music/MusicPlayer";
-import { GuildTextBasedChannel, Message } from "discord.js";
+import { ApplicationCommandOptionType, GuildTextBasedChannel, Message } from "discord.js";
 import { CommandDefinition } from "../../modules/commands/definitions";
 import { MusicPlayerQueueEntry } from "../../modules/music/MusicPlayerQueue";
+import { CommandMessage } from "../../modules/commands/appCommands";
 
-async function play(msg: Message, url: string, startPositionStr: string) {
+async function play(msg: CommandMessage, url: string, startPositionStr: string) {
     let translator = Translator.getOrDefault(msg);
 
     if (url?.match(/(\\|'|")/))
@@ -56,8 +57,17 @@ async function play(msg: Message, url: string, startPositionStr: string) {
 }
 
 const command: CommandDefinition = {
-    name: "play",
-    args: [0, 2, "[url|\"query\"] [startPos (0-99)]"],
-    func: play
+    key: "play",
+    args: [{
+        translationKey: "urlOrQuery",
+        type: ApplicationCommandOptionType.String,
+    }, {
+        translationKey: "playlistStartPosition",
+        type: ApplicationCommandOptionType.Integer,
+        minValue: 1,
+        maxValue: 99,
+        required: false,
+    }],
+    handler: play
 };
 export default command;

@@ -1,10 +1,11 @@
-import { Message, PermissionFlagsBits } from "discord.js";
+import { ApplicationCommandOptionType, PermissionFlagsBits } from "discord.js";
 import { client, debug } from "../../env";
+import { CommandMessage } from "../../modules/commands/appCommands";
 import { CommandDefinition } from "../../modules/commands/definitions";
 import { ServerPermissions } from "../../modules/commands/requirements";
 import { Translator } from "../../modules/misc/Translator";
 
-async function importEmoji(msg: Message<true>, guildId: string, emojiName: string, newEmojiName: string = emojiName) {
+async function importEmoji(msg: CommandMessage<true>, guildId: string, emojiName: string, newEmojiName: string = emojiName) {
     let translator = Translator.getOrDefault(msg);
 
     if (!msg.guild.members.me!.permissions.has("ManageEmojisAndStickers"))
@@ -36,9 +37,19 @@ async function importEmoji(msg: Message<true>, guildId: string, emojiName: strin
 }
 
 const command: CommandDefinition = {
-    name: "import",
-    args: [2, 3, "<server id> <emoji name> [new emoji name]"],
-    func: importEmoji,
+    key: "import",
+    args: [{
+        translationKey: "serverId",
+        type: ApplicationCommandOptionType.String,
+    }, {
+        translationKey: "emojiName",
+        type: ApplicationCommandOptionType.String,
+    }, {
+        translationKey: "newName",
+        type: ApplicationCommandOptionType.String,
+        required: false,
+    }],
+    handler: importEmoji,
     alwaysReactOnSuccess: true,
     requirements: ServerPermissions(PermissionFlagsBits.ManageEmojisAndStickers)
 };

@@ -1,4 +1,4 @@
-import { DMChannel } from "discord.js";
+import { CommandInteraction, DMChannel, Message } from "discord.js";
 import { CommandRequirement } from ".";
 import { isBotOwner } from "../../../env";
 

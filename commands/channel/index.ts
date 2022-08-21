@@ -4,7 +4,7 @@ import { importCommands } from "../../modules/commands/importHelper";
 import { ServerPermissions } from "../../modules/commands/requirements";
 
 const command: CommandDefinition = {
-    name: "channel",
+    key: "channel",
     requirements: ServerPermissions(PermissionFlagsBits.ManageChannels),
     subcommands: await importCommands(import.meta.url)
 };

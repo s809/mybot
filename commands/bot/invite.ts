@@ -1,10 +1,11 @@
-import { Message, OAuth2Scopes, PermissionFlagsBits } from "discord.js";
+import { OAuth2Scopes, PermissionFlagsBits } from "discord.js";
 import { client } from "../../env";
+import { CommandMessage } from "../../modules/commands/appCommands";
 import { CommandDefinition } from "../../modules/commands/definitions";
 import { Translator } from "../../modules/misc/Translator";
 
-async function botInvite(msg: Message) {
-    await msg.channel.send({
+async function botInvite(msg: CommandMessage) {
+    await msg.reply({
         embeds: [{
             title: Translator.getOrDefault(msg)!.translate("embeds.bot_invite.title"),
             description: client.generateInvite({
@@ -16,7 +17,7 @@ async function botInvite(msg: Message) {
 }
 
 const command: CommandDefinition = {
-    name: "invite",
-    func: botInvite,
+    key: "invite",
+    handler: botInvite,
 };
 export default command;

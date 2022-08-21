@@ -3,11 +3,12 @@ const exec = promisify(_exec);
 import { promisify } from "util";
 import { skipStringAfter } from "../../util";
 import sendLongText from "../../modules/messages/sendLongText";
-import { Message } from "discord.js";
+import { ApplicationCommandOptionType, Message } from "discord.js";
 import { getPrefix } from "../../modules/data/getPrefix";
 import { CommandDefinition } from "../../modules/commands/definitions";
+import { CommandMessage } from "../../modules/commands/appCommands";
 
-async function shell(msg: Message) {
+async function shell(msg: CommandMessage) {
     let command = skipStringAfter(msg.content,
         getPrefix(msg.guildId),
         shell.name
@@ -18,13 +19,20 @@ async function shell(msg: Message) {
         await sendLongText(msg.channel, "--- stdout ---\n" + stdout);
     if (stderr.length)
         await sendLongText(msg.channel, "--- stderr ---\n" + stderr);
-    if (!stdout.length && !stderr.length)
-        await msg.react("✅").catch(() => {});
+    if (!stdout.length && !stderr.length) {
+        if (msg.interaction)
+            await msg.ignore();
+        else
+            await msg.message!.react("✅").catch(() => { });
+    }
 }
 
 const command: CommandDefinition = {
-    name: "shell",
-    args: [1, Infinity, "<code...>"],
-    func: shell
+    key: "shell",
+    args: [{
+        translationKey: "command",
+        type: ApplicationCommandOptionType.String,
+    }],
+    handler: shell
 };
 export default command;

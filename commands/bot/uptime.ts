@@ -1,6 +1,7 @@
 import { Message } from "discord.js";
 import os from "os";
 import { client } from "../../env";
+import { CommandMessage } from "../../modules/commands/appCommands";
 import { CommandDefinition } from "../../modules/commands/definitions";
 import { Translator } from "../../modules/misc/Translator";
 
@@ -24,12 +25,12 @@ function getUptimeStr(diff: number, translator: Translator) {
         seconds.toString());
 }
 
-async function uptime(msg: Message) {
+async function uptime(msg: CommandMessage) {
     let bot = new Date(client.uptime!);
     let host = new Date(os.uptime() * 1000);
 
     let translator = Translator.getOrDefault(msg);
-    await msg.channel.send({
+    await msg.reply({
         embeds: [{
             title: translator.translate("embeds.bot_uptime.title"),
             description: translator.translate("embeds.bot_uptime.text",
@@ -40,7 +41,7 @@ async function uptime(msg: Message) {
 }
 
 const command: CommandDefinition = {
-    name: "uptime",
-    func: uptime,
+    key: "uptime",
+    handler: uptime,
 };
 export default command;

@@ -3,7 +3,7 @@ import { CommandDefinition } from "../../modules/commands/definitions";
 import { BotOwner, InVoiceChannel } from "../../modules/commands/requirements";
 
 const command: CommandDefinition = {
-    name: "music",
+    key: "music",
     requirements: [InVoiceChannel, BotOwner],
     subcommands: await importCommands(import.meta.url)
 };

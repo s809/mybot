@@ -1,5 +1,6 @@
-import { Message } from "discord.js";
+import { ApplicationCommandOptionType, Message } from "discord.js";
 import { data } from "../../env";
+import { CommandMessage } from "../../modules/commands/appCommands";
 import { CommandDefinition } from "../../modules/commands/definitions";
 import { TextGenData } from "../../modules/data/models";
 import { Translator } from "../../modules/misc/Translator";
@@ -55,13 +56,10 @@ function calculatePropertiesForList(genData: TextGenData["genData"], branchCutof
     return result;
 }
 
-async function textGenInfo(msg: Message<true>, branchCutoffStr: string, branchCounterDepthStr: string) {
+async function textGenInfo(msg: CommandMessage<true>, branchCutoffStr: string, branchCounterDepthStr: string) {
     let branchCutoff = parseInt(branchCutoffStr);
     let branchCounterDepth = parseInt(branchCounterDepthStr);
     const translator = Translator.getOrDefault(msg);
-
-    if (branchCounterDepth > 5)
-        return translator.translate("errors.argument_value_too_large", "branch counter depth", "5");
     
     let genData = data.guilds[msg.guildId].channels[msg.channelId].genData;
     let text = calculatePropertiesForList(genData, branchCutoff, translator);
@@ -69,12 +67,19 @@ async function textGenInfo(msg: Message<true>, branchCutoffStr: string, branchCo
     for (let i = 1; i <= branchCounterDepth; i++)
         text += `${i}: ${getVariations(genData, i, genData!)}\n`;
     
-    await msg.channel.send(text);
+    await msg.reply(text);
 }
 
 const command: CommandDefinition = {
-    name: "info",
-    func: textGenInfo,
-    args: [2, 2, "<branch cutoff> <branch counter depth>"]
+    key: "info",
+    handler: textGenInfo,
+    args: [{
+        translationKey: "branchCutoff",
+        type: ApplicationCommandOptionType.Integer,
+    }, {
+        translationKey: "branchCounterDepth",
+        type: ApplicationCommandOptionType.Integer,
+        maxValue: 5,
+    }]
 };
 export default command;

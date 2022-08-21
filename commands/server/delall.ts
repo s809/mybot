@@ -10,7 +10,7 @@ async function delAllServers() {
 }
 
 const command: CommandDefinition = {
-    name: "delall",
-    func: delAllServers
+    key: "delall",
+    handler: delAllServers
 };
 export default command;

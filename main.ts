@@ -8,6 +8,7 @@ import {
 } from "./env";
 import { logError } from "./log";
 import { loadCommands } from "./modules/commands";
+import { refreshCommands } from "./modules/commands/appCommands";
 
 (async () => {
     await loadCommands();
@@ -15,6 +16,8 @@ import { loadCommands } from "./modules/commands";
     await import("./handlers");
     await client.login(token);
     await client.application!.fetch();
+
+    await refreshCommands();
 
     process.on("uncaughtException", async (e, origin) => {
         if (["write EPIPE", "write EOF"].includes(e.message)) {

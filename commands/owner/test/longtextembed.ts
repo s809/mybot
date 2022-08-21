@@ -1,9 +1,10 @@
 import { EmbedBuilder, Message } from "discord.js";
+import { CommandMessage } from "../../../modules/commands/appCommands";
 import { CommandDefinition } from "../../../modules/commands/definitions";
 import sendLongText from "../../../modules/messages/sendLongText";
 
-async function test(msg: Message) {
-    await sendLongText(msg.channel, "ab".repeat(1500) + "\n" + "cd".repeat(2500), {
+async function test(msg: CommandMessage) {
+    await sendLongText(msg, "ab".repeat(1500) + "\n" + "cd".repeat(2500), {
         embed: new EmbedBuilder({
             footer: {
                 text: "AAAAAAAAAA"
@@ -13,7 +14,7 @@ async function test(msg: Message) {
 }
 
 const command: CommandDefinition = {
-    name: "longtextembed",
-    func: test
+    key: "longtextembed",
+    handler: test
 };
 export default command;

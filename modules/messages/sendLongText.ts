@@ -2,7 +2,8 @@
  * @file Provides utility functions for sending messages.
  */
 import { EmbedBuilder } from "@discordjs/builders";
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, MessageActionRowComponentBuilder, TextBasedChannel } from "discord.js";
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, InteractionReplyOptions, Message, MessageActionRowComponentBuilder, MessageOptions, MessagePayload, ReplyMessageOptions, TextBasedChannel } from "discord.js";
+import { CommandMessage, CommandResponse } from "../commands/appCommands";
 
 const title = "Page %page% of %pagecount%";
 const titleAlt = " (%page%/%pagecount%)";
@@ -108,12 +109,12 @@ function splitTextByDelimiter(text: string, textWrap: string, delimiter: string)
 /**
  * Send message with buttons for page switching.
  * 
- * @param channel Channel in which to send a message.
+ * @param sendFunction Channel in which to send a message.
  * @param pages Array of page texts.
  * @param embed Embed template for wrapping text.
  * Title and desctiption will be overwritten.
  */
-async function sendPagedTextWithButtons(channel: TextBasedChannel, pages: string[], embed: EmbedBuilder = new EmbedBuilder()) {
+async function sendPagedTextWithButtons(sendFunction: ((options: InteractionReplyOptions | ReplyMessageOptions) => Promise<CommandResponse>) | ((options: string | MessagePayload | MessageOptions) => Promise<Message<boolean>>), pages: string[], embed: EmbedBuilder = new EmbedBuilder()) {
     let backButton = new ButtonBuilder({
         customId: "back",
         style: ButtonStyle.Primary,
@@ -152,7 +153,7 @@ async function sendPagedTextWithButtons(channel: TextBasedChannel, pages: string
         components: (components ?? []).map(x => x.toJSON())
     });
 
-    let msg = await channel.send(makeOptions(components));
+    let msg = await sendFunction(makeOptions(components));
 
     let collector = msg.createMessageComponentCollector({
         idle: 60000,
@@ -182,10 +183,10 @@ async function sendPagedTextWithButtons(channel: TextBasedChannel, pages: string
 /**
  * Sends text, splitting and adding page buttons if necessary.
  * 
- * @param channel Channel to send a message.
+ * @param commandOrChannel Channel to send a message.
  * @param text Text to send.
  */
-export default async function sendLongText(channel: TextBasedChannel, text: string, {
+export default async function sendLongText(commandOrChannel: TextBasedChannel | CommandMessage, text: string, {
     code = "js",
     embed = new EmbedBuilder(),
     delimiter = "\n",
@@ -215,9 +216,16 @@ export default async function sendLongText(channel: TextBasedChannel, text: stri
         textWrap = title + separator + textWrap;
     }
 
+    const sendFunction = (() => {
+        const func = (commandOrChannel instanceof CommandMessage
+            ? commandOrChannel.replyOrSendSeparate
+            : commandOrChannel.send)
+        return func.bind(commandOrChannel) as typeof func;
+    })();
+
     // Text fits in one message
     if (text.length < maxMessageLength - (contentWrapWithCode.length - "%content%".length)) {
-        await channel.send(embed ? {
+        await sendFunction(embed ? {
             embeds: [{
                 ...embed,
                 description: textWrap.replace("%content%", text),
@@ -236,7 +244,7 @@ export default async function sendLongText(channel: TextBasedChannel, text: stri
     if (multipleMessages) {
         // Send pages as multiple messages
         for (let [pos, page] of pages.entries()) {
-            await channel.send(embed ? {
+            await sendFunction(embed ? {
                 embeds: embed !== null ? [{
                     ...embed,
                     title: (embed.data.title ?? "") + (!embed.data.title ? title : titleAlt).replace("%page%", (pos + 1).toString()).replace("%pagecount%", pages.length.toString()),
@@ -247,6 +255,6 @@ export default async function sendLongText(channel: TextBasedChannel, text: stri
         }
     } else {
         // Send message and add buttons
-        await sendPagedTextWithButtons(channel, pages, embed);
+        await sendPagedTextWithButtons(sendFunction, pages, embed);
     }
 }

@@ -1,11 +1,12 @@
 import { Message, PermissionFlagsBits } from "discord.js";
+import { CommandMessage } from "../../modules/commands/appCommands";
 import { CommandDefinition } from "../../modules/commands/definitions";
 import { importCommands } from "../../modules/commands/importHelper";
 import { ServerPermissions } from "../../modules/commands/requirements";
 import { getInviteTrackerDataOrClean } from "../../modules/misc/inviteTracker";
 import { Translator } from "../../modules/misc/Translator";
 
-async function inviteTrackerInfo(msg: Message<true>) {
+async function inviteTrackerInfo(msg: CommandMessage<true>) {
     let translator = Translator.getOrDefault(msg);
     let infoStr;
 
@@ -15,7 +16,7 @@ async function inviteTrackerInfo(msg: Message<true>) {
     else
         infoStr = translator.translate("embeds.invitetracker.log_channel", logChannel!.toString());
 
-    await msg.channel.send({
+    await msg.reply({
         embeds: [{
             title: translator.translate("embeds.invitetracker.title"),
             description: infoStr
@@ -24,9 +25,9 @@ async function inviteTrackerInfo(msg: Message<true>) {
 }
 
 const command: CommandDefinition = {
-    name: "invitetracker",
+    key: "invitetracker",
     requirements: ServerPermissions(PermissionFlagsBits.ManageGuild | PermissionFlagsBits.CreateInstantInvite),
-    func: inviteTrackerInfo,
+    handler: inviteTrackerInfo,
     subcommands: await importCommands(import.meta.url)
 };
 export default command;

@@ -3,6 +3,7 @@
 import { inspect } from "util";
 import { Message } from "discord.js";
 import { ScriptContext } from "./ScriptContext";
+import { CommandMessage } from "../commands/appCommands";
 
 /**
  * Evaluate code from text.
@@ -13,7 +14,7 @@ import { ScriptContext } from "./ScriptContext";
  * @param scriptName Name of the script, if present.
  * @returns
  */
-export async function botEval(code: string, msg: Message | null, scriptName: string | null = null) {
+export async function botEval(code: string, msg: CommandMessage | null, scriptName: string | null = null) {
     const { data, client: _client } = await import("../../env");
     const { getSrc } = await import("../data/UserDataManager");
 

@@ -2,12 +2,13 @@ import { ButtonBuilder, SelectMenuBuilder, TextInputBuilder } from "@discordjs/b
 import { ActionRowBuilder, ButtonInteraction, ButtonStyle, Formatters, Message, ModalSubmitInteraction, SelectMenuInteraction, TextInputStyle } from "discord.js";
 import { client, data } from "../../env";
 import { log } from "../../log";
+import { CommandMessage } from "../../modules/commands/appCommands";
 import { CommandDefinition } from "../../modules/commands/definitions";
 import { botEval } from "../../modules/misc/eval";
 import { doRestart } from "../../modules/misc/restart";
 import { ScriptContext } from "../../modules/misc/ScriptContext";
 
-async function scriptEditor(msg: Message) {
+async function scriptEditor(msg: CommandMessage) {
     let type = Object.keys(data.scripts)[0];
     let name = Object.keys(data.scripts[type])[0];
     let context: ScriptContext | null;
@@ -91,7 +92,7 @@ async function scriptEditor(msg: Message) {
         }
     };
 
-    let message = await msg.channel.send(getOptions());
+    let message = await msg.reply(getOptions());
 
     let createNew: boolean;
     let onModalSubmit = async (interaction: ModalSubmitInteraction) => {
@@ -240,7 +241,7 @@ async function scriptEditor(msg: Message) {
 }
 
 const command: CommandDefinition = {
-    name: "editor",
-    func: scriptEditor
+    key: "editor",
+    handler: scriptEditor
 };
 export default command;

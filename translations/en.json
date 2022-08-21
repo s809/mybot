@@ -1,33 +1,403 @@
 {
-  "command_descriptions": {
-    "bot_changelog": "Get bot changelog.",
-    "bot_invite": "Get bot server invite link.",
-    "bot_uptime": "Get bot uptime.",
-    "channel_reset": "Clone and delete this channel.",
-    "channel_scan": "Get information about users sent to this or defined channel.",
-    "clone_stop": "Stop pending clone operation.",
-    "delrange": "Delete all messages within range.",
-    "emoji_import": "Import emoji from another server.",
-    "emoji_show": "Show emoji from current server.",
-    "help": "Show this help message.",
-    "invitetracker": "Show information about invite tracking.",
-    "invitetracker_disable": "Disable tracking of invites.",
-    "invitetracker_enable": "Enable tracking of invites.",
-    "lang": "Change language of bot for server or user.",
-    "link": "Enable copying of messages in this channel to another.",
-    "link_list": "Get channel links for this server.",
-    "link_remove": "Remove link to/from this channel.",
-    "music_pause": "Pause player.",
-    "music_play": "Play a video.\nIf no URL or query is specified, unpauses playback.\nQueries are searched on YouTube, but URL can be from any source.\nQueries with more than word require quotes (`\"`).",
-    "music_skip": "Skip currently playing song.",
-    "music_stop": "Stop player.",
-    "permission": "Manage permissions of specific item.\nItem should be manageable by caller.",
-    "permission_list": "Get permissions of specific item.",
-    "prefix": "Change prefix.",
-    "textgen_disable": "Disable text generator for this channel.",
-    "textgen_enable": "Enable text generator for this channel.",
-    "textgen_info": "Show information about data for text generator for this channel.",
-    "timer": "Self-updating UTC timer message."
+  "locale_strings": ["en-US"],
+  "locale_strings_alternative": [
+    "en",
+    "eng",
+    "english"
+  ],
+  "commands": {
+    "bot": {
+      "name": "bot",
+      "description": "Bot commands"
+    },
+    "bot_changelog": {
+      "name": "changelog",
+      "description": "Get bot changelog."
+    },
+    "bot_invite": {
+      "name": "invite",
+      "description": "Get bot server invite link."
+    },
+    "bot_uptime": {
+      "name": "uptime",
+      "description": "Get bot uptime."
+    },
+    "channel": {
+      "name": "channel",
+      "description": "Channel commands"
+    },
+    "channel_reset": {
+      "name": "reset",
+      "description": "Clone and delete this channel."
+    },
+    "channel_scan": {
+      "name": "scan",
+      "description": "Get information about users sent to this or defined channel.",
+      "args": {
+        "mode": {
+          "name": "Mode",
+          "description": "Mode of scan.",
+          "choices": {
+            "daily": {
+              "name": "Daily",
+              "description": "Group results by day."
+            },
+            "weekly": {
+              "name": "Weekly",
+              "description": "Group results by week."
+            },
+            "monthly": {
+              "name": "Monthly",
+              "description": "Group results by month."
+            }
+          }
+        },
+        "channel": {
+          "name": "Channel",
+          "description": "Channel to scan."
+        }
+      }
+    },
+    "clone_stop": {
+      "name": "stop",
+      "description": "Stop pending clone operation."
+    },
+    "delrange": {
+      "name": "delrange",
+      "description": "Delete all messages within range.",
+      "args": {
+        "startId": {
+          "name": "Start ID",
+          "description": "ID of the first message to delete."
+        },
+        "endId": {
+          "name": "End ID",
+          "description": "ID of the last message to delete."
+        }
+      }
+    },
+    "emoji": {
+      "name": "emoji",
+      "description": "Emoji commands"
+    },
+    "emoji_import": {
+      "name": "import",
+      "description": "Import emoji from another server.",
+      "args": {
+        "serverId": {
+          "name": "Server ID",
+          "description": "ID of the server to import emoji from."
+        },
+        "emojiName": {
+          "name": "Emoji Name",
+          "description": "Name of the emoji to import."
+        },
+        "newName": {
+          "name": "New Name",
+          "description": "New name for the imported emoji."
+        }
+      }
+    },
+    "emoji_show": {
+      "name": "show",
+      "description": "Show emoji from current server.",
+      "args": {
+        "emojiOrName": {
+          "name": "Emoji or Name",
+          "description": "Emoji to show or name of the emoji to show."
+        }
+      }
+    },
+    "eval": {
+      "name": "eval",
+      "description": "Evaluate JavaScript code.",
+      "args": {
+        "code": {
+          "name": "Code",
+          "description": "Code to evaluate."
+        }
+      }
+    },
+    "flag": {
+      "name": "flag",
+      "description": "Toggle flags of the item.",
+      "args": {
+        "id": {
+          "name": "ID",
+          "description": "ID of the item to change flags of."
+        },
+        "flag": {
+          "name": "Flag",
+          "description": "Flag to toggle."
+        }
+      }
+    },
+    "flag_list": {
+      "name": "list",
+      "description": "List flags of the item.",
+      "args": {
+        "id": {
+          "name": "ID",
+          "description": "ID of the item to list flags of."
+        }
+      }
+    },
+    "help": {
+      "name": "help",
+      "description": "Show this help message."
+    },
+    "invitetracker": {
+      "name": "invitetracker",
+      "description": "Show information about invite tracking."
+    },
+    "invitetracker_disable": {
+      "name": "disable",
+      "description": "Disable tracking of invites."
+    },
+    "invitetracker_enable": {
+      "name": "enable",
+      "description": "Enable tracking of invites.",
+      "args": {
+        "channel": {
+          "name": "Channel",
+          "description": "Channel to send tracking messages to."
+        }
+      }
+    },
+    "lang": {
+      "name": "lang",
+      "description": "Change language of bot for server or user.",
+      "args": {
+        "language": {
+          "name": "Language",
+          "description": "Language to use."
+        }
+      }
+    },
+    "link": {
+      "name": "link",
+      "description": "Enable copying of messages in this channel to another."
+    },
+    "link_list": {
+      "name": "list",
+      "description": "Get channel links for this server."
+    },
+    "link_remove": {
+      "name": "remove",
+      "description": "Remove link to/from this channel."
+    },
+    "music": {
+      "name": "music",
+      "description": "Music commands"
+    },
+    "music_pause": {
+      "name": "pause",
+      "description": "Pause player."
+    },
+    "music_play": {
+      "name": "play",
+      "description": "Play a video.\nIf no URL or query is specified, unpauses playback.\nQueries are searched on YouTube, but URL can be from any source.\nQueries with more than word require quotes (`\"`).",
+      "args": {
+        "urlOrQuery": {
+          "name": "URL or Query",
+          "description": "URL or query to play."
+        },
+        "playlistStartPosition": {
+          "name": "Playlist Start Position",
+          "description": "Position in playlist to start at."
+        }
+      }
+    },
+    "music_skip": {
+      "name": "skip",
+      "description": "Skip currently playing song."
+    },
+    "music_stop": {
+      "name": "stop",
+      "description": "Stop player."
+    },
+    "owner": {
+      "name": "owner",
+      "description": "Owner commands"
+    },
+    "owner_restart": {
+      "name": "restart",
+      "description": "Restart bot."
+    },
+    "owner_shell": {
+      "name": "shell",
+      "description": "Execute shell command.",
+      "args": {
+        "command": {
+          "name": "Command",
+          "description": "Command to execute."
+        }
+      }
+    },
+    "owner_test": {
+      "name": "test",
+      "description": "Test commands."
+    },
+    "owner_test_iteratemessages": {
+      "name": "iteratemessages",
+      "description": "Iterate through messages."
+    },
+    "owner_test_longtextembed": {
+      "name": "longtextembed",
+      "description": "Send long text embed."
+    },
+    "owner_test_slowcommand": {
+      "name": "slowcommand",
+      "description": "Slow command."
+    },
+    "owner_test_translations": {
+      "name": "translations",
+      "description": "Test translations."
+    },
+    "owner_testtokens": {
+      "name": "tokens",
+      "description": "Test tokens.",
+      "args": {
+        "tokens": {
+          "name": "Tokens",
+          "description": "Tokens to test."
+        }
+      }
+    },
+    "permission": {
+      "name": "permission",
+      "description": "Manage permissions of specific item.\nItem should be manageable by caller.",
+      "args": {
+        "id": {
+          "name": "ID",
+          "description": "ID of the item to manage permissions of."
+        },
+        "permission": {
+          "name": "Permission",
+          "description": "Permission to grant or revoke."
+        }
+      }
+    },
+    "permission_list": {
+      "name": "list",
+      "description": "Get permissions of specific item.",
+      "args": {
+        "id": {
+          "name": "ID",
+          "description": "ID of the item to get permissions of."
+        }
+      }
+    },
+    "prefix": {
+      "name": "prefix",
+      "description": "Change prefix.",
+      "args": {
+        "newPrefix": {
+          "name": "New Prefix",
+          "description": "New prefix to use."
+        }
+      }
+    },
+    "script": {
+      "name": "script",
+      "description": "Script commands"
+    },
+    "script_editor": {
+      "name": "editor",
+      "description": "Open script editor."
+    },
+    "script_run": {
+      "name": "run",
+      "description": "Run script.",
+      "args": {
+        "name": {
+          "name": "Name",
+          "description": "Name of the script to run."
+        },
+        "args": {
+          "name": "Args",
+          "description": "Arguments to pass to script."
+        }
+      }
+    },
+    "server": {
+      "name": "server",
+      "description": "Server commands"
+    },
+    "server_create": {
+      "name": "create",
+      "description": "Create a test server."
+    },
+    "server_clone": {
+      "name": "clone",
+      "description": "Clone a server.",
+      "args": {
+        "id": {
+          "name": "ID",
+          "description": "ID of the server to clone."
+        },
+        "mode": {
+          "name": "Mode",
+          "description": "Mode to use for cloning.",
+          "choices": {
+            "channels": {
+              "name": "Channels",
+              "description": "Clone channels only."
+            },
+            "roles": {
+              "name": "Roles",
+              "description": "Clone roles only."
+            },
+            "both": {
+              "name": "Both",
+              "description": "Clone both channels and roles."
+            }
+          }
+        }
+      }
+    },
+    "server_delall": {
+      "name": "delall",
+      "description": "Delete all servers."
+    },
+    "server_delete": {
+      "name": "delete",
+      "description": "Delete a test server."
+    },
+    "server_list": {
+      "name": "list",
+      "description": "List servers."
+    },
+    "textgen": {
+      "name": "textgen",
+      "description": "Text generator commands"
+    },
+    "textgen_disable": {
+      "name": "disable",
+      "description": "Disable text generator for this channel."
+    },
+    "textgen_enable": {
+      "name": "enable",
+      "description": "Enable text generator for this channel."
+    },
+    "textgen_info": {
+      "name": "info",
+      "description": "Show information about data for text generator for this channel.",
+      "args": {
+        "branchCutoff": {
+          "name": "Branch Cutoff",
+          "description": "Number of branches to show."
+        },
+        "branchCounterDepth": {
+          "name": "Branch Counter Depth",
+          "description": "Depth of branch counter."
+        }
+      }
+    },
+    "timer": {
+      "name": "timer",
+      "description": "Self-updating UTC timer message."
+    }
   },
   "errors": {
     "already_disabled": "Already disabled.",

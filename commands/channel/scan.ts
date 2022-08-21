@@ -1,4 +1,4 @@
-import { APIEmbed, EmbedBuilder, Message, TextChannel, User } from "discord.js";
+import { APIEmbed, ApplicationCommandOptionType, ChannelType, EmbedBuilder, Message, TextChannel, TextChannelType, User } from "discord.js";
 import { client } from "../../env";
 import { iterateMessages } from "../../modules/messages/iterateMessages";
 import { parseChannelMention } from "../../util";
@@ -6,10 +6,11 @@ import { sendAlwaysLastMessage } from "../../modules/messages/AlwaysLastMessage"
 import sendLongText from "../../modules/messages/sendLongText";
 import { once } from "events";
 import { Translator } from "../../modules/misc/Translator";
-import { CommandDefinition } from "../../modules/commands/definitions";
+import { CommandDefinition, textChannels } from "../../modules/commands/definitions";
 import { BotOwner } from "../../modules/commands/requirements";
+import { CommandMessage } from "../../modules/commands/appCommands";
 
-async function scanChannel(msg: Message, mode: string, fromChannelStr: string) {
+async function scanChannel(msg: CommandMessage, mode: string, fromChannelStr: string) {
     let translator = Translator.getOrDefault(msg);
 
     const inviteLink = /(https?:\/\/)?(www.)?(discord.(gg|io|me|li)|discordapp.com\/invite)\/[^\s/]+?(?=\b)/g;
@@ -145,7 +146,7 @@ async function scanChannel(msg: Message, mode: string, fromChannelStr: string) {
         let files: string[] = [];
 
         let sendAndClean = async () => {
-            await msg.channel.send({
+            await msg.sendSeparate({
                 embeds: embeds,
                 files: files.filter(x => x).map((x, i) => ({
                     name: `statistics${i + 1}.txt`,
@@ -200,9 +201,26 @@ async function scanChannel(msg: Message, mode: string, fromChannelStr: string) {
 }
 
 const command: CommandDefinition = {
-    name: "scan",
-    args: [1, 2, "<mode{daily,weekly,monthly}> [channel]"],
-    func: scanChannel,
+    key: "scan",
+    args: /* [1, 2, "<mode{daily,weekly,monthly}> [channel]"] */[{
+        translationKey: "mode",
+        type: ApplicationCommandOptionType.String,
+        choices: [{
+            translationKey: "daily",
+            value: "daily"
+        }, {
+            translationKey: "weekly",
+            value: "weekly"
+        }, {
+            translationKey: "monthly",
+            value: "monthly"
+        }]
+    }, {
+        translationKey: "channel",
+        type: ApplicationCommandOptionType.Channel,
+        channelTypes: textChannels,
+    }],
+    handler: scanChannel,
     requirements: BotOwner
 };
 export default command;

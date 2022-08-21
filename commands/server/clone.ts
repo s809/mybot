@@ -1,9 +1,10 @@
-import { CategoryChannel, GuildBasedChannel, GuildChannel, Message, NonThreadGuildBasedChannel, OverwriteType, Role, Snowflake, TextChannel, ThreadChannel, VoiceBasedChannel } from "discord.js";
+import { ApplicationCommandOptionType, CategoryChannel, GuildBasedChannel, GuildChannel, Message, NonThreadGuildBasedChannel, OverwriteType, Role, Snowflake, TextChannel, ThreadChannel, VoiceBasedChannel } from "discord.js";
 import { client } from "../../env";
+import { CommandMessage } from "../../modules/commands/appCommands";
 import { CommandDefinition } from "../../modules/commands/definitions";
 import { InServer } from "../../modules/commands/requirements";
 
-async function cloneServer(msg: Message<true>, guildId: Snowflake, mode: string) {
+async function cloneServer(msg: CommandMessage<true>, guildId: Snowflake, mode: string) {
     let guild = await client.guilds.fetch(guildId);
 
     let channels = new Map();
@@ -108,13 +109,29 @@ async function cloneServer(msg: Message<true>, guildId: Snowflake, mode: string)
     }
 
     if (didSkipChannels)
-        await msg.channel.send("Some channels were skipped as this server is not community-enabled.");
+        await msg.sendSeparate("Some channels were skipped as this server is not community-enabled.");
 }
 
 const command: CommandDefinition = {
-    name: "clone",
-    args: [2, 2, "<id> <mode{channels,roles,both}>"],
+    key: "clone",
+    args: [{
+        translationKey: "id",
+        type: ApplicationCommandOptionType.String,
+    }, {
+        translationKey: "mode",
+        type: ApplicationCommandOptionType.String,
+        choices: [{
+            translationKey: "channels",
+            value: "channels"
+        }, {
+            translationKey: "roles",
+            value: "roles"
+        }, {
+            translationKey: "both",
+            value: "both"
+        }]
+    }],
     requirements: InServer,
-    func: cloneServer
+    handler: cloneServer
 };
 export default command;

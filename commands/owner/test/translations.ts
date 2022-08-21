@@ -1,10 +1,11 @@
 import { Message } from "discord.js";
+import { CommandMessage } from "../../../modules/commands/appCommands";
 import { CommandDefinition } from "../../../modules/commands/definitions";
 import { Translator } from "../../../modules/misc/Translator";
 
-async function test(msg: Message) {
+async function test(msg: CommandMessage) {
     let translator = Translator.getOrDefault(msg);
-    await msg.channel.send(
+    await msg.reply(
         translator.translate("common.test") + "\n"
         + translator.tryTranslate("common.test") + "\n"
         + translator.translate("common.test_missing") + "\n"
@@ -13,7 +14,7 @@ async function test(msg: Message) {
 }
 
 const command: CommandDefinition = {
-    name: "translations",
-    func: test
+    key: "translations",
+    handler: test
 };
 export default command;

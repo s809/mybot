@@ -1,4 +1,5 @@
 {
+  "locale_strings": ["ru"],
   "command_descriptions": {
     "bot_changelog": "Получить список изменений бота.",
     "bot_invite": "Получить ссылку для приглашения бота на сервер.",

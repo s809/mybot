@@ -4,17 +4,6 @@
 import { botDirectory } from "./env";
 
 /**
- * Clamps value {@link num} to max of {@link max}.
- * 
- * @param num Value to be clamped.
- * @param max Largest allowed value.
- * @returns Clamped value.
- */
-export function clamp(num: number, max: number): number {
-    return num > max ? max : num;
-}
-
-/**
  * Extracts ID from mention.
  * 
  * @param text Text containing mention.
@@ -137,7 +126,7 @@ export function formatString(text: string, ...args: string[]) {
 
         let replacedValue = args[parseInt(value) - 1];
         if (replacedValue === undefined)
-            throw new Error(`Value for $${parseInt(value)} is missing`);
+            throw new Error(`Value for $${value} is missing`);
         return replacedValue;
     });
 }
@@ -152,4 +141,23 @@ export function capitalizeWords(text: string) {
     return text.toLowerCase().replace(/(^\w|\s\w)/g, m => m.toUpperCase());
 }
 
-export type Overwrite<T, U> = Pick<T, Exclude<keyof T, keyof U>> & U;
+/**
+ * Checks if objects have same keys.
+ * 
+ * @param a First object.
+ * @param b Second object.
+ * @returns True if objects have same keys.
+ */
+export function hasSameKeys(a: any, b: any) {
+    return Object.keys(a).length === Object.keys(b).length
+        && Object.keys(a).every(k => k in b)
+}
+
+export type Overwrite<T, U> = Omit<T, keyof U> & U;
+
+export type ArrayElement<ArrayType extends readonly unknown[]> =
+    ArrayType extends readonly (infer ElementType)[] ? ElementType : never;
+
+export type DistributiveOmit<T, K extends keyof any> = T extends any
+    ? Omit<T, K>
+    : never;

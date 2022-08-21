@@ -2,18 +2,21 @@
  * @file Restart command.
  */
 import { Message } from "discord.js";
+import { CommandMessage } from "../../modules/commands/appCommands";
 import { CommandDefinition } from "../../modules/commands/definitions";
 import { doRestart } from "../../modules/misc/restart";
 
-async function restart(msg: Message) {
+async function restart(msg: CommandMessage) {
     await doRestart(async () => {
-        await msg.react("✅")
-        await msg.reactions.resolve("🔄")?.users.remove();
+        if (!msg.interaction) {
+            await msg.message!.react("✅")
+            await msg.message!.reactions.resolve("🔄")?.users.remove();
+        }
     });
 }
 
 const command: CommandDefinition = {
-    name: "restart",
-    func: restart
+    key: "restart",
+    handler: restart
 };
 export default command;

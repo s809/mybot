@@ -1,13 +1,14 @@
-import { Message } from "discord.js";
+import { CommandInteraction, Message } from "discord.js";
 import { data } from "../../../env";
+import { CommandMessage } from "../appCommands";
 import { Command } from "../definitions";
 
 export interface CommandRequirement {
     name: string;
-    check: (msg: Message) => boolean;
+    check: (msg: Message | CommandMessage) => boolean;
     failureMessage?: string;
     hideInDescription?: boolean;
-    hideCommand?: boolean | ((msg: Message) => boolean);
+    hideCommand?: boolean | ((msg: Message | CommandMessage) => boolean);
     satisfiedBy?: CommandRequirement | CommandRequirement[];
     requires?: CommandRequirement | CommandRequirement[];
     overridable?: boolean;
@@ -22,7 +23,7 @@ export interface CommandRequirement {
  * - satisfied by any of alternatives
  */
 function checkRequirement(
-    msg: Message,
+    msg: X,
     requirements: CommandRequirement,
     override: boolean = false
 ): {
@@ -30,7 +31,7 @@ function checkRequirement(
     message?: string;
     hideCommand: boolean;
 } {
-    const forceHide = typeof requirements.hideCommand === "function" && requirements.hideCommand(msg);
+    const forceHide = typeof requirements.hideCommand === "function" && requirements.hideCommand(msg as any);
     const hideOnFailure = typeof requirements.hideCommand === "boolean" && requirements.hideCommand
         || forceHide;
 
@@ -53,7 +54,7 @@ function checkRequirement(
         };
     }
 
-    const allowed = requirements.check(msg);
+    const allowed = requirements.check(msg as any);
     if (allowed) {
         return {
             allowed,
@@ -91,7 +92,7 @@ function checkRequirement(
  * @see checkRequirement
  */
 export function checkRequirements(
-    msg: Message,
+    msg: X,
     requirements: CommandRequirement[],
     override: boolean = false
 ): {
@@ -117,16 +118,16 @@ export function checkRequirements(
  * - guild role
  * - guild member
  */
-export function isCommandOverridden(msg: Message, command: Command): boolean {
+export function isCommandOverridden(msg: X, command: Command): boolean {
     const allowedCommands = [
         // Global user
-        ...data.users[msg.author.id].allowedCommands,
+        ...data.users[(msg instanceof CommandInteraction ? msg.user : msg.author).id].allowedCommands,
         ...(msg.inGuild()
             ? [
                 // Server roles
-                ...msg.member!.roles.cache.map(role => data.guilds[msg.guildId].roles[role.id].allowedCommands).flat(),
+                ...msg.member!.roles.cache.map(role => data.guilds[msg.guildId!].roles[role.id].allowedCommands).flat(),
                 // Server member
-                ...data.guilds[msg.guildId].members[msg.author.id].allowedCommands
+                ...data.guilds[msg.guildId!].members[msg.author.id].allowedCommands
             ]
             : [])
     ];
@@ -142,7 +143,7 @@ export function isCommandOverridden(msg: Message, command: Command): boolean {
  * @param command Command to check.
  * @returns Whether the execution of command is allowed.
  */
-export function isCommandAllowedToManage(msg: Message, command: Command): boolean {
+export function isCommandAllowedToManage(msg: X, command: Command): boolean {
     if (!command.requirements) return false;
 
     const requirements = Array.isArray(command.requirements)
@@ -150,6 +151,8 @@ export function isCommandAllowedToManage(msg: Message, command: Command): boolea
         : [command.requirements]
     return checkRequirements(msg, requirements).allowed && !isCommandOverridden(msg, command);
 }
+
+type X = Message | CommandInteraction | CommandMessage
 
 /**
  * Checks if user has required permissions to execute command in their context.
@@ -159,7 +162,7 @@ export function isCommandAllowedToManage(msg: Message, command: Command): boolea
  * @param command Command to check.
  * @returns Whether the management of command is allowed.
  */
-export function checkRequirementsBeforeRunning(msg: Message, command: Command): ReturnType<typeof checkRequirements> {
+export function checkRequirementsBeforeRunning(msg: X, command: Command): ReturnType<typeof checkRequirements> {
     if (!command.requirements) return {
         allowed: true,
         hideCommand: false

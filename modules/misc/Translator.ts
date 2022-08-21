@@ -1,28 +1,41 @@
-import { Guild, GuildResolvable, Message, Snowflake } from "discord.js";
+import { CommandInteraction, Guild, GuildResolvable, LocaleString, Message } from "discord.js";
 import { readdirSync, readFileSync } from "fs";
 import { get } from "lodash-es";
-import { client, data } from "../../env";
+import { data } from "../../env";
 import { formatString } from "../../util";
+import { CommandMessage } from "../commands/appCommands";
 
 export class Translator {
-    private static translators: Map<string, Translator> = new Map();
+    private static _translators: Map<string, Translator> = new Map();
     private data: object;
+
+    static readonly fallbackLocale: LocaleString = "en-US";
+
+    static get translators(): ReadonlyMap<string, Translator> {
+        return Translator._translators;
+    }
 
     static {
         const translationDir = "./translations/";
 
         for (let file of readdirSync(translationDir))
-            Translator.translators.set(file.split(".")[0], new Translator(translationDir + file));
+            new Translator(translationDir + file);
     }
     
     constructor(path: string) {
         this.data = JSON.parse(readFileSync(path, "utf8"));
+        for (let localeString of this.localeStrings)
+            Translator._translators.set(localeString, this);
+    }
+
+    get localeStrings(): LocaleString[] {
+        return get(this.data, "locale_strings");
     }
 
     /**
      * @see Translator.getOrDefault
      */
-    static get(nameOrContext: string | Message | GuildResolvable): Translator | null {
+    static get(nameOrContext: string | Message | CommandInteraction | GuildResolvable | CommandMessage): Translator | null {
         let language: string;
 
         if (typeof nameOrContext === "string") {
@@ -31,13 +44,15 @@ export class Translator {
             language = data.guilds[nameOrContext.id].language
         } else if (nameOrContext.guild) {
             language = data.guilds[nameOrContext.guild.id].language;
-        } else if (nameOrContext instanceof Message) {
+        } else if (nameOrContext instanceof Message || nameOrContext instanceof CommandMessage) {
             language = data.users[nameOrContext.author.id].language;
+        } else if (nameOrContext instanceof CommandInteraction) {
+            language = data.users[nameOrContext.user.id].language;
         } else {
             throw new Error("Invalid context type.");
         }
 
-        return Translator.translators.get(language) ?? null;
+        return Translator._translators.get(language) ?? null;
     }
 
     /**
@@ -46,8 +61,8 @@ export class Translator {
      * @param nameOrContext Message or name to use.
      * @returns
      */
-    static getOrDefault(nameOrContext: string | Message | GuildResolvable): Translator {
-        return Translator.get(nameOrContext) ?? Translator.translators.get("en")!;
+    static getOrDefault(nameOrContext: string | Message | GuildResolvable | CommandMessage): Translator {
+        return Translator.get(nameOrContext) ?? Translator._translators.get(Translator.fallbackLocale)!;
     }
 
     /**

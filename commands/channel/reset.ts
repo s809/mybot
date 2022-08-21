@@ -1,8 +1,9 @@
 import { GuildChannel, Message } from "discord.js";
+import { CommandMessage } from "../../modules/commands/appCommands";
 import { CommandDefinition } from "../../modules/commands/definitions";
 import { Translator } from "../../modules/misc/Translator";
 
-async function resetChannel(msg: Message) {
+async function resetChannel(msg: CommandMessage) {
     let translator = Translator.getOrDefault(msg);
 
     if (!(msg.channel instanceof GuildChannel))
@@ -18,7 +19,7 @@ async function resetChannel(msg: Message) {
 }
 
 const command: CommandDefinition = {
-    name: "reset",
-    func: resetChannel
+    key: "reset",
+    handler: resetChannel
 };
 export default command;

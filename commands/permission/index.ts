@@ -1,13 +1,14 @@
 import assert from "assert";
-import { Message } from "discord.js";
+import { ApplicationCommandOptionType, Message } from "discord.js";
 import { client, data, isBotOwner } from "../../env";
 import { resolveCommand } from "../../modules/commands";
+import { CommandMessage } from "../../modules/commands/appCommands";
 import { CommandDefinition } from "../../modules/commands/definitions";
 import { importCommands } from "../../modules/commands/importHelper";
 import { InServer, isCommandAllowedToManage } from "../../modules/commands/requirements";
 import { Translator } from "../../modules/misc/Translator";
 
-async function permission(msg: Message<true>, id: string, commandPath: string) {
+async function permission(msg: CommandMessage<true>, id: string, commandPath: string) {
     let translator = Translator.getOrDefault(msg);
 
     let command = resolveCommand(commandPath);
@@ -60,10 +61,16 @@ async function permission(msg: Message<true>, id: string, commandPath: string) {
 }
 
 const command: CommandDefinition = {
-    name: "permission",
-    args: [2, 2, "<id> <permission>"],
+    key: "permission",
+    args: [{
+        translationKey: "id",
+        type: ApplicationCommandOptionType.String
+    }, {
+        translationKey: "permission",
+        type: ApplicationCommandOptionType.String
+    }],
     requirements: InServer,
-    func: permission,
+    handler: permission,
     alwaysReactOnSuccess: true,
     subcommands: await importCommands(import.meta.url)
 };

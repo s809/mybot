@@ -8,7 +8,7 @@ import { UserDataManager } from "./modules/data/UserDataManager";
 import { dirname } from "path";
 import { fileURLToPath } from "url";
 import { MusicPlayer } from "./modules/music/MusicPlayer";
-import { ChannelLink, FlagData, InviteTrackerData, LanguageData, PermissionData, TextGenData } from "./modules/data/models";
+import { FlagData, InviteTrackerData, LanguageData, PermissionData, TextGenData } from "./modules/data/models";
 import { logDebug } from "./log";
 
 export const version: string = JSON.parse(readFileSync("./package.json", "utf8")).version;
@@ -31,7 +31,9 @@ export const client = new Client({
     partials: [Partials.Channel],
     presence: {
         activities: [{
-            name: `v${version}${debug ? "-dev" : ""}`
+            name: debug
+                ? `v${version.split("-")[0]}"-dev"`
+                : `v${version}`,
         }]
     }
 });
@@ -53,9 +55,7 @@ export const dataManager = new UserDataManager("./data", {
 
             roles: Record<string, PermissionData>,
             members: Record<string, PermissionData>,
-            channels: Record<string, {
-                link: ChannelLink;
-            } & FlagData & TextGenData>,
+            channels: Record<string, FlagData & TextGenData>,
         } & LanguageData & FlagData>{}
     },
     users: {

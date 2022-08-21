@@ -1,14 +1,15 @@
 import { Message } from "discord.js";
 import { CommandDefinition } from "../../../modules/commands/definitions";
 import { setTimeout } from "timers/promises"
+import { CommandMessage } from "../../../modules/commands/appCommands";
 
-async function test(msg: Message) {
+async function test(msg: CommandMessage) {
     await setTimeout(1000);
-    await msg.channel.send("Test");
+    await msg.reply("Test");
 }
 
 const command: CommandDefinition = {
-    name: "slowcommand",
-    func: test
+    key: "slowcommand",
+    handler: test
 };
 export default command;

@@ -1,10 +1,11 @@
 import { Message } from "discord.js";
 import { musicPlayingGuilds } from "../../env";
+import { CommandMessage } from "../../modules/commands/appCommands";
 import { CommandDefinition } from "../../modules/commands/definitions";
 import { InVoiceWithBot } from "../../modules/commands/requirements";
 import { Translator } from "../../modules/misc/Translator";
 
-async function skip(msg: Message<true>) {
+async function skip(msg: CommandMessage<true>) {
     let translator = Translator.getOrDefault(msg);
 
     let player = musicPlayingGuilds.get(msg.guild);
@@ -15,8 +16,8 @@ async function skip(msg: Message<true>) {
 }
 
 const command: CommandDefinition = {
-    name: "skip",
-    func: skip,
+    key: "skip",
+    handler: skip,
     alwaysReactOnSuccess: true,
     requirements: InVoiceWithBot
 };

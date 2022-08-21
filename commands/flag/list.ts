@@ -1,9 +1,10 @@
-import { Message, User } from "discord.js";
+import { ApplicationCommandOptionType, User } from "discord.js";
+import { CommandMessage } from "../../modules/commands/appCommands";
 import { CommandDefinition } from "../../modules/commands/definitions";
 import { resolveFlaggableItem } from "../../modules/data/flags";
 
-async function flagList(msg: Message, id: string) {
-    let resolvedItem = await resolveFlaggableItem(msg, id);
+async function flagList(msg: CommandMessage, id: string) {
+    let resolvedItem = await resolveFlaggableItem(msg.message!, id);
 
     if (!resolvedItem)
         return "Unknown item.";
@@ -12,7 +13,7 @@ async function flagList(msg: Message, id: string) {
     if (!flagStr.length)
         flagStr = "None";
 
-    await msg.channel.send({
+    await msg.reply({
         embeds: [{
             title: `Flags of ${resolvedItem.item instanceof User ? resolvedItem.item.tag : resolvedItem.item.name}`,
             description: flagStr
@@ -21,8 +22,11 @@ async function flagList(msg: Message, id: string) {
 }
 
 const command: CommandDefinition = {
-    name: "list",
-    args: [1, 1, "<id>"],
-    func: flagList
+    key: "list",
+    args: [{
+        translationKey: "id",
+        type: ApplicationCommandOptionType.String,
+    }],
+    handler: flagList
 };
 export default command;

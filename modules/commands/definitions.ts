@@ -2,34 +2,58 @@
  * @file Contains definitions for commands.
  */
 
-import { Awaitable, Message } from "discord.js";
+import { ApplicationCommandSubCommandData, Awaitable, ChannelType, LocaleString } from "discord.js";
+import { ArrayElement, DistributiveOmit, Overwrite } from "../../util";
+import { CommandMessage } from "./appCommands";
 import { CommandRequirement } from "./requirements";
 
+export const textChannels = [
+    ChannelType.DM, ChannelType.GroupDM,
+    ChannelType.GuildNews,
+    ChannelType.GuildPublicThread, ChannelType.GuildPrivateThread, ChannelType.GuildNewsThread,
+    ChannelType.GuildText, ChannelType.GuildForum
+];
+
 export interface CommandDefinition {
-    name: string;
-    args?: [number, number, string];
-    func?: CommandHandler;
+    key: string;
+
+    args?: (DistributiveOmit<
+        ArrayElement<NonNullable<ApplicationCommandSubCommandData["options"]>>,
+        "name" | "nameLocalizations" | "description" | "descriptionLocalizations" |
+        "choices"
+    > & {
+        translationKey: string;
+        choices?: {
+            translationKey: string;
+            value: string | number;
+        }[];
+    })[];
+    usableAsAppCommand?: boolean;
+    handler?: CommandHandler;
     alwaysReactOnSuccess?: boolean;
+    
     subcommands?: CommandDefinition[];
     requirements?: CommandRequirement | CommandRequirement[];
 }
 
-export interface Command {
-    name: string;
+export type Command = Overwrite<{
+    [K in keyof CommandDefinition]-?: NonNullable<CommandDefinition[K]>;
+}, {
     path: string;
-    args: [number, number, string];
-    func: CommandHandler | null;
-    alwaysReactOnSuccess: boolean;
+    translationPath: string;
+    nameTranslations: Record<LocaleString, string>;
+    descriptionTranslations: Record<LocaleString, string>;
+
+    args: {
+        min: number;
+        max: number;
+        stringTranslations: Record<LocaleString, string>;
+        list: NonNullable<ApplicationCommandSubCommandData["options"]>
+    };
+    handler: CommandHandler | null;
+
     subcommands: Map<string, Command>;
     requirements: CommandRequirement[];
-}
+}>
 
-/** Handler function of a command. */
-export interface CommandHandler {
-    (
-        /** Message the command was sent from. */
-        msg: Message,
-        /** Command arguments. */
-        ...args: string[]
-    ): Awaitable<string | void>;
-}
+export type CommandHandler = (msg: CommandMessage, ...args: string[]) => Awaitable<string | void>;

@@ -1,11 +1,12 @@
 import { inspect } from "util";
-import { Client, GatewayIntentBits, Message } from "discord.js";
+import { ApplicationCommandOptionType, Client, GatewayIntentBits } from "discord.js";
 import sendLongText from "../../modules/messages/sendLongText";
 import { sendAlwaysLastMessage } from "../../modules/messages/AlwaysLastMessage";
 import { once } from "events";
 import { CommandDefinition } from "../../modules/commands/definitions";
+import { CommandMessage } from "../../modules/commands/appCommands";
 
-async function testTokens(msg: Message, ...tokens: string[]) {
+async function testTokens(msg: CommandMessage, ...tokens: string[]) {
     let status = await sendAlwaysLastMessage(msg.channel, "Loading...");
 
     let results: Map<string, string[]> = new Map();
@@ -72,7 +73,7 @@ async function testTokens(msg: Message, ...tokens: string[]) {
 
                 str += "\n";
             }
-            await msg.channel.send({
+            await msg.reply({
                 content: `Valid token count: ${results.size} of ${tokens.length}`,
                 files: [{
                     name: "results.txt",
@@ -84,8 +85,11 @@ async function testTokens(msg: Message, ...tokens: string[]) {
 }
 
 const command: CommandDefinition = {
-    name: "testtokens",
-    args: [1, Infinity, "<tokens...>"],
-    func: testTokens
+    key: "testtokens",
+    args: [{
+        translationKey: "tokens",
+        type: ApplicationCommandOptionType.String
+    }],
+    handler: testTokens
 };
 export default command;

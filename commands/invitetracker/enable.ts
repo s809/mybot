@@ -1,11 +1,12 @@
-import { Message, TextChannel } from "discord.js";
+import { ApplicationCommandOptionType, Message, TextChannel } from "discord.js";
 import { data } from "../../env";
-import { CommandDefinition } from "../../modules/commands/definitions";
+import { CommandMessage } from "../../modules/commands/appCommands";
+import { CommandDefinition, textChannels } from "../../modules/commands/definitions";
 import { tryInitTrackedGuild } from "../../modules/misc/inviteTracker";
 import { Translator } from "../../modules/misc/Translator";
 import { parseChannelMention } from "../../util";
 
-async function enableInviteTracker(msg: Message<true>, channelResolvable: string) {
+async function enableInviteTracker(msg: CommandMessage<true>, channelResolvable: string) {
     let translator = Translator.getOrDefault(msg);
 
     const channelId = parseChannelMention(channelResolvable);
@@ -26,9 +27,13 @@ async function enableInviteTracker(msg: Message<true>, channelResolvable: string
 }
 
 const command: CommandDefinition = {
-    name: "enable",
-    args: [1, 1, "<channel|id>"],
-    func: enableInviteTracker,
+    key: "enable",
+    args: [{
+        translationKey: "channel",
+        type: ApplicationCommandOptionType.Channel,
+        channelTypes: textChannels
+    }],
+    handler: enableInviteTracker,
     alwaysReactOnSuccess: true
 };
 export default command;
