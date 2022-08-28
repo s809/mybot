@@ -5,11 +5,11 @@ import { iterateMessagesChunked } from "../modules/messages/iterateMessages";
 import { CommandMessage } from "../modules/commands/CommandMessage";
 
 async function deleteRange(msg: CommandMessage<true>, {
-    start,
-    end
+    startId,
+    endId
 }: {
-    start: string;
-    end: string;
+    startId: string;
+    endId: string;
 }) {
     const translator = Translator.getOrDefault(msg);
 
@@ -17,14 +17,14 @@ async function deleteRange(msg: CommandMessage<true>, {
         return translator.translate("errors.cannot_manage_messages");
 
     try {
-        if (BigInt(start) > BigInt(end))
-            [start, end] = [end, start];
+        if (BigInt(startId) > BigInt(endId))
+            [startId, endId] = [endId, startId];
     } catch (e) {
         return translator.translate("errors.invalid_message_range");
     }
 
     try {
-        for await (let chunk of iterateMessagesChunked(msg.channel, start, end)) {
+        for await (let chunk of iterateMessagesChunked(msg.channel, startId, endId)) {
             const bulkDeleted = await (msg.channel as GuildTextBasedChannel).bulkDelete(chunk, true);
             
             for (let message of chunk.filter(message => !bulkDeleted.has(message.id)))
