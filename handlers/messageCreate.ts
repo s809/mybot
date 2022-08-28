@@ -111,12 +111,19 @@ client.on("messageCreate", async msg => {
         return;
     }
 
+    // TODO value constraints
     const argsObj = {} as Parameters<CommandHandler>["1"];
     const argToGetter = new Map<ApplicationCommandOptionType, (value: string) => any>([
         [ApplicationCommandOptionType.String, x => x],
         [ApplicationCommandOptionType.Number, x => {
             const result = parseInt(x);
-            if (isNaN(result))
+            if (isNaN(result) || result < Number.MIN_SAFE_INTEGER || result > Number.MAX_SAFE_INTEGER)
+                throw new Error(`${x} is not a valid number.`);
+            return result;
+        }],
+        [ApplicationCommandOptionType.Integer, x => {
+            const result = parseInt(x);
+            if (isNaN(result) || result % 1 || result < Number.MIN_SAFE_INTEGER || result > Number.MAX_SAFE_INTEGER)
                 throw new Error(`${x} is not a valid number.`);
             return result;
         }],
@@ -167,8 +174,12 @@ client.on("messageCreate", async msg => {
             return;
         }
 
+        const receivedArg = args.shift()!;
+        if (!arg.required && !receivedArg)
+            continue;
+
         try {
-            argsObj[arg.translationKey] = getter(args.shift()!);
+            argsObj[arg.translationKey] = getter(receivedArg);
         } catch (e) {
             await msg.channel.send(e.message);
             return;
