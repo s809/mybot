@@ -14,7 +14,9 @@ export function generateSingleSample(genData: Exclude<TextGenData["genData"], un
         let nextWord: string | undefined;
 
         let words = Object.getOwnPropertyNames(wordData);
-        
+        if (words.includes("__genEnd"))
+            words.splice(words.indexOf("__genEnd"));
+
         for (let word of words) {
             chosenCumulativeProbability -= wordData[word];
             if (chosenCumulativeProbability <= 0) {
@@ -22,11 +24,8 @@ export function generateSingleSample(genData: Exclude<TextGenData["genData"], un
                 break;
             }
         }
-        // Word must be chosen before reaching this point
-        assert(chosenCumulativeProbability <= 0);
-
-        if (nextWord === "__genEnd")
-            break; // Finished generating text
+        if (chosenCumulativeProbability > 0 || nextWord === "__genEnd")
+            break;
         
         result += " " + nextWord;
         wordData = genData[nextWord!];
