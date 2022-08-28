@@ -1,10 +1,15 @@
-import { ApplicationCommandOptionType, CategoryChannel, GuildBasedChannel, GuildChannel, Message, NonThreadGuildBasedChannel, OverwriteType, Role, Snowflake, TextChannel, ThreadChannel, VoiceBasedChannel } from "discord.js";
+import { ApplicationCommandOptionType, CategoryChannel, GuildChannel, NonThreadGuildBasedChannel, OverwriteType, Role, Snowflake, TextChannel, ThreadChannel, VoiceBasedChannel } from "discord.js";
 import { client } from "../../env";
-import { CommandMessage } from "../../modules/commands/appCommands";
+import { CommandMessage } from "../../modules/commands/CommandMessage";
 import { CommandDefinition } from "../../modules/commands/definitions";
-import { InServer } from "../../modules/commands/requirements";
 
-async function cloneServer(msg: CommandMessage<true>, guildId: Snowflake, mode: string) {
+async function cloneServer(msg: CommandMessage<true>, {
+    guildId,
+    mode
+}: {
+    guildId: Snowflake;
+    mode: string;
+}) {
     let guild = await client.guilds.fetch(guildId);
 
     let channels = new Map();
@@ -131,7 +136,7 @@ const command: CommandDefinition = {
             value: "both"
         }]
     }],
-    requirements: InServer,
+    allowDMs: false,
     handler: cloneServer
 };
 export default command;

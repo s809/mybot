@@ -1,11 +1,17 @@
-import { ApplicationCommandOptionType, Message } from "discord.js";
-import { CommandMessage } from "../../modules/commands/appCommands";
+import { ApplicationCommandOptionType } from "discord.js";
+import { CommandMessage } from "../../modules/commands/CommandMessage";
 import { CommandDefinition } from "../../modules/commands/definitions";
 import { importCommands } from "../../modules/commands/importHelper";
 import { BotOwner } from "../../modules/commands/requirements";
 import { resolveFlaggableItem, toggleFlag } from "../../modules/data/flags";
 
-async function flag(msg: CommandMessage, id: string, flag: string) {
+async function flag(msg: CommandMessage, {
+    id,
+    flag
+}: {
+    id: string;
+    flag: string;
+}) {
     let resolvedItem = await resolveFlaggableItem(msg.message!, id);
 
     if (!resolvedItem)

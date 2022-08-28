@@ -10,10 +10,10 @@ import { botDirectory } from "./env";
  * @returns Extracted ID.
  */
 export function parseMention(text: string, prefix: string): string | null {
-    if (/^\d+$/.test(text))
+    if (/^\d{17,19}$/.test(text))
         return text;
 
-    let regex = new RegExp(`^<${prefix}(\\d+)>$`)
+    let regex = new RegExp(`^<${prefix}(\\d{17,19})>$`)
     return text.match(regex)?.[1] ?? null;
 }
 
@@ -35,6 +35,16 @@ export function parseChannelMention(text: string) {
  */
 export function parseUserMention(text: string) {
     return parseMention(text, "@") ?? parseMention(text, "@!");
+}
+
+/**
+ * Extracts role ID from mention.
+ * 
+ * @param text Text containing mention.
+ * @returns Extracted ID.
+ */
+export function parseRoleMention(text: string) {
+    return parseMention(text, "@&");
 }
 
 

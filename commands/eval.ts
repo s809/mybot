@@ -1,5 +1,5 @@
 import { ApplicationCommandOptionType } from "discord.js";
-import { CommandMessage } from "../modules/commands/appCommands";
+import { CommandMessage } from "../modules/commands/CommandMessage";
 import { CommandDefinition } from "../modules/commands/definitions";
 import { BotOwner } from "../modules/commands/requirements";
 import { getPrefix } from "../modules/data/getPrefix";
@@ -21,6 +21,7 @@ const command: CommandDefinition = {
     args: [{
         translationKey: "code",
         type: ApplicationCommandOptionType.String,
+        isExtras: true
     }],
     handler: evalCommand,
     requirements: BotOwner

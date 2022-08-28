@@ -1,7 +1,7 @@
 import { Message } from "discord.js";
-import { CommandDefinition } from "../../../modules/commands/definitions";
+import { CommandDefinition } from "../../modules/commands/definitions";
 import { setTimeout } from "timers/promises"
-import { CommandMessage } from "../../../modules/commands/appCommands";
+import { CommandMessage } from "../../modules/commands/CommandMessage";
 
 async function test(msg: CommandMessage) {
     await setTimeout(1000);

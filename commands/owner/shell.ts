@@ -6,7 +6,7 @@ import sendLongText from "../../modules/messages/sendLongText";
 import { ApplicationCommandOptionType, Message } from "discord.js";
 import { getPrefix } from "../../modules/data/getPrefix";
 import { CommandDefinition } from "../../modules/commands/definitions";
-import { CommandMessage } from "../../modules/commands/appCommands";
+import { CommandMessage } from "../../modules/commands/CommandMessage";
 
 async function shell(msg: CommandMessage) {
     let command = skipStringAfter(msg.content,
@@ -21,7 +21,7 @@ async function shell(msg: CommandMessage) {
         await sendLongText(msg.channel, "--- stderr ---\n" + stderr);
     if (!stdout.length && !stderr.length) {
         if (msg.interaction)
-            await msg.ignore();
+            await msg.completeSilently();
         else
             await msg.message!.react("✅").catch(() => { });
     }
@@ -32,6 +32,7 @@ const command: CommandDefinition = {
     args: [{
         translationKey: "command",
         type: ApplicationCommandOptionType.String,
+        isExtras: true
     }],
     handler: shell
 };

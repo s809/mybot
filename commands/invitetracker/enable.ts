@@ -1,20 +1,16 @@
-import { ApplicationCommandOptionType, Message, TextChannel } from "discord.js";
+import { ApplicationCommandOptionType, GuildTextBasedChannel, Message, TextBasedChannel, TextChannel } from "discord.js";
 import { data } from "../../env";
-import { CommandMessage } from "../../modules/commands/appCommands";
+import { CommandMessage } from "../../modules/commands/CommandMessage";
 import { CommandDefinition, textChannels } from "../../modules/commands/definitions";
 import { tryInitTrackedGuild } from "../../modules/misc/inviteTracker";
 import { Translator } from "../../modules/misc/Translator";
-import { parseChannelMention } from "../../util";
 
-async function enableInviteTracker(msg: CommandMessage<true>, channelResolvable: string) {
+async function enableInviteTracker(msg: CommandMessage<true>, {
+    channel
+}: {
+    channel: GuildTextBasedChannel;
+}) {
     let translator = Translator.getOrDefault(msg);
-
-    const channelId = parseChannelMention(channelResolvable);
-    if (!channelId)
-        return translator.translate("errors.invalid_channel");
-    let channel = msg.guild.channels.resolve(channelId);
-    if (!(channel instanceof TextChannel))
-        return translator.translate("errors.unknown_channel");
 
     let guildData = data.guilds[msg.guildId];
     guildData.inviteTracker = {

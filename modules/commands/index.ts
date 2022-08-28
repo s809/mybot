@@ -6,10 +6,10 @@ import { pathToFileURL } from "url";
 import { botDirectory } from "../../env";
 import { importCommands } from "./importHelper";
 import { Command, CommandDefinition } from "./definitions";
-import { LocaleString, Message } from "discord.js";
+import { ApplicationCommandOptionType, LocaleString, Message } from "discord.js";
 import { getPrefix } from "../data/getPrefix";
 import { CommandRequirement } from "./requirements";
-import { CommandMessage } from "./appCommands";
+import { CommandMessage } from "./CommandMessage";
 import { Translator } from "../misc/Translator";
 import { hasSameKeys } from "../../util";
 
@@ -54,7 +54,7 @@ function prepareSubcommands(list: CommandDefinition[], inheritedOptions?: {
             // is inherited to all subcommands unless overridden later.
             if (definition.usableAsAppCommand !== undefined) {
                 if (definition.usableAsAppCommand && options.path.includes("/"))
-                    throw new Error("Subcommands cannot be marked as usable as app commands.");
+                    throw new Error("Only root commands can be marked as usable as app commands.");
                 else if (!definition.usableAsAppCommand && !options.path.includes("/"))
                     throw new Error("Root commands cannot be marked as unusable as app commands.");
             
@@ -72,6 +72,7 @@ function prepareSubcommands(list: CommandDefinition[], inheritedOptions?: {
             let minArgs = 0;
             let maxArgs = 0;
             let optionalArgsStarted = false;
+            let lastArgAsExtras = false;
 
             const argStringTranslations = {} as Record<LocaleString, string>;
 
@@ -82,6 +83,9 @@ function prepareSubcommands(list: CommandDefinition[], inheritedOptions?: {
                 translationPath,
                 nameTranslations,
                 descriptionTranslations,
+
+                defaultMemberPermissions: definition.defaultMemberPermissions ?? [],
+                allowDMs: definition.allowDMs ?? true,
 
                 args: {
                     list: definition.args?.map(arg => {
@@ -101,6 +105,18 @@ function prepareSubcommands(list: CommandDefinition[], inheritedOptions?: {
                                 minArgs++;
                             maxArgs++;
 
+                            if (lastArgAsExtras)
+                                throw new Error("Extras argument must be the last argument.");
+                            if (arg.isExtras) {
+                                if (arg.type !== ApplicationCommandOptionType.String)
+                                    throw new Error("Extras argument type must be a string.");
+                                if (arg.required === false)
+                                    throw new Error("Command with extras argument cannot have optional arguments.");
+                                
+                                lastArgAsExtras = true;
+                                maxArgs = Infinity;
+                            }
+
                             for (const [locale, translation] of Object.entries(nameLocalizations)) {
                                 const argString = arg.required === false ? `[${translation}]` : `<${translation}>`;
                                 if (!argStringTranslations[locale as LocaleString])
@@ -109,7 +125,7 @@ function prepareSubcommands(list: CommandDefinition[], inheritedOptions?: {
                                     argStringTranslations[locale as LocaleString] += ` ${argString}`;
                             }
 
-                            const a = {
+                            return {
                                 ...arg,
 
                                 name: nameLocalizations[Translator.fallbackLocale],
@@ -129,8 +145,6 @@ function prepareSubcommands(list: CommandDefinition[], inheritedOptions?: {
                                 }),
                                 required: arg.required ?? true,
                             };
-                            delete (a as { translationKey?: string })["translationKey"];
-                            return a;
                         } catch (e) {
                             e.message += `\nArgument: ${arg.translationKey}`;
                             throw e;
@@ -138,11 +152,14 @@ function prepareSubcommands(list: CommandDefinition[], inheritedOptions?: {
                     }) as Command["args"]["list"] ?? [],
                     min: minArgs,
                     max: maxArgs,
-                    stringTranslations: argStringTranslations
+                    stringTranslations: argStringTranslations,
+                    lastArgAsExtras
                 },
                 usableAsAppCommand: options.usableAsAppCommand,
                 handler: definition.handler ?? null,
                 alwaysReactOnSuccess: definition.alwaysReactOnSuccess ?? false,
+
+                appCommandId: null, // initialized by another module
 
                 requirements: options.requirements,
                 subcommands: definition.subcommands
@@ -207,7 +224,7 @@ export function getRootCommands(): Command[] {
  * 
  * @param list List of commands to iterate.
  */
-function* iterateSubcommands(list: Map<string, Command>): Iterable<Command> {
+export function* iterateSubcommands(list: Map<string, Command>): Iterable<Command> {
     for (let command of list.values()) {
         yield command;
 

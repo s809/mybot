@@ -3,7 +3,7 @@ import { readdirSync, readFileSync } from "fs";
 import { get } from "lodash-es";
 import { data } from "../../env";
 import { formatString } from "../../util";
-import { CommandMessage } from "../commands/appCommands";
+import { CommandMessage } from "../commands/CommandMessage";
 
 export class Translator {
     private static _translators: Map<string, Translator> = new Map();

@@ -1,7 +1,7 @@
 import { Message } from "discord.js";
 import os from "os";
 import { client } from "../../env";
-import { CommandMessage } from "../../modules/commands/appCommands";
+import { CommandMessage } from "../../modules/commands/CommandMessage";
 import { CommandDefinition } from "../../modules/commands/definitions";
 import { Translator } from "../../modules/misc/Translator";
 

@@ -4,9 +4,15 @@ import { botEval } from "../../modules/misc/eval";
 import { formatString, sanitizePaths } from "../../util";
 import sendLongText from "../../modules/messages/sendLongText";
 import { CommandDefinition } from "../../modules/commands/definitions";
-import { CommandMessage } from "../../modules/commands/appCommands";
+import { CommandMessage } from "../../modules/commands/CommandMessage";
 
-async function runScript(msg: CommandMessage, name: string, ...args: string[]) {
+async function runScript(msg: CommandMessage, {
+    name,
+    args
+}: {
+    name: string;
+    args: string[]
+}) {
     if (name.match(/[/\\]/))
         return "Invalid script name.";
 
@@ -27,7 +33,8 @@ const command: CommandDefinition = {
         type: ApplicationCommandOptionType.String,
     }, {
         translationKey: "args",
-        type: ApplicationCommandOptionType.String
+        type: ApplicationCommandOptionType.String,
+        isExtras: true,
     }],
     handler: runScript
 };

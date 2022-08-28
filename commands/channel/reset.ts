@@ -1,5 +1,5 @@
-import { GuildChannel, Message } from "discord.js";
-import { CommandMessage } from "../../modules/commands/appCommands";
+import { GuildChannel } from "discord.js";
+import { CommandMessage } from "../../modules/commands/CommandMessage";
 import { CommandDefinition } from "../../modules/commands/definitions";
 import { Translator } from "../../modules/misc/Translator";
 

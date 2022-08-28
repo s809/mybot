@@ -1,9 +1,6 @@
-/* eslint-disable no-void */
-/* eslint-disable no-eval */
 import { inspect } from "util";
-import { Message } from "discord.js";
 import { ScriptContext } from "./ScriptContext";
-import { CommandMessage } from "../commands/appCommands";
+import { CommandMessage } from "../commands/CommandMessage";
 
 /**
  * Evaluate code from text.

@@ -2,7 +2,7 @@
  * @file Restart command.
  */
 import { Message } from "discord.js";
-import { CommandMessage } from "../../modules/commands/appCommands";
+import { CommandMessage } from "../../modules/commands/CommandMessage";
 import { CommandDefinition } from "../../modules/commands/definitions";
 import { doRestart } from "../../modules/misc/restart";
 

@@ -1,8 +1,8 @@
 import { ActionRowBuilder, SelectMenuBuilder } from "@discordjs/builders";
 import assert from "assert";
-import { MessageSelectOption, SelectMenuInteraction } from "discord.js";
+import { APIEmbed, MessageSelectOption, PermissionFlagsBits, SelectMenuInteraction } from "discord.js";
 import { getRootCommands, toUsageString } from "../modules/commands";
-import { CommandMessage } from "../modules/commands/appCommands";
+import { CommandMessage } from "../modules/commands/CommandMessage";
 import { Command, CommandDefinition } from "../modules/commands/definitions";
 import { checkRequirementsBeforeRunning } from "../modules/commands/requirements";
 import { getPrefix } from "../modules/data/getPrefix";
@@ -57,12 +57,12 @@ async function help(msg: CommandMessage) {
     pushToChain(filterCommands(getRootCommands()));
 
     const makeOptions = (command: Command | null) => {
-        let embed;
+        let embed: APIEmbed;
 
         if (!command) {
             embed = {
                 title: translator.translate("embeds.help.title"),
-                description: `${translator.translate("embeds.help.select_command")}`
+                description: translator.translate("embeds.help.select_command")
             };
         } else {
             let codeBlock = `\`\`\`\n${toUsageString(msg, command, translator)}\`\`\`\n`;
@@ -79,7 +79,12 @@ async function help(msg: CommandMessage) {
                 description: (command.handler
                     ? codeBlock + description
                     : translator.translate("embeds.help.select_command_in_category"))
-                    + requiredPermissions
+                    + requiredPermissions,
+                footer: command.handler
+                    ? {
+                        text: translator.translate("embeds.help.slash_commands_suggestion")
+                    }
+                    : undefined
             };
         }
 
@@ -124,15 +129,14 @@ async function help(msg: CommandMessage) {
 
         await interaction.update(makeOptions(command));
     }).on("end", () => {
-        resp.edit({
-            embeds: resp.embeds,
-            components: []
-        })
+        resp.delete();
     });
 }
 
 const command: CommandDefinition = {
     key: "help",
-    handler: help
+    handler: help,
+    defaultMemberPermissions: PermissionFlagsBits.UseApplicationCommands,
+    usableAsAppCommand: true
 }
 export default command;

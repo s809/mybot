@@ -1,11 +1,12 @@
 import { PermissionFlagsBits } from "discord.js";
 import { CommandDefinition } from "../../modules/commands/definitions";
 import { importCommands } from "../../modules/commands/importHelper";
-import { ServerPermissions } from "../../modules/commands/requirements";
 
 const command: CommandDefinition = {
     key: "textgen",
-    requirements: ServerPermissions(PermissionFlagsBits.ManageChannels),
+    usableAsAppCommand: true,
+    defaultMemberPermissions: PermissionFlagsBits.ManageChannels,
+    allowDMs: false,
     subcommands: await importCommands(import.meta.url)
 };
 export default command;

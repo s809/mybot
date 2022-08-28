@@ -2,7 +2,7 @@ import { ButtonBuilder, SelectMenuBuilder, TextInputBuilder } from "@discordjs/b
 import { ActionRowBuilder, ButtonInteraction, ButtonStyle, Formatters, Message, ModalSubmitInteraction, SelectMenuInteraction, TextInputStyle } from "discord.js";
 import { client, data } from "../../env";
 import { log } from "../../log";
-import { CommandMessage } from "../../modules/commands/appCommands";
+import { CommandMessage } from "../../modules/commands/CommandMessage";
 import { CommandDefinition } from "../../modules/commands/definitions";
 import { botEval } from "../../modules/misc/eval";
 import { doRestart } from "../../modules/misc/restart";

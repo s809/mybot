@@ -1,16 +1,21 @@
-import { APIEmbed, ApplicationCommandOptionType, ChannelType, EmbedBuilder, Message, TextChannel, TextChannelType, User } from "discord.js";
+import { APIEmbed, ApplicationCommandOptionType, EmbedBuilder, Message, TextChannel, User } from "discord.js";
 import { client } from "../../env";
 import { iterateMessages } from "../../modules/messages/iterateMessages";
-import { parseChannelMention } from "../../util";
 import { sendAlwaysLastMessage } from "../../modules/messages/AlwaysLastMessage";
 import sendLongText from "../../modules/messages/sendLongText";
 import { once } from "events";
 import { Translator } from "../../modules/misc/Translator";
-import { CommandDefinition, textChannels } from "../../modules/commands/definitions";
+import { CommandDefinition, textChannels as guildTextChannels } from "../../modules/commands/definitions";
 import { BotOwner } from "../../modules/commands/requirements";
-import { CommandMessage } from "../../modules/commands/appCommands";
+import { CommandMessage } from "../../modules/commands/CommandMessage";
 
-async function scanChannel(msg: CommandMessage, mode: string, fromChannelStr: string) {
+async function scanChannel(msg: CommandMessage, {
+    mode,
+    channel
+}: {
+    mode: string;
+    channel?: string;
+}) {
     let translator = Translator.getOrDefault(msg);
 
     const inviteLink = /(https?:\/\/)?(www.)?(discord.(gg|io|me|li)|discordapp.com\/invite)\/[^\s/]+?(?=\b)/g;
@@ -29,15 +34,7 @@ async function scanChannel(msg: CommandMessage, mode: string, fromChannelStr: st
     if (mode !== "daily" && mode !== "weekly" && mode !== "monthly")
         return translator.translate("errors.mode_not_defined");
 
-    let fromChannel;
-    if (fromChannelStr) {
-        const mention = parseChannelMention(fromChannelStr);
-        if (!mention)
-            return translator.translate("errors.channel_not_found");
-        fromChannel = await client.channels.fetch(mention);
-    } else {
-        fromChannel = msg.channel;
-    }
+    let fromChannel = channel ?? msg.channel;
     
     if (!(fromChannel instanceof TextChannel))
         return translator.translate("errors.non_text_channel");
@@ -54,6 +51,7 @@ async function scanChannel(msg: CommandMessage, mode: string, fromChannelStr: st
     let invites: Set<string> = new Set();
 
     let totalLength = 0;
+    await msg.completeSilently();
     let counterMessage = await sendAlwaysLastMessage(msg.channel, {
         embeds: [{
             title: translator.translate("embeds.channel_scan.title"),
@@ -218,7 +216,7 @@ const command: CommandDefinition = {
     }, {
         translationKey: "channel",
         type: ApplicationCommandOptionType.Channel,
-        channelTypes: textChannels,
+        channelTypes: guildTextChannels,
     }],
     handler: scanChannel,
     requirements: BotOwner

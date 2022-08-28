@@ -1,9 +1,13 @@
 import { ApplicationCommandOptionType, User } from "discord.js";
-import { CommandMessage } from "../../modules/commands/appCommands";
+import { CommandMessage } from "../../modules/commands/CommandMessage";
 import { CommandDefinition } from "../../modules/commands/definitions";
 import { resolveFlaggableItem } from "../../modules/data/flags";
 
-async function flagList(msg: CommandMessage, id: string) {
+async function flagList(msg: CommandMessage, {
+    id
+}: {
+    id: string;
+}) {
     let resolvedItem = await resolveFlaggableItem(msg.message!, id);
 
     if (!resolvedItem)

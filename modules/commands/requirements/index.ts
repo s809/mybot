@@ -1,6 +1,6 @@
 import { CommandInteraction, Message } from "discord.js";
 import { data } from "../../../env";
-import { CommandMessage } from "../appCommands";
+import { CommandMessage } from "../CommandMessage";
 import { Command } from "../definitions";
 
 export interface CommandRequirement {
@@ -14,6 +14,8 @@ export interface CommandRequirement {
     overridable?: boolean;
 }
 
+type WithCommandContext = Message | CommandInteraction | CommandMessage;
+
 /**
  * Checks a provided command requirement against a message.
  * 
@@ -23,7 +25,7 @@ export interface CommandRequirement {
  * - satisfied by any of alternatives
  */
 function checkRequirement(
-    msg: X,
+    msg: WithCommandContext,
     requirements: CommandRequirement,
     override: boolean = false
 ): {
@@ -84,6 +86,7 @@ function checkRequirement(
 
 /**
  * Checks a list of requirements against a message.
+ * Implicitly includes {@link Command.}
  * 
  * `allowed` is true if all requirements are satisfied. \
  * `message` is the message of the first failed requirement if all failed requirements have messages, otherwise undefined. \
@@ -92,7 +95,7 @@ function checkRequirement(
  * @see checkRequirement
  */
 export function checkRequirements(
-    msg: X,
+    msg: WithCommandContext,
     requirements: CommandRequirement[],
     override: boolean = false
 ): {
@@ -118,7 +121,7 @@ export function checkRequirements(
  * - guild role
  * - guild member
  */
-export function isCommandOverridden(msg: X, command: Command): boolean {
+export function isCommandOverridden(msg: WithCommandContext, command: Command): boolean {
     const allowedCommands = [
         // Global user
         ...data.users[(msg instanceof CommandInteraction ? msg.user : msg.author).id].allowedCommands,
@@ -143,7 +146,7 @@ export function isCommandOverridden(msg: X, command: Command): boolean {
  * @param command Command to check.
  * @returns Whether the execution of command is allowed.
  */
-export function isCommandAllowedToManage(msg: X, command: Command): boolean {
+export function isCommandAllowedToManage(msg: WithCommandContext, command: Command): boolean {
     if (!command.requirements) return false;
 
     const requirements = Array.isArray(command.requirements)
@@ -151,8 +154,6 @@ export function isCommandAllowedToManage(msg: X, command: Command): boolean {
         : [command.requirements]
     return checkRequirements(msg, requirements).allowed && !isCommandOverridden(msg, command);
 }
-
-type X = Message | CommandInteraction | CommandMessage
 
 /**
  * Checks if user has required permissions to execute command in their context.
@@ -162,7 +163,7 @@ type X = Message | CommandInteraction | CommandMessage
  * @param command Command to check.
  * @returns Whether the management of command is allowed.
  */
-export function checkRequirementsBeforeRunning(msg: X, command: Command): ReturnType<typeof checkRequirements> {
+export function checkRequirementsBeforeRunning(msg: WithCommandContext, command: Command): ReturnType<typeof checkRequirements> {
     if (!command.requirements) return {
         allowed: true,
         hideCommand: false
@@ -175,8 +176,5 @@ export function checkRequirementsBeforeRunning(msg: X, command: Command): Return
 }
 
 export { BotOwner } from "./BotOwner";
-export { InServer } from "./InServer";
-export { ServerOwner } from "./ServerOwner";
-export { ServerPermissions } from "./ServerPermissions";
 export { InVoiceChannel } from "./InVoiceChannel";
 export { InVoiceWithBot } from "./InVoiceWithBot";

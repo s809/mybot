@@ -4,9 +4,13 @@ import sendLongText from "../../modules/messages/sendLongText";
 import { sendAlwaysLastMessage } from "../../modules/messages/AlwaysLastMessage";
 import { once } from "events";
 import { CommandDefinition } from "../../modules/commands/definitions";
-import { CommandMessage } from "../../modules/commands/appCommands";
+import { CommandMessage } from "../../modules/commands/CommandMessage";
 
-async function testTokens(msg: CommandMessage, ...tokens: string[]) {
+async function testTokens(msg: CommandMessage, { 
+    tokens
+}: {
+    tokens: string[]
+}, ) {
     let status = await sendAlwaysLastMessage(msg.channel, "Loading...");
 
     let results: Map<string, string[]> = new Map();
@@ -88,7 +92,8 @@ const command: CommandDefinition = {
     key: "testtokens",
     args: [{
         translationKey: "tokens",
-        type: ApplicationCommandOptionType.String
+        type: ApplicationCommandOptionType.String,
+        isExtras: true,
     }],
     handler: testTokens
 };

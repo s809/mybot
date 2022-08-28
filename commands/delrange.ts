@@ -1,11 +1,16 @@
 import { Translator } from "../modules/misc/Translator";
-import { ApplicationCommandOptionType, GuildTextBasedChannel, Message, PermissionFlagsBits } from "discord.js";
+import { ApplicationCommandOptionType, GuildTextBasedChannel, PermissionFlagsBits } from "discord.js";
 import { CommandDefinition } from "../modules/commands/definitions";
 import { iterateMessagesChunked } from "../modules/messages/iterateMessages";
-import { ServerPermissions } from "../modules/commands/requirements";
-import { CommandMessage } from "../modules/commands/appCommands";
+import { CommandMessage } from "../modules/commands/CommandMessage";
 
-async function deleteRange(msg: CommandMessage<true>, start: string, end: string) {
+async function deleteRange(msg: CommandMessage<true>, {
+    start,
+    end
+}: {
+    start: string;
+    end: string;
+}) {
     const translator = Translator.getOrDefault(msg);
 
     if (!(msg.channel as GuildTextBasedChannel).permissionsFor(msg.guild.members.me!).has(PermissionFlagsBits.ManageMessages))
@@ -39,7 +44,9 @@ const command: CommandDefinition = {
         translationKey: "endId",
         type: ApplicationCommandOptionType.String,
     }],
-    requirements: ServerPermissions(PermissionFlagsBits.ManageMessages),
+    defaultMemberPermissions: PermissionFlagsBits.ManageMessages,
+    allowDMs: false,
+    usableAsAppCommand: true,
     handler: deleteRange
 }
 export default command;

@@ -1,7 +1,7 @@
 import { Message } from "discord.js";
-import { CommandMessage } from "../../../modules/commands/appCommands";
-import { CommandDefinition } from "../../../modules/commands/definitions";
-import { Translator } from "../../../modules/misc/Translator";
+import { CommandMessage } from "../../modules/commands/CommandMessage";
+import { CommandDefinition } from "../../modules/commands/definitions";
+import { Translator } from "../../modules/misc/Translator";
 
 async function test(msg: CommandMessage) {
     let translator = Translator.getOrDefault(msg);

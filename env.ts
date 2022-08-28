@@ -32,7 +32,7 @@ export const client = new Client({
     presence: {
         activities: [{
             name: debug
-                ? `v${version.split("-")[0]}"-dev"`
+                ? `v${version.split("-")[0]}-dev`
                 : `v${version}`,
         }]
     }

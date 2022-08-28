@@ -1,7 +1,7 @@
 import { Message } from "discord.js";
-import { CommandMessage } from "../../../modules/commands/appCommands";
-import { CommandDefinition } from "../../../modules/commands/definitions";
-import { iterateMessages } from "../../../modules/messages/iterateMessages";
+import { CommandMessage } from "../../modules/commands/CommandMessage";
+import { CommandDefinition } from "../../modules/commands/definitions";
+import { iterateMessages } from "../../modules/messages/iterateMessages";
 
 async function test(msg: CommandMessage<true>) {
     const response = await msg.deferReply();

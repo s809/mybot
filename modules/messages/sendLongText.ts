@@ -3,7 +3,7 @@
  */
 import { EmbedBuilder } from "@discordjs/builders";
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, InteractionReplyOptions, Message, MessageActionRowComponentBuilder, MessageOptions, MessagePayload, ReplyMessageOptions, TextBasedChannel } from "discord.js";
-import { CommandMessage, CommandResponse } from "../commands/appCommands";
+import { CommandMessage, CommandResponse } from "../commands/CommandMessage";
 
 const title = "Page %page% of %pagecount%";
 const titleAlt = " (%page%/%pagecount%)";

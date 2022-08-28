@@ -35,25 +35,25 @@
       "description": "Get information about users sent to this or defined channel.",
       "args": {
         "mode": {
-          "name": "Mode",
+          "name": "mode",
           "description": "Mode of scan.",
           "choices": {
             "daily": {
-              "name": "Daily",
+              "name": "daily",
               "description": "Group results by day."
             },
             "weekly": {
-              "name": "Weekly",
+              "name": "weekly",
               "description": "Group results by week."
             },
             "monthly": {
-              "name": "Monthly",
+              "name": "monthly",
               "description": "Group results by month."
             }
           }
         },
         "channel": {
-          "name": "Channel",
+          "name": "channel",
           "description": "Channel to scan."
         }
       }
@@ -67,11 +67,11 @@
       "description": "Delete all messages within range.",
       "args": {
         "startId": {
-          "name": "Start ID",
+          "name": "start-id",
           "description": "ID of the first message to delete."
         },
         "endId": {
-          "name": "End ID",
+          "name": "end-id",
           "description": "ID of the last message to delete."
         }
       }
@@ -85,15 +85,15 @@
       "description": "Import emoji from another server.",
       "args": {
         "serverId": {
-          "name": "Server ID",
+          "name": "server-id",
           "description": "ID of the server to import emoji from."
         },
         "emojiName": {
-          "name": "Emoji Name",
+          "name": "emoji-name",
           "description": "Name of the emoji to import."
         },
         "newName": {
-          "name": "New Name",
+          "name": "new-name",
           "description": "New name for the imported emoji."
         }
       }
@@ -103,7 +103,7 @@
       "description": "Show emoji from current server.",
       "args": {
         "emojiOrName": {
-          "name": "Emoji or Name",
+          "name": "emoji-or-name",
           "description": "Emoji to show or name of the emoji to show."
         }
       }
@@ -113,7 +113,7 @@
       "description": "Evaluate JavaScript code.",
       "args": {
         "code": {
-          "name": "Code",
+          "name": "code",
           "description": "Code to evaluate."
         }
       }
@@ -123,11 +123,11 @@
       "description": "Toggle flags of the item.",
       "args": {
         "id": {
-          "name": "ID",
+          "name": "id",
           "description": "ID of the item to change flags of."
         },
         "flag": {
-          "name": "Flag",
+          "name": "flag",
           "description": "Flag to toggle."
         }
       }
@@ -137,7 +137,7 @@
       "description": "List flags of the item.",
       "args": {
         "id": {
-          "name": "ID",
+          "name": "id",
           "description": "ID of the item to list flags of."
         }
       }
@@ -159,17 +159,21 @@
       "description": "Enable tracking of invites.",
       "args": {
         "channel": {
-          "name": "Channel",
+          "name": "channel",
           "description": "Channel to send tracking messages to."
         }
       }
+    },
+    "invitetracker_info": {
+      "name": "info",
+      "description": "Show info about invite tracking on this server."
     },
     "lang": {
       "name": "lang",
       "description": "Change language of bot for server or user.",
       "args": {
         "language": {
-          "name": "Language",
+          "name": "language",
           "description": "Language to use."
         }
       }
@@ -199,11 +203,11 @@
       "description": "Play a video.\nIf no URL or query is specified, unpauses playback.\nQueries are searched on YouTube, but URL can be from any source.\nQueries with more than word require quotes (`\"`).",
       "args": {
         "urlOrQuery": {
-          "name": "URL or Query",
+          "name": "url-or-query",
           "description": "URL or query to play."
         },
         "playlistStartPosition": {
-          "name": "Playlist Start Position",
+          "name": "playlist-start-position",
           "description": "Position in playlist to start at."
         }
       }
@@ -229,37 +233,17 @@
       "description": "Execute shell command.",
       "args": {
         "command": {
-          "name": "Command",
+          "name": "command",
           "description": "Command to execute."
         }
       }
-    },
-    "owner_test": {
-      "name": "test",
-      "description": "Test commands."
-    },
-    "owner_test_iteratemessages": {
-      "name": "iteratemessages",
-      "description": "Iterate through messages."
-    },
-    "owner_test_longtextembed": {
-      "name": "longtextembed",
-      "description": "Send long text embed."
-    },
-    "owner_test_slowcommand": {
-      "name": "slowcommand",
-      "description": "Slow command."
-    },
-    "owner_test_translations": {
-      "name": "translations",
-      "description": "Test translations."
     },
     "owner_testtokens": {
       "name": "tokens",
       "description": "Test tokens.",
       "args": {
         "tokens": {
-          "name": "Tokens",
+          "name": "tokens",
           "description": "Tokens to test."
         }
       }
@@ -269,11 +253,11 @@
       "description": "Manage permissions of specific item.\nItem should be manageable by caller.",
       "args": {
         "id": {
-          "name": "ID",
+          "name": "id",
           "description": "ID of the item to manage permissions of."
         },
         "permission": {
-          "name": "Permission",
+          "name": "permission",
           "description": "Permission to grant or revoke."
         }
       }
@@ -283,7 +267,7 @@
       "description": "Get permissions of specific item.",
       "args": {
         "id": {
-          "name": "ID",
+          "name": "id",
           "description": "ID of the item to get permissions of."
         }
       }
@@ -293,7 +277,7 @@
       "description": "Change prefix.",
       "args": {
         "newPrefix": {
-          "name": "New Prefix",
+          "name": "new-prefix",
           "description": "New prefix to use."
         }
       }
@@ -311,11 +295,11 @@
       "description": "Run script.",
       "args": {
         "name": {
-          "name": "Name",
+          "name": "name",
           "description": "Name of the script to run."
         },
         "args": {
-          "name": "Args",
+          "name": "args",
           "description": "Arguments to pass to script."
         }
       }
@@ -333,23 +317,23 @@
       "description": "Clone a server.",
       "args": {
         "id": {
-          "name": "ID",
+          "name": "id",
           "description": "ID of the server to clone."
         },
         "mode": {
-          "name": "Mode",
+          "name": "mode",
           "description": "Mode to use for cloning.",
           "choices": {
             "channels": {
-              "name": "Channels",
+              "name": "channels",
               "description": "Clone channels only."
             },
             "roles": {
-              "name": "Roles",
+              "name": "roles",
               "description": "Clone roles only."
             },
             "both": {
-              "name": "Both",
+              "name": "both",
               "description": "Clone both channels and roles."
             }
           }
@@ -368,6 +352,26 @@
       "name": "list",
       "description": "List servers."
     },
+    "test": {
+      "name": "test",
+      "description": "Test commands."
+    },
+    "test_iteratemessages": {
+      "name": "iteratemessages",
+      "description": "Iterate through messages."
+    },
+    "test_longtextembed": {
+      "name": "longtextembed",
+      "description": "Send long text embed."
+    },
+    "test_slowcommand": {
+      "name": "slowcommand",
+      "description": "Slow command."
+    },
+    "test_translations": {
+      "name": "translations",
+      "description": "Test translations."
+    },
     "textgen": {
       "name": "textgen",
       "description": "Text generator commands"
@@ -385,11 +389,11 @@
       "description": "Show information about data for text generator for this channel.",
       "args": {
         "branchCutoff": {
-          "name": "Branch Cutoff",
+          "name": "branch-cutoff",
           "description": "Number of branches to show."
         },
         "branchCounterDepth": {
-          "name": "Branch Counter Depth",
+          "name": "branch-counter-depth",
           "description": "Depth of branch counter."
         }
       }

@@ -8,7 +8,7 @@ import { version as currentVersion, debug } from "../../env";
 import { Translator } from "../../modules/misc/Translator";
 import { CommandDefinition } from "../../modules/commands/definitions";
 import { log } from "../../log";
-import { CommandMessage } from "../../modules/commands/appCommands";
+import { CommandMessage } from "../../modules/commands/CommandMessage";
 
 /**
  * Prepares bot changelog based on Git commits.

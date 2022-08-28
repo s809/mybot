@@ -1,11 +1,14 @@
-import { ApplicationCommandOptionType, Message, PermissionFlagsBits } from "discord.js";
+import { ApplicationCommandOptionType, PermissionFlagsBits } from "discord.js";
 import { data } from "../env";
-import { CommandMessage } from "../modules/commands/appCommands";
+import { CommandMessage } from "../modules/commands/CommandMessage";
 import { CommandDefinition } from "../modules/commands/definitions";
-import { ServerPermissions } from "../modules/commands/requirements";
 import { Translator } from "../modules/misc/Translator";
 
-function prefix(msg: CommandMessage, newPrefix: string) {
+function prefix(msg: CommandMessage, {
+    newPrefix
+}: {
+    newPrefix: string;
+}) {
     let translator = Translator.getOrDefault(msg);
 
     if (!msg.guildId)
@@ -22,6 +25,7 @@ const command: CommandDefinition = {
     }],
     handler: prefix,
     alwaysReactOnSuccess: true,
-    requirements: ServerPermissions(PermissionFlagsBits.ManageGuild)
+    usableAsAppCommand: true,
+    defaultMemberPermissions: PermissionFlagsBits.ManageGuild
 }
 export default command;

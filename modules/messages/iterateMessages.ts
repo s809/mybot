@@ -16,7 +16,9 @@ const maxFetchMessages = 100;
  * @yields Messages from a channel.
  */
 async function* iterateMessagesFromTop(channel: TextBasedChannel, oldestId: Snowflake | null, latestId: Snowflake | null, count: number | null) {
-    let firstMessageId = (BigInt(oldestId ?? "1") - 1n).toString();
+    let firstMessageId = oldestId !== "0"
+        ? (BigInt(oldestId ?? "1") - 1n).toString()
+        : "0";
 
     for (let collectedCount = 0; count === null || collectedCount < count; collectedCount += maxFetchMessages) {
         if (count === null)

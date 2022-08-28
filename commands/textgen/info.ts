@@ -1,6 +1,6 @@
 import { ApplicationCommandOptionType, Message } from "discord.js";
 import { data } from "../../env";
-import { CommandMessage } from "../../modules/commands/appCommands";
+import { CommandMessage } from "../../modules/commands/CommandMessage";
 import { CommandDefinition } from "../../modules/commands/definitions";
 import { TextGenData } from "../../modules/data/models";
 import { Translator } from "../../modules/misc/Translator";
@@ -56,9 +56,13 @@ function calculatePropertiesForList(genData: TextGenData["genData"], branchCutof
     return result;
 }
 
-async function textGenInfo(msg: CommandMessage<true>, branchCutoffStr: string, branchCounterDepthStr: string) {
-    let branchCutoff = parseInt(branchCutoffStr);
-    let branchCounterDepth = parseInt(branchCounterDepthStr);
+async function textGenInfo(msg: CommandMessage<true>, {
+    branchCutoff,
+    branchCounterDepth
+}: {
+    branchCutoff: number;
+    branchCounterDepth: number;
+}) {
     const translator = Translator.getOrDefault(msg);
     
     let genData = data.guilds[msg.guildId].channels[msg.channelId].genData;

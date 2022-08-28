@@ -1,5 +1,5 @@
 import { Message } from "discord.js";
-import { CommandMessage } from "../../modules/commands/appCommands";
+import { CommandMessage } from "../../modules/commands/CommandMessage";
 import { CommandDefinition } from "../../modules/commands/definitions";
 import { hasFlag, resolveFlaggableItem, removeFlag } from "../../modules/data/flags";
 import { FlagData, TextGenData } from "../../modules/data/models";
