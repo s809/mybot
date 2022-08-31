@@ -4,15 +4,16 @@ import { APIEmbed, MessageSelectOption, PermissionFlagsBits, SelectMenuInteracti
 import { getRootCommands, toUsageString } from "../modules/commands";
 import { CommandMessage } from "../modules/commands/CommandMessage";
 import { Command, CommandDefinition } from "../modules/commands/definitions";
-import { checkRequirementsBeforeRunning } from "../modules/commands/requirements";
+import { checkConditions } from "../modules/commands/conditions";
 import { getPrefix } from "../modules/data/getPrefix";
 import { Translator } from "../modules/misc/Translator";
+import { isBotOwner } from "../env";
 
 async function help(msg: CommandMessage) {
     let translator = Translator.getOrDefault(msg);
 
     const filterCommands = (list: Command[]) =>
-        list.filter(command => !checkRequirementsBeforeRunning(msg, command).hideCommand);
+        list.filter(command => !command.ownerOnly || (isBotOwner(msg.author) && msg.channel.isDMBased()));
 
     let levelNameToPosition: Map<string, number> = new Map();
     let chain: {
@@ -67,7 +68,7 @@ async function help(msg: CommandMessage) {
         } else {
             let codeBlock = `\`\`\`\n${toUsageString(msg, command, translator)}\`\`\`\n`;
             let description = `${command.descriptionTranslations[translator.localeStrings[0]] ?? translator.translate("embeds.help.no_description")}`;
-            let requiredPermissions = command.requirements.filter(x => !x.hideInDescription).map(x => x.name).join(", ");
+            let requiredPermissions = command.conditions.filter(x => !x.hideInDescription).map(x => x.name).join(", ");
             
             if (requiredPermissions)
                 requiredPermissions = `\n${translator.translate("embeds.help.required_permissions", requiredPermissions)}`;
@@ -80,7 +81,7 @@ async function help(msg: CommandMessage) {
                     ? codeBlock + description
                     : translator.translate("embeds.help.select_command_in_category"))
                     + requiredPermissions,
-                footer: command.handler
+                footer: command.handler && command.usableAsAppCommand
                     ? {
                         text: translator.translate("embeds.help.slash_commands_suggestion")
                     }

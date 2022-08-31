@@ -6,33 +6,37 @@ import { pathToFileURL } from "url";
 import { botDirectory } from "../../env";
 import { importCommands } from "./importHelper";
 import { Command, CommandDefinition } from "./definitions";
-import { ApplicationCommandOptionType, LocaleString, Message } from "discord.js";
+import { ApplicationCommandOptionType, LocaleString, Message, PermissionFlagsBits, PermissionResolvable } from "discord.js";
 import { getPrefix } from "../data/getPrefix";
-import { CommandRequirement } from "./requirements";
+import { CommandCondition } from "./conditions";
 import { CommandMessage } from "./CommandMessage";
 import { Translator } from "../misc/Translator";
 import { hasSameKeys } from "../../util";
 
 var commands: Map<string, Command>;
 
-function prepareSubcommands(list: CommandDefinition[], inheritedOptions?: {
+interface InheritableOptions {
     path: string;
-    requirements: CommandRequirement[];
+    requirements: CommandCondition[];
     usableAsAppCommand: boolean;
-}): Map<string, Command> {
+    ownerOnly: boolean;
+    defaultMemberPermissions: PermissionResolvable;
+    allowDMs: boolean;
+}
+
+function prepareSubcommands(list: CommandDefinition[], inheritedOptions?: InheritableOptions): Map<string, Command> {
     const map = new Map<string, Command>();
 
     for (let definition of list.values()) {
-        const options: {
-            path: string;
-            requirements: CommandRequirement[];
-            usableAsAppCommand: boolean;
-        } = {
+        const options: InheritableOptions = {
             requirements: inheritedOptions?.requirements.slice() ?? [],
             path: inheritedOptions?.path
                 ? `${inheritedOptions.path}/${definition.key}`
                 : definition.key,
-            usableAsAppCommand: inheritedOptions?.usableAsAppCommand ?? false
+            usableAsAppCommand: inheritedOptions?.usableAsAppCommand ?? false,
+            ownerOnly: inheritedOptions?.ownerOnly ?? false,
+            defaultMemberPermissions: inheritedOptions?.defaultMemberPermissions ?? PermissionFlagsBits.UseApplicationCommands,
+            allowDMs: inheritedOptions?.allowDMs ?? true
         };
 
         try {
@@ -42,23 +46,43 @@ function prepareSubcommands(list: CommandDefinition[], inheritedOptions?: {
                 .filter(([, translation]) => translation !== null)) as Record<LocaleString, string>;
 
             // Definitions' requirements are additive.
-            if (definition.requirements) {
-                const requirements = Array.isArray(definition.requirements)
-                    ? definition.requirements
-                    : [definition.requirements];
+            if (definition.conditions) {
+                const requirements = Array.isArray(definition.conditions)
+                    ? definition.conditions
+                    : [definition.conditions];
             
                 options.requirements.push(...requirements);
             }
+
+            if (definition.defaultMemberPermissions && options.path.includes("/"))
+                throw new Error("Subcommands cannot define default member permissions.");
 
             // If a command is marked as usable as app command, this mark
             // is inherited to all subcommands unless overridden later.
             if (definition.usableAsAppCommand !== undefined) {
                 if (definition.usableAsAppCommand && options.path.includes("/"))
                     throw new Error("Only root commands can be marked as usable as app commands.");
-                else if (!definition.usableAsAppCommand && !options.path.includes("/"))
-                    throw new Error("Root commands cannot be marked as unusable as app commands.");
-            
+                
                 options.usableAsAppCommand = definition.usableAsAppCommand;
+            }
+
+            if (definition.ownerOnly !== undefined) {
+                if (definition.ownerOnly && options.usableAsAppCommand)
+                    throw new Error("Owner-only commands cannot be marked as usable as app commands.");
+                if (!definition.ownerOnly && options.ownerOnly)
+                    throw new Error("Owner-only category cannot contain not owner-only commands.");
+
+                options.ownerOnly = definition.ownerOnly;
+            }
+
+            // Root command-only properties.
+            for (const property of ["defaultMemberPermissions", "allowDMs"]) {
+                if ((definition as any)[property] === undefined) continue;
+
+                if (options.path.includes("/"))
+                    throw new Error(`Subcommands cannot have property: ${property}`);
+                
+                (options as any)[property] = (definition as any)[property];
             }
 
             // Make sure that command is fully translated.
@@ -84,8 +108,12 @@ function prepareSubcommands(list: CommandDefinition[], inheritedOptions?: {
                 nameTranslations,
                 descriptionTranslations,
 
-                defaultMemberPermissions: definition.defaultMemberPermissions ?? [],
-                allowDMs: definition.allowDMs ?? true,
+                ownerOnly: options.ownerOnly,
+                defaultMemberPermissions: options.defaultMemberPermissions,
+                allowDMs: options.allowDMs,
+                conditions: options.requirements,
+                usableAsAppCommand: options.usableAsAppCommand,
+                appCommandId: null, // initialized by another module
 
                 args: {
                     list: definition.args?.map(arg => {
@@ -155,19 +183,16 @@ function prepareSubcommands(list: CommandDefinition[], inheritedOptions?: {
                     stringTranslations: argStringTranslations,
                     lastArgAsExtras
                 },
-                usableAsAppCommand: options.usableAsAppCommand,
                 handler: definition.handler ?? null,
                 alwaysReactOnSuccess: definition.alwaysReactOnSuccess ?? false,
 
-                appCommandId: null, // initialized by another module
-
-                requirements: options.requirements,
                 subcommands: definition.subcommands
                     ? prepareSubcommands(definition.subcommands, options)
                     : new Map<string, Command>(),
             });
         } catch (e) {
-            e.message += `\nPath: ${options.path}`;
+            if (!e.message.includes("\nPath: "))
+                e.message += `\nPath: ${options.path}`;
             throw e;
         }
     }

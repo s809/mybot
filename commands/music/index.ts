@@ -1,10 +1,11 @@
 import { importCommands } from "../../modules/commands/importHelper";
 import { CommandDefinition } from "../../modules/commands/definitions";
-import { BotOwner, InVoiceChannel } from "../../modules/commands/requirements";
+import { InVoiceChannel } from "../../modules/commands/conditions";
 
 const command: CommandDefinition = {
     key: "music",
-    requirements: [InVoiceChannel, BotOwner],
-    subcommands: await importCommands(import.meta.url)
+    conditions: [InVoiceChannel],
+    subcommands: await importCommands(import.meta.url),
+    ownerOnly: true
 };
 export default command;

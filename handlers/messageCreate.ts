@@ -1,16 +1,16 @@
 import { client, data, isBotOwner } from "../env";
 import { resolveCommand, toUsageString } from "../modules/commands";
-import { checkRequirementsBeforeRunning } from "../modules/commands/requirements";
+import { checkConditions } from "../modules/commands/conditions";
 import sendLongText from "../modules/messages/sendLongText";
-import { parseChannelMention, parseRoleMention, parseUserMention, sanitizePaths } from "../util";
+import { ArrayElement, parseChannelMention, parseRoleMention, parseUserMention, sanitizePaths } from "../util";
 import { hasFlag } from "../modules/data/flags";
 import { getPrefix } from "../modules/data/getPrefix";
 import { Translator } from "../modules/misc/Translator";
 import { logError } from "../log";
 import { setTimeout } from "timers/promises";
 import { CommandMessage } from "../modules/commands/CommandMessage";
-import { CommandHandler } from "../modules/commands/definitions";
-import { ApplicationCommandOptionType, ApplicationCommandPermissions, ApplicationCommandPermissionType, PermissionFlagsBits, PermissionsBitField } from "discord.js";
+import { Command, CommandHandler } from "../modules/commands/definitions";
+import { ApplicationCommandNumericOptionData, ApplicationCommandOptionType, ApplicationCommandPermissions, ApplicationCommandPermissionType, ApplicationCommandStringOptionData, CachedManager, PermissionFlagsBits, PermissionsBitField, Snowflake } from "discord.js";
 
 client.on("messageCreate", async msg => {
     if (msg.author.bot || msg.webhookId) return;
@@ -35,12 +35,12 @@ client.on("messageCreate", async msg => {
         args[i] = str.replace("\\\"", "\"").replace("\\\\", "\\");
     }
 
-    const commandMessage = new CommandMessage(msg);
-
     const command = resolveCommand(args, true);
     if (!command || !command.handler) return;
 
-    // Check permissions if in guild
+    const translator = Translator.getOrDefault(msg);
+
+    // Check permissions
     if (msg.inGuild()) {
         const requiredPermissions = new PermissionsBitField(command.defaultMemberPermissions ?? [])
             .remove(PermissionFlagsBits.UseApplicationCommands);
@@ -91,16 +91,16 @@ client.on("messageCreate", async msg => {
             return;
     }
 
+    const commandMessage = new CommandMessage(msg);
+
     // Check conditions
-    const checkResult = checkRequirementsBeforeRunning(commandMessage, command);
-    if (!checkResult.allowed) {
-        if (checkResult.message)
-            await msg.channel.send(checkResult.message);
+    const checkResult = checkConditions(commandMessage, command);
+    if (checkResult) {
+        await msg.channel.send(checkResult);
         return;
     }
 
     if (args.length < command.args.min || args.length > command.args.max) {
-        let translator = Translator.getOrDefault(msg);
         let errorStr = args.length < command.args.min
             ? translator.translate("errors.too_few_arguments")
             : translator.translate("errors.too_many_arguments");
@@ -111,57 +111,57 @@ client.on("messageCreate", async msg => {
         return;
     }
 
+    const checkNumberValue = (input: string, arg: ArrayElement<NonNullable<Command>["args"]["list"]>, check: (x: number) => boolean) => {
+        const value = parseInt(input);
+        const arga = arg as ApplicationCommandNumericOptionData;
+        
+        if (!check(value))
+            throw new Error(`${input} is not a valid number.`);
+        if (arga.minValue && input.length < arga.minValue)
+            throw new Error(`${arga.name} too small. (Min: ${arga.minValue})`);
+        if (arga.maxValue && input.length > arga.maxValue)
+            throw new Error(`${arga.name} too large. (Min: ${arga.maxValue})`);
+    }
+
+    const parseCacheableValue = (input: string, arg: ArrayElement<NonNullable<Command>["args"]["list"]>, parse: (text: string) => string | null, manager: CachedManager<Snowflake, any, any> | undefined) => {
+        const id = parse(input);
+        if (id === null)
+            throw new Error(`${arg.name} is not a valid channel.`);
+
+        const result = manager?.resolve(id);
+        if (!result)
+            throw new Error(`${arg.name} is not a valid channel.`);
+
+        return result;
+    }
+
     // TODO value constraints
+    // TODO localize strings
     const argsObj = {} as Parameters<CommandHandler>["1"];
-    const argToGetter = new Map<ApplicationCommandOptionType, (value: string) => any>([
-        [ApplicationCommandOptionType.String, x => x],
-        [ApplicationCommandOptionType.Number, x => {
-            const result = parseInt(x);
-            if (isNaN(result) || result < Number.MIN_SAFE_INTEGER || result > Number.MAX_SAFE_INTEGER)
-                throw new Error(`${x} is not a valid number.`);
-            return result;
+    const argToGetter = new Map<ApplicationCommandOptionType, (value: string, arg: ArrayElement<NonNullable<Command>["args"]["list"]>) => any>([
+        [ApplicationCommandOptionType.String, (x, arg) => {
+            const arga = arg as ApplicationCommandStringOptionData;
+
+            if (arga.minLength && x.length < arga.minLength)
+                throw new Error(`${arg.name} too short. (Min: ${arga.minLength})`);
+            if (arga.maxLength && x.length > arga.maxLength)
+                throw new Error(`${arg.name} too long. (Min: ${arga.maxLength})`);
+            
+            return x;
         }],
-        [ApplicationCommandOptionType.Integer, x => {
-            const result = parseInt(x);
-            if (isNaN(result) || result % 1 || result < Number.MIN_SAFE_INTEGER || result > Number.MAX_SAFE_INTEGER)
-                throw new Error(`${x} is not a valid number.`);
-            return result;
-        }],
-        [ApplicationCommandOptionType.Boolean, x => {
-            if (["yes", "y", "true"].includes(x.toLocaleLowerCase())) // TODO localized options
+        [ApplicationCommandOptionType.Number, (x, arg) => checkNumberValue(x, arg, n => !isNaN(n))],
+        [ApplicationCommandOptionType.Integer, (x, arg) => checkNumberValue(x, arg, Number.isSafeInteger)],
+        [ApplicationCommandOptionType.Boolean, (x, arg) => {
+            if (["yes", "y", "true"].includes(x.toLocaleLowerCase()))
                 return true;
             else if (["no", "n", "false"].includes(x.toLocaleLowerCase()))
                 return false;
             else
-                throw new Error(`${x} is not a valid boolean parameter.`)
+                throw new Error(`${arg.name} is not a valid boolean parameter.`)
         }],
-        [ApplicationCommandOptionType.Channel, x => {
-            const id = parseChannelMention(x);
-            if (id === null)
-                throw new Error(`${x} is not a valid channel.`)
-            const result = msg.guild?.channels.resolve(id);
-            if (!result)
-                throw new Error(`${x} is not a valid channel.`)
-            return result;
-        }],
-        [ApplicationCommandOptionType.User, x => {
-            const id = parseUserMention(x);
-            if (id === null)
-                throw new Error(`${x} is not a valid user.`)
-            const result = msg.guild?.members.resolve(id);
-            if (!result)
-                throw new Error(`${x} is not a valid user.`)
-            return result;
-        }],
-        [ApplicationCommandOptionType.Role, x => {
-            const id = parseRoleMention(x);
-            if (id === null)
-                throw new Error(`${x} is not a valid role.`)
-            const result = msg.guild?.roles.resolve(id);
-            if (!result)
-                throw new Error(`${x} is not a valid role.`)
-            return result;
-        }],
+        [ApplicationCommandOptionType.Channel, (x, arg) => parseCacheableValue(x, arg, parseChannelMention, msg.guild?.channels)],
+        [ApplicationCommandOptionType.User, (x, arg) => parseCacheableValue(x, arg, parseUserMention, msg.guild?.members)],
+        [ApplicationCommandOptionType.Role, (x, arg) => parseCacheableValue(x, arg, parseRoleMention, msg.guild?.roles)],
     ]);
 
     for (const arg of command.args.list) {
@@ -174,12 +174,12 @@ client.on("messageCreate", async msg => {
             return;
         }
 
-        const receivedArg = args.shift()!;
-        if (!arg.required && !receivedArg)
+        const argValue = args.shift()!;
+        if (!arg.required && !argValue)
             continue;
 
         try {
-            argsObj[arg.translationKey] = getter(receivedArg);
+            argsObj[arg.translationKey] = getter(argValue, arg);
         } catch (e) {
             await msg.channel.send(e.message);
             return;

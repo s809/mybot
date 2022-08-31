@@ -2,7 +2,7 @@ import { Message } from "discord.js";
 import { musicPlayingGuilds } from "../../env";
 import { CommandMessage } from "../../modules/commands/CommandMessage";
 import { CommandDefinition } from "../../modules/commands/definitions";
-import { InVoiceWithBot } from "../../modules/commands/requirements";
+import { InVoiceWithBot } from "../../modules/commands/conditions";
 import { Translator } from "../../modules/misc/Translator";
 
 async function skip(msg: CommandMessage<true>) {
@@ -19,6 +19,6 @@ const command: CommandDefinition = {
     key: "skip",
     handler: skip,
     alwaysReactOnSuccess: true,
-    requirements: InVoiceWithBot
+    conditions: InVoiceWithBot
 };
 export default command;

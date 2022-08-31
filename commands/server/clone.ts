@@ -136,7 +136,6 @@ const command: CommandDefinition = {
             value: "both"
         }]
     }],
-    allowDMs: false,
     handler: cloneServer
 };
 export default command;

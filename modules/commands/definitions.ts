@@ -5,7 +5,7 @@
 import { ApplicationCommandData, ApplicationCommandSubCommandData, Awaitable, Channel, ChannelType, LocaleString, Role, Snowflake, User } from "discord.js";
 import { ArrayElement, DistributiveOmit, Overwrite } from "../../util";
 import { CommandMessage } from "./CommandMessage";
-import { CommandRequirement } from "./requirements";
+import { CommandCondition } from "./conditions";
 
 export const textChannels = [
     ChannelType.GuildNews,
@@ -16,9 +16,11 @@ export const textChannels = [
 export interface CommandDefinition {
     key: string;
 
-    usableAsAppCommand?: boolean;
+    ownerOnly?: boolean;
     defaultMemberPermissions?: ApplicationCommandData["defaultMemberPermissions"];
     allowDMs?: boolean;
+    conditions?: CommandCondition | CommandCondition[];
+    usableAsAppCommand?: boolean;
 
     args?: (DistributiveOmit<
         ArrayElement<NonNullable<ApplicationCommandSubCommandData["options"]>>,
@@ -36,7 +38,6 @@ export interface CommandDefinition {
     alwaysReactOnSuccess?: boolean;
     
     subcommands?: CommandDefinition[];
-    requirements?: CommandRequirement | CommandRequirement[];
 }
 
 export type Command = Overwrite<{
@@ -47,6 +48,9 @@ export type Command = Overwrite<{
 
     nameTranslations: Record<LocaleString, string>;
     descriptionTranslations: Record<LocaleString, string>;
+
+    conditions: CommandCondition[]
+    appCommandId: Snowflake | null;
 
     args: {
         min: number;
@@ -59,10 +63,7 @@ export type Command = Overwrite<{
     };
     handler: CommandHandler | null;
 
-    appCommandId: Snowflake | null;
-
     subcommands: Map<string, Command>;
-    requirements: CommandRequirement[];
 }>
 
 export type CommandHandler = (

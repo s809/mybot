@@ -6,7 +6,6 @@ import sendLongText from "../../modules/messages/sendLongText";
 import { once } from "events";
 import { Translator } from "../../modules/misc/Translator";
 import { CommandDefinition, textChannels as guildTextChannels } from "../../modules/commands/definitions";
-import { BotOwner } from "../../modules/commands/requirements";
 import { CommandMessage } from "../../modules/commands/CommandMessage";
 
 async function scanChannel(msg: CommandMessage, {
@@ -219,6 +218,7 @@ const command: CommandDefinition = {
         channelTypes: guildTextChannels,
     }],
     handler: scanChannel,
-    requirements: BotOwner
+    usableAsAppCommand: false,
+    ownerOnly: true
 };
 export default command;

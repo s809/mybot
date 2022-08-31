@@ -2,7 +2,6 @@ import { ApplicationCommandOptionType } from "discord.js";
 import { CommandMessage } from "../../modules/commands/CommandMessage";
 import { CommandDefinition } from "../../modules/commands/definitions";
 import { importCommands } from "../../modules/commands/importHelper";
-import { BotOwner } from "../../modules/commands/requirements";
 import { resolveFlaggableItem, toggleFlag } from "../../modules/data/flags";
 
 async function flag(msg: CommandMessage, {
@@ -29,7 +28,7 @@ const command: CommandDefinition = {
         translationKey: "flag",
         type: ApplicationCommandOptionType.String,
     }],
-    requirements: BotOwner,
+    ownerOnly: true,
     alwaysReactOnSuccess: true,
     handler: flag,
     subcommands: await importCommands(import.meta.url)
