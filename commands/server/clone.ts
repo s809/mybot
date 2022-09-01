@@ -1,16 +1,32 @@
-import { ApplicationCommandOptionType, CategoryChannel, GuildChannel, NonThreadGuildBasedChannel, OverwriteType, Role, Snowflake, TextChannel, ThreadChannel, VoiceBasedChannel } from "discord.js";
+import { ApplicationCommandOptionType, CategoryChannel, GuildChannel, GuildTextBasedChannel, NonThreadGuildBasedChannel, OverwriteType, Role, Snowflake, TextChannel, ThreadChannel, VoiceBasedChannel } from "discord.js";
 import { client } from "../../env";
 import { CommandMessage } from "../../modules/commands/CommandMessage";
 import { CommandDefinition } from "../../modules/commands/definitions";
 
 async function cloneServer(msg: CommandMessage<true>, {
-    guildId,
-    mode
+    id: guildId,
+    mode,
+    cleanBeforeStarting
 }: {
-    guildId: Snowflake;
+    id: Snowflake;
     mode: string;
+    cleanBeforeStarting: boolean;
 }) {
     let guild = await client.guilds.fetch(guildId);
+
+    if (cleanBeforeStarting) {
+        if (mode === "both" || mode === "channels") {
+            for (const channel of msg.guild.channels.cache.values())
+                await channel.delete();
+        }
+        
+        if (mode === "both" || mode === "roles") {
+            for (const role of msg.guild.roles.cache.values()) {
+                if (role !== msg.guild.roles.everyone)
+                    await role.delete();
+            }
+        }
+    }
 
     let channels = new Map();
     let roles = new Map();
@@ -42,7 +58,7 @@ async function cloneServer(msg: CommandMessage<true>, {
         }
     }
     catch (e) {
-        e.message += `\nRole: ${role!.id}`;
+        e.message += `\nRole: ${role!?.id}`;
         throw e;
     }
 
@@ -75,27 +91,29 @@ async function cloneServer(msg: CommandMessage<true>, {
             for (let channel of ([...guild.channels.cache.values()]
                 .filter(x => !(x instanceof CategoryChannel) && !(x instanceof ThreadChannel)) as Exclude<NonThreadGuildBasedChannel, CategoryChannel>[])
                 .sort((x, y) => (x.position ?? 0) - (y.position ?? 0))) {
+                const options = {
+                    name: channel.name,
+                    type: channel.type,
+                    topic: (<TextChannel>channel).topic ?? undefined,
+                    nsfw: (<TextChannel>channel).nsfw,
+                    bitrate: (<VoiceBasedChannel>channel).bitrate,
+                    userLimit: (<VoiceBasedChannel>channel).userLimit,
+                    rateLimitPerUser: (<TextChannel>channel).rateLimitPerUser,
+                    parent: channels.get(channel.parent),
+                    permissionOverwrites: roles.size === 0
+                        ? undefined
+                        : [...channel.permissionOverwrites.cache.values()]
+                            .filter(role => role.type === OverwriteType.Role && roles.has(guild.roles.resolve(role.id)))
+                            .map(srcChannel => ({
+                                id: roles.get(guild.roles.resolve(srcChannel.id)),
+                                allow: srcChannel.allow,
+                                deny: srcChannel.deny,
+                                type: OverwriteType.Role
+                            }))
+                };
+                
                 try {
-                    await msg.guild.channels.create({
-                        name: channel.name,
-                        type: channel.type,
-                        topic: (<TextChannel>channel).topic ?? undefined,
-                        nsfw: (<TextChannel>channel).nsfw,
-                        bitrate: (<VoiceBasedChannel>channel).bitrate,
-                        userLimit: (<VoiceBasedChannel>channel).userLimit,
-                        rateLimitPerUser: (<TextChannel>channel).rateLimitPerUser,
-                        parent: channels.get(channel.parent),
-                        permissionOverwrites: roles.size === 0
-                            ? undefined
-                            : [...channel.permissionOverwrites.cache.values()]
-                                .filter(role => role.type === OverwriteType.Role && roles.has(guild.roles.resolve(role.id)))
-                                .map(srcChannel => ({
-                                    id: roles.get(guild.roles.resolve(srcChannel.id)),
-                                    allow: srcChannel.allow,
-                                    deny: srcChannel.deny,
-                                    type: OverwriteType.Role
-                                }))
-                    });
+                    await msg.guild.channels.create(options);
                 }
                 catch (e) {
                     if (e.message === "Cannot execute action on this channel type" ||
@@ -103,18 +121,33 @@ async function cloneServer(msg: CommandMessage<true>, {
                         didSkipChannels = true;
                         continue;
                     }
+                    if (e.rawError.errors.bitrate) {
+                        options.bitrate = parseInt(e.message.match(/\d+/)[0]);
+                        try {
+                            await msg.guild.channels.create(options);
+                            continue;
+                        } catch (e2) {
+                            e = e2;
+                        }
+                    }
                     throw e;
                 }
             }
         }
     }
     catch (e) {
-        e.message += `\nChannel: ${channel!.id}`;
+        e.message += `\nChannel: ${channel!?.id}`;
         throw e;
     }
 
-    if (didSkipChannels)
-        await msg.sendSeparate("Some channels were skipped as this server is not community-enabled.");
+    if (didSkipChannels) {
+        const newTextChannel = msg.guild.channels.cache.find(x => x.isTextBased()) as GuildTextBasedChannel;
+
+        await (cleanBeforeStarting
+            ? newTextChannel?.send.bind(newTextChannel)
+            : msg.sendSeparate.bind(msg)
+        )?.("Some channels were skipped as this server is not community-enabled.");
+    }
 }
 
 const command: CommandDefinition = {
@@ -135,6 +168,9 @@ const command: CommandDefinition = {
             translationKey: "both",
             value: "both"
         }]
+    }, {
+        translationKey: "cleanBeforeStarting",
+        type: ApplicationCommandOptionType.Boolean
     }],
     handler: cloneServer
 };

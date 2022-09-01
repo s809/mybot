@@ -337,6 +337,10 @@
               "description": "Clone both channels and roles."
             }
           }
+        },
+        "cleanBeforeStarting": {
+          "name": "clean-before-starting",
+          "description": "Whether to clean entries for selected mode."
         }
       }
     },
