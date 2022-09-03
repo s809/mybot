@@ -42,7 +42,7 @@ function prepareSubcommands(list: CommandDefinition[], inheritedOptions?: Inheri
         try {
             const translationPath = `commands.${options.path.replaceAll("/", "_")}`;
             const getLocalizations = (key: string) => Object.fromEntries([...Translator.translators.values()]
-                .flatMap(t => t.localeStrings.map(l => [l, t.tryTranslate(`${translationPath}.${key}`)] as [LocaleString, string | null]))
+                .map(t => [t.localeString, t.tryTranslate(`${translationPath}.${key}`)] as [LocaleString, string | null])
                 .filter(([, translation]) => translation !== null)) as Record<LocaleString, string>;
 
             // Definitions' requirements are additive.
@@ -276,5 +276,5 @@ export function* iterateCommands() {
  * @returns Usage string of a command.
  */
 export function toUsageString(msg: Message | CommandMessage, command: Command, translator: Translator): string {
-    return `${getPrefix(msg.guildId)}${command.path.replaceAll("/", " ")} ${command.args.stringTranslations[translator.localeStrings[0]] ?? ""}`;
+    return `${getPrefix(msg.guildId)}${command.path.replaceAll("/", " ")} ${command.args.stringTranslations[translator.localeString] ?? ""}`;
 }

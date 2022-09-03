@@ -9,7 +9,7 @@ async function enableTextGen(msg: CommandMessage) {
     const item = <FlagData & TextGenData>(await resolveFlaggableItem(msg.message!, msg.channel.id))!.dataEntry;
 
     if (hasFlag(item, "genText"))
-        return Translator.getOrDefault(msg).translate("errors.already_enabled");
+        return "already_enabled";
     
     setFlag(item, "genText");
     item.genCounters = {};

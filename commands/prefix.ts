@@ -2,18 +2,12 @@ import { ApplicationCommandOptionType, PermissionFlagsBits } from "discord.js";
 import { data } from "../env";
 import { CommandMessage } from "../modules/commands/CommandMessage";
 import { CommandDefinition } from "../modules/commands/definitions";
-import { Translator } from "../modules/misc/Translator";
 
-function prefix(msg: CommandMessage, {
+function prefix(msg: CommandMessage<true>, {
     newPrefix
 }: {
     newPrefix: string;
 }) {
-    let translator = Translator.getOrDefault(msg);
-
-    if (!msg.guildId)
-        return translator.translate("errors.not_in_server");
-
     data.guilds[msg.guildId].prefix = newPrefix;
 }
 
@@ -26,6 +20,7 @@ const command: CommandDefinition = {
     handler: prefix,
     alwaysReactOnSuccess: true,
     usableAsAppCommand: true,
-    defaultMemberPermissions: PermissionFlagsBits.ManageGuild
+    defaultMemberPermissions: PermissionFlagsBits.ManageGuild,
+    allowDMs: false
 }
 export default command;

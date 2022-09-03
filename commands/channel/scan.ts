@@ -1,21 +1,20 @@
-import { APIEmbed, ApplicationCommandOptionType, EmbedBuilder, Message, TextChannel, User } from "discord.js";
+import { APIEmbed, ApplicationCommandOptionType, EmbedBuilder, GuildTextBasedChannel, Message, TextChannel, User } from "discord.js";
 import { client } from "../../env";
 import { iterateMessages } from "../../modules/messages/iterateMessages";
 import { sendAlwaysLastMessage } from "../../modules/messages/AlwaysLastMessage";
 import sendLongText from "../../modules/messages/sendLongText";
 import { once } from "events";
-import { Translator } from "../../modules/misc/Translator";
 import { CommandDefinition, textChannels as guildTextChannels } from "../../modules/commands/definitions";
 import { CommandMessage } from "../../modules/commands/CommandMessage";
 
-async function scanChannel(msg: CommandMessage, {
+async function scanChannel(msg: CommandMessage<true>, {
     mode,
     channel
 }: {
     mode: string;
-    channel?: string;
+    channel?: GuildTextBasedChannel;
 }) {
-    let translator = Translator.getOrDefault(msg);
+    let translator = msg.translator;
 
     const inviteLink = /(https?:\/\/)?(www.)?(discord.(gg|io|me|li)|discordapp.com\/invite)\/[^\s/]+?(?=\b)/g;
     const getWeekNumber = (d: Date) => {
@@ -30,16 +29,7 @@ async function scanChannel(msg: CommandMessage, {
         return Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
     };
 
-    if (mode !== "daily" && mode !== "weekly" && mode !== "monthly")
-        return translator.translate("errors.mode_not_defined");
-
     let fromChannel = channel ?? msg.channel;
-    
-    if (!(fromChannel instanceof TextChannel))
-        return translator.translate("errors.non_text_channel");
-
-    if (!(fromChannel.permissionsFor(client.user!)?.has(["ViewChannel", "ReadMessageHistory"])))
-        return translator.translate("errors.cannot_read_channel");
 
     let authors: Map<string, User> = new Map();
     let userMessages: Map<string, {
@@ -53,8 +43,8 @@ async function scanChannel(msg: CommandMessage, {
     await msg.completeSilently();
     let counterMessage = await sendAlwaysLastMessage(msg.channel, {
         embeds: [{
-            title: translator.translate("embeds.channel_scan.title"),
-            description: translator.translate("embeds.channel_scan.progress.fetching_messages")
+            title: translator.translate("embeds.title"),
+            description: translator.translate("embeds.progress.fetching_messages")
         }]
     });
 
@@ -92,10 +82,10 @@ async function scanChannel(msg: CommandMessage, {
         if (!(totalLength % 100)) {
             counterMessage = await counterMessage.edit({
                 embeds: [{
-                    title: translator.translate("embeds.channel_scan.title"),
-                    description: translator.translate("embeds.channel_scan.progress.fetching_messages"),
+                    title: translator.translate("embeds.title"),
+                    description: translator.translate("embeds.progress.fetching_messages"),
                     footer: {
-                        text: translator.translate("embeds.channel_scan.progress.fetch_progress", totalLength.toString())
+                        text: translator.translate("embeds.progress.fetch_progress", totalLength.toString())
                     }
                 }]
             });
@@ -104,10 +94,10 @@ async function scanChannel(msg: CommandMessage, {
 
     await counterMessage.edit({
         embeds: [{
-            title: translator.translate("embeds.channel_scan.title"),
-            description: translator.translate("embeds.channel_scan.progress.fetching_invites"),
+            title: translator.translate("embeds.title"),
+            description: translator.translate("embeds.progress.fetching_invites"),
             footer: {
-                text: translator.translate("embeds.channel_scan.progress.fetch_progress", totalLength.toString())
+                text: translator.translate("embeds.progress.fetch_progress", totalLength.toString())
             }
         }]
     });
@@ -126,12 +116,12 @@ async function scanChannel(msg: CommandMessage, {
             }
             catch (e) { /* Skip */ }
         }
-        result = translator.translate("embeds.channel_scan.finished.invites_summary", invites.size.toString(), aliveInviteCount.toString()) + result;
+        result = translator.translate("embeds.finished.invites_summary", invites.size.toString(), aliveInviteCount.toString()) + result;
         await sendLongText(msg.channel, result, {
             code: null,
             multipleMessages: true,
             embed: new EmbedBuilder({
-                title: translator.translate("embeds.channel_scan.title")
+                title: translator.translate("embeds.title")
             })
         });
     }
@@ -163,12 +153,12 @@ async function scanChannel(msg: CommandMessage, {
                 result += `${dayEntry[0]}: ${dayEntry[1]}\n`;
 
             let authorStr = `${author.tag} (${author.id})`;
-            let statTitle = translator.translate("embeds.channel_scan.finished.message_statistics");
+            let statTitle = translator.translate("embeds.finished.message_statistics");
 
             let unsanitizedResult = statTitle + "```\n" + result + "```";
             if (unsanitizedResult.length > 4096) {
                 files.push(statTitle.replace(":", ` for ${authorStr}:`) + result);
-                result = statTitle + translator.translate("embeds.channel_scan.finished.see_attachment", files.length.toString());
+                result = statTitle + translator.translate("embeds.finished.see_attachment", files.length.toString());
             }
             else {
                 result = unsanitizedResult;
@@ -179,11 +169,11 @@ async function scanChannel(msg: CommandMessage, {
                 description: result,
                 fields: [
                     {
-                        name: translator.translate("embeds.channel_scan.finished.first_message"),
+                        name: translator.translate("embeds.finished.first_message"),
                         value: `${data.first.url} (${data.first.createdAt.toLocaleString()})`
                     },
                     {
-                        name: translator.translate("embeds.channel_scan.finished.last_message"),
+                        name: translator.translate("embeds.finished.last_message"),
                         value: `${data.last.url} (${data.last.createdAt.toLocaleString()})`
                     },
                 ]

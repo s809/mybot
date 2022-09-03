@@ -2,12 +2,11 @@ import { OAuth2Scopes, PermissionFlagsBits } from "discord.js";
 import { client } from "../../env";
 import { CommandMessage } from "../../modules/commands/CommandMessage";
 import { CommandDefinition } from "../../modules/commands/definitions";
-import { Translator } from "../../modules/misc/Translator";
 
 async function botInvite(msg: CommandMessage) {
     await msg.reply({
         embeds: [{
-            title: Translator.getOrDefault(msg)!.translate("embeds.bot_invite.title"),
+            title: msg.translator.translate("embeds.title"),
             description: client.generateInvite({
                 scopes: [
                     OAuth2Scopes.Bot,

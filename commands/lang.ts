@@ -5,22 +5,21 @@ import { CommandDefinition } from "../modules/commands/definitions";
 import { Translator } from "../modules/misc/Translator";
 
 function lang(msg: CommandMessage, {
-    newLang
+    language: newLang
 }: {
-    newLang: string;
+    language: string;
 }) {
-    let translator = Translator.getOrDefault(msg);
-
     if (msg.member && !msg.member.permissions.has("ManageGuild"))
-        return translator.translate("errors.cannot_manage_language");
+        return "cannot_manage_language";
 
-    if (!Translator.get(newLang))
-        return translator.translate("errors.invalid_language");
+    const localeString = [...Translator.translators.values()].find(x => x.setLanguageRegex.test(newLang))?.localeString;
+    if (!localeString)
+        return "invalid_language";
 
     if (msg.guildId)
-        data.guilds[msg.guildId].language = newLang;
+        data.guilds[msg.guildId].language = localeString;
     else
-        data.users[msg.author.id].language = newLang;
+        data.users[msg.author.id].language = localeString;
 }
 
 const command: CommandDefinition = {

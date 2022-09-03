@@ -5,7 +5,6 @@ import { execSync } from "child_process";
 import sendLongText from "../../modules/messages/sendLongText";
 import { EmbedBuilder } from "discord.js";
 import { version as currentVersion, debug } from "../../env";
-import { Translator } from "../../modules/misc/Translator";
 import { CommandDefinition } from "../../modules/commands/definitions";
 import { log } from "../../log";
 import { CommandMessage } from "../../modules/commands/CommandMessage";
@@ -81,7 +80,7 @@ async function changelog(msg: CommandMessage) {
     await sendLongText(msg, logstr, {
         code: null,
         embed: new EmbedBuilder({
-            title: Translator.getOrDefault(msg)!.translate("embeds.bot_changelog.title")
+            title: msg.translator.translate("embeds.title")
         })
     });
 }
@@ -89,5 +88,7 @@ async function changelog(msg: CommandMessage) {
 const command: CommandDefinition = {
     key: "changelog",
     handler: changelog,
+    usableAsAppCommand: false,
+    ownerOnly: true
 };
 export default command;

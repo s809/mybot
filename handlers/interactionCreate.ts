@@ -7,9 +7,11 @@ import { CommandMessage } from "../modules/commands/CommandMessage";
 import { logError } from "../log";
 import sendLongText from "../modules/messages/sendLongText";
 import { sanitizePaths } from "../util";
+import { Translator } from "../modules/misc/Translator";
 
 client.on('interactionCreate', async interaction => {
     if (!interaction.isChatInputCommand()) return;
+    const translator = Translator.getOrDefault(interaction, "command_processor");
 
     const path = [
         interaction.command!.name,
@@ -19,7 +21,7 @@ client.on('interactionCreate', async interaction => {
 
     const command = resolveCommand(path);
     if (!command) {
-        await interaction.reply("Unknown command.");
+        await interaction.reply(translator.translate("errors.unknown_command"));
         return;
     }
     if (!command.handler) return;
@@ -39,7 +41,7 @@ client.on('interactionCreate', async interaction => {
         if (!getter) {
             // Unsupported argument type
             await interaction.reply({
-                content: "Unknown error. (Code: 42)",
+                content: translator.translate("errors.unsupported_argument_type"),
                 ephemeral: true
             });
             return;
@@ -59,7 +61,8 @@ client.on('interactionCreate', async interaction => {
     }
 
     try {
-        const commandMessage = new CommandMessage(interaction);
+        const translator = Translator.getOrDefault(interaction, command.translationPath);
+        const commandMessage = new CommandMessage(command, translator, interaction);
         
         let result: string | undefined;
         try {
@@ -85,9 +88,14 @@ client.on('interactionCreate', async interaction => {
             await sendLongText(commandMessage, sanitizePaths(e.stack));
         }
 
+        const errorTranslationPath = `${command.translationPath}.errors.${result ?? ""}`;
         if (!interaction.replied) {
             await interaction.reply({
-                content: result ?? "Done!",
+                content: result
+                    ? (Translator.fallbackTranslator.tryTranslate(errorTranslationPath)
+                        ? translator.translate(errorTranslationPath)
+                        : result)
+                    : "Done!",
                 ephemeral: true
             })
         }

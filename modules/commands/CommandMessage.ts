@@ -1,10 +1,17 @@
-import { CommandInteraction, Guild, GuildMember, If, InteractionDeferReplyOptions, InteractionReplyOptions, InteractionResponse, MappedInteractionTypes, Message, MessageCollectorOptionsParams, MessageComponentType, MessageEditOptions, MessageOptions, ReplyMessageOptions, TextBasedChannel, WebhookEditMessageOptions, LocaleString, ApplicationCommandData } from 'discord.js';
+import { CommandInteraction, Guild, GuildMember, If, InteractionDeferReplyOptions, InteractionReplyOptions, InteractionResponse, Message, MessageCollectorOptionsParams, MessageComponentType, MessageEditOptions, MessageOptions, ReplyMessageOptions, TextBasedChannel, WebhookEditMessageOptions, GuildTextBasedChannel, CacheType, ChatInputCommandInteraction } from 'discord.js';
+import { PrefixedTranslator } from '../misc/Translator';
+import { Command } from './definitions';
 
 export class CommandMessage<InGuild extends boolean = boolean> {
+    readonly command: Command;
+    readonly translator: PrefixedTranslator;
     readonly message?: Message;
     readonly interaction?: CommandInteraction;
 
-    constructor(source: Message | CommandInteraction) {
+    constructor(command: Command, translator: PrefixedTranslator, source: Message | CommandInteraction) {
+        this.command = command;
+        this.translator = translator;
+
         if (source instanceof Message)
             this.message = source;
         else
@@ -68,7 +75,7 @@ export class CommandMessage<InGuild extends boolean = boolean> {
     }
 
     // {send: never} is to avoid breaking interaction-ish flow
-    get channel(): TextBasedChannel & {send: never} {
+    get channel(): If<InGuild, GuildTextBasedChannel, TextBasedChannel> & {send: never} {
         return this.interaction?.channel ?? this.message!.channel as any;
     }
 

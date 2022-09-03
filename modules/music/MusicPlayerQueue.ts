@@ -1,5 +1,5 @@
 import { formatDuration } from "../../util";
-import { Translator } from "../misc/Translator";
+import { PrefixedTranslator, Translator } from "../misc/Translator";
 import EventEmitter from "events";
 import { fetchVideoByUrl } from "./youtubeDl";
 
@@ -53,7 +53,7 @@ export class MusicPlayerQueue extends EventEmitter {
         return this._entries.splice(start, deleteCount!, ...items);
     }
 
-    getQueueData(translator: Translator) {
+    getQueueData(translator: PrefixedTranslator) {
         let result = "";
         let duration = 0;
         let tooLongFlag = false;
@@ -63,8 +63,8 @@ export class MusicPlayerQueue extends EventEmitter {
             duration += entry.duration ?? 0;
 
             if (result.length < 500) {
-                let durationStr = entry.duration ? formatDuration(entry.duration) : translator.translate("common.unknown");
-                result += `${pos + 1}) ${entry.title ?? translator.translate("embeds.music.loading")} (${durationStr})\n`;
+                let durationStr = entry.duration ? formatDuration(entry.duration) : translator.translate("strings.unknown");
+                result += `${pos + 1}) ${entry.title ?? translator.translate("strings.loading")} (${durationStr})\n`;
             } else if (!tooLongFlag) {
                 result += "...";
                 tooLongFlag = true;

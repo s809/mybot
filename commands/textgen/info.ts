@@ -1,21 +1,21 @@
-import { ApplicationCommandOptionType, Message } from "discord.js";
+import { ApplicationCommandOptionType } from "discord.js";
 import { data } from "../../env";
 import { CommandMessage } from "../../modules/commands/CommandMessage";
 import { CommandDefinition } from "../../modules/commands/definitions";
 import { TextGenData } from "../../modules/data/models";
-import { Translator } from "../../modules/misc/Translator";
+import { PrefixedTranslator } from "../../modules/misc/Translator";
 
-function calculateProperties(arr: number[], translator: Translator, name: string) {
+function calculateProperties(arr: number[], translator: PrefixedTranslator, name: string) {
     name = translator.translate(name);
 
     if (!arr.length)
-        return translator.translate("embeds.textgen.property_table_not_enough_data", name);
+        return translator.translate("embeds.property_table_not_enough_data", name);
 
     let avg = arr.reduce((acc, item) => acc + item, 0) / arr.length;
     arr = arr.sort((x: number, y: number) => x - y);
     let med = arr[Math.floor(arr.length / 2)];
 
-    return translator.translate("embeds.textgen.property_table", name, avg.toString(), med.toString(), arr[0].toString(), arr[arr.length - 1].toString());
+    return translator.translate("embeds.property_table", name, avg.toString(), med.toString(), arr[0].toString(), arr[arr.length - 1].toString());
 }
 
 function getVariations(genData: TextGenData["genData"], depth: number, wordData: {}) {
@@ -35,7 +35,7 @@ function getVariations(genData: TextGenData["genData"], depth: number, wordData:
     return result;
 }
 
-function calculatePropertiesForList(genData: TextGenData["genData"], branchCutoff: number, translator: Translator) {
+function calculatePropertiesForList(genData: TextGenData["genData"], branchCutoff: number, translator: PrefixedTranslator) {
     let result = "";
 
     let arr = Object.values(genData!).filter(wordData => Object.keys(wordData).length >= branchCutoff);
@@ -43,15 +43,15 @@ function calculatePropertiesForList(genData: TextGenData["genData"], branchCutof
     let varr = arr.map(wordData => Object.values(wordData));
     let earr = arr.map(wordData => Object.entries(wordData));
 
-    result += calculateProperties(varr.map(values => values.length), translator, "embeds.textgen.word_chain_variants");
-    result += calculateProperties(varr.map(values => Math.max(...values)), translator, "embeds.textgen.most_common_next_word_probability");
+    result += calculateProperties(varr.map(values => values.length), translator, "embeds.word_chain_variants");
+    result += calculateProperties(varr.map(values => Math.max(...values)), translator, "embeds.most_common_next_word_probability");
     result += calculateProperties(earr
         .reduce<number[]>((acc, item) => {
             let pair = item.find(x => x[0] === "__genEnd");
             if (pair)
                 acc.push(pair[1]);
             return acc;
-        }, []), translator, "embeds.textgen.generation_stop_probability");
+        }, []), translator, "embeds.generation_stop_probability");
 
     return result;
 }
@@ -63,7 +63,7 @@ async function textGenInfo(msg: CommandMessage<true>, {
     branchCutoff: number;
     branchCounterDepth: number;
 }) {
-    const translator = Translator.getOrDefault(msg);
+    const translator = msg.translator;
     
     let genData = data.guilds[msg.guildId].channels[msg.channelId].genData;
     let text = calculatePropertiesForList(genData, branchCutoff, translator);

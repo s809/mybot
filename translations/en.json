@@ -1,9 +1,9 @@
 {
-  "locale_strings": ["en-US"],
-  "locale_strings_alternative": [
-    "en",
-    "eng",
-    "english"
+  "locale_string": "en-US",
+  "set_language_regex": "en(g(lish)?)?",
+  "boolean_values": [
+    ["no", "n", "false"],
+    ["yes", "y", "true"]
   ],
   "commands": {
     "bot": {
@@ -12,15 +12,26 @@
     },
     "bot_changelog": {
       "name": "changelog",
-      "description": "Get bot changelog."
+      "description": "Get bot changelog.",
+      "embeds": {
+        "title": "Changelog"
+      }
     },
     "bot_invite": {
       "name": "invite",
-      "description": "Get bot server invite link."
+      "description": "Get bot server invite link.",
+      "embeds": {
+        "title": "Bot server invite link"
+      }
     },
     "bot_uptime": {
       "name": "uptime",
-      "description": "Get bot uptime."
+      "description": "Get bot uptime.",
+      "embeds": {
+        "title": "Uptime",
+        "text": "Bot uptime: $1\nHost uptime: $2",
+        "time_format": "$1 days, $2 hours, $3 minutes, $4 seconds"
+      }
     },
     "channel": {
       "name": "channel",
@@ -28,7 +39,10 @@
     },
     "channel_reset": {
       "name": "reset",
-      "description": "Clone and delete this channel."
+      "description": "Clone and delete this channel.",
+      "errors": {
+        "thread_channel": "Cannot reset thread channel."
+      }
     },
     "channel_scan": {
       "name": "scan",
@@ -56,6 +70,21 @@
           "name": "channel",
           "description": "Channel to scan."
         }
+      },
+      "embeds": {
+        "title": "Channel scan",
+        "progress": {
+          "fetching_messages": "Fetching messages...",
+          "fetch_progress": "$1 messages fetched",
+          "fetching_invites": "Fetching invites..."
+        },
+        "finished": {
+          "invites_summary": "Found $1 invites, alive: $2\n",
+          "message_statistics": "Message statistics:\n",
+          "see_attachment": "*See attachment ($1)*",
+          "first_message": "First message",
+          "last_message": "Last message"
+        }
       }
     },
     "clone_stop": {
@@ -74,6 +103,11 @@
           "name": "end-id",
           "description": "ID of the last message to delete."
         }
+      },
+      "errors": {
+        "cannot_manage_messages": "The bot is unable to manage messages.",
+        "invalid_message_range": "Enter a valid message range.",
+        "delete_failed": "Failed to delete messages."
       }
     },
     "emoji": {
@@ -144,7 +178,19 @@
     },
     "help": {
       "name": "help",
-      "description": "Show this help message."
+      "description": "Show this help message.",
+      "embeds": {
+        "title": "Help",
+        "no_description": "No description.",
+        "select_command": "Select a command to view information about it.",
+        "select_command_in_category": "Select a command in this category to view information about it.",
+        "select_command_menu": "Select a command...",
+        "required_permissions": "Required permissions: $1",
+        "slash_commands_suggestion": "This command can also be used as a slash (`/`) command."
+      },
+      "errors": {
+        "send_your_own_command": "You cannot interact with this message; send a new command (`$1$2`) to interact with a new message."
+      }
     },
     "invitetracker": {
       "name": "invitetracker",
@@ -152,7 +198,10 @@
     },
     "invitetracker_disable": {
       "name": "disable",
-      "description": "Disable tracking of invites."
+      "description": "Disable tracking of invites.",
+      "errors": {
+        "already_disabled": "Already disabled."
+      }
     },
     "invitetracker_enable": {
       "name": "enable",
@@ -162,11 +211,19 @@
           "name": "channel",
           "description": "Channel to send tracking messages to."
         }
+      },
+      "errors": {
+        "tracker_init_failed": "Failed to set up tracker. Check if bot has \"Send Messages\" permission in log channel and \"Manage Server\" in this server."
       }
     },
     "invitetracker_info": {
       "name": "info",
-      "description": "Show info about invite tracking on this server."
+      "description": "Show info about invite tracking on this server.",
+      "embeds": {
+        "title": "Invite tracker",
+        "not_tracking": "Not tracking",
+        "log_channel": "Log channel: $1"
+      }
     },
     "lang": {
       "name": "lang",
@@ -176,6 +233,10 @@
           "name": "language",
           "description": "Language to use."
         }
+      },
+      "errors": {
+        "cannot_manage_language": "You cannot manage a language of this server.",
+        "invalid_language": "Invalid language."
       }
     },
     "link": {
@@ -196,7 +257,10 @@
     },
     "music_pause": {
       "name": "pause",
-      "description": "Pause player."
+      "description": "Pause player.",
+      "errors": {
+        "nothing_is_playing": "Nothing is playing."
+      }
     },
     "music_play": {
       "name": "play",
@@ -210,15 +274,26 @@
           "name": "playlist-start-position",
           "description": "Position in playlist to start at."
         }
+      },
+      "errors": {
+        "invalid_url": "URL is invalid.",
+        "no_url_or_query": "No URL specified.",
+        "no_videos_added": "At least one video should be added to queue."
       }
     },
     "music_skip": {
       "name": "skip",
-      "description": "Skip currently playing song."
+      "description": "Skip currently playing song.",
+      "errors": {
+        "nothing_is_playing": "Nothing is playing."
+      }
     },
     "music_stop": {
       "name": "stop",
-      "description": "Stop player."
+      "description": "Stop player.",
+      "errors": {
+        "nothing_is_playing": "Nothing is playing."
+      }
     },
     "owner": {
       "name": "owner",
@@ -374,7 +449,29 @@
     },
     "test_translations": {
       "name": "translations",
-      "description": "Test translations."
+      "description": "Test translations.",
+      "args": {
+        "sendError": {
+          "name": "send-error",
+          "description": "Type of error to return, if specified.",
+          "choices": {
+            "raw": {
+              "name": "raw",
+              "description": "Send raw error"
+            },
+            "translate": {
+              "name": "translate",
+              "description": "Send translated error"
+            }
+          }
+        }
+      },
+      "embeds": {
+        "test": "Test string"
+      },
+      "errors": {
+        "test_error": "Test translated error"
+      }
     },
     "textgen": {
       "name": "textgen",
@@ -382,11 +479,17 @@
     },
     "textgen_disable": {
       "name": "disable",
-      "description": "Disable text generator for this channel."
+      "description": "Disable text generator for this channel.",
+      "errors": {
+        "already_disabled": "Already disabled."
+      }
     },
     "textgen_enable": {
       "name": "enable",
-      "description": "Enable text generator for this channel."
+      "description": "Enable text generator for this channel.",
+      "errors": {
+        "already_disabled": "Already enabled."
+      }
     },
     "textgen_info": {
       "name": "info",
@@ -400,147 +503,69 @@
           "name": "branch-counter-depth",
           "description": "Depth of branch counter."
         }
+      },
+      "embeds": {
+        "title": "Text generator",
+        "property_table": "$1 | Avg: $2 | Med: $3 | Min: $4 | Max: $5\n",
+        "word_chain_variants": "Word chain variants",
+        "most_common_next_word_probability": "Most common next word probability",
+        "generation_stop_probability": "Generation stop probability",
+        "property_table_not_enough_data": "$1 | <not enough data>\n"
       }
-    },
-    "timer": {
-      "name": "timer",
-      "description": "Self-updating UTC timer message."
     }
   },
-  "errors": {
-    "already_disabled": "Already disabled.",
-    "already_enabled": "Already enabled.",
-    "already_linked_destination": "Cannot link to a linked channel.",
-    "already_linked_source": "Channel is already linked.",
-    "argument_value_too_large": "Value of \"$1\" is too large (should be no larger than $2).",
-    "too_few_arguments": "Too few arguments.\n",
-    "too_many_arguments": "Too many arguments.\n",
-    "cannot_become_speaker": "Failed to become a speaker.",
-    "cannot_manage_emojis": "Cannot manage emojis on this server.",
-    "cannot_manage_language": "You cannot manage a language of this server.",
-    "cannot_read_channel": "Channel is not a text channel or permissions are missing.",
-    "channel_needs_unlink": "Disable channel linking first.",
-    "channel_not_linked": "Channel is not linked.",
-    "clone_not_pending": "Clone is not pending.",
-    "command_management_not_allowed": "You don't have permission to manage this command.",
-    "countstr_empty": "Countstr is empty.",
-    "emoji_already_exists": "Emoji with this name already exists.",
-    "emoji_create_failed": "Failed to create emoji.",
-    "endstr_empty": "Endstr is empty.",
-    "invalid_date_format": "Invalid date format",
-    "invalid_id": "Invalid ID was provided.",
-    "invalid_language": "Invalid language.",
-    "invalid_message_range": "Enter a valid message range.",
-    "invalid_prefix": "Invalid prefix.",
-    "invalid_start_position": "Start position is invalid.",
-    "invalid_time_format": "Invalid time format",
-    "invalid_url": "URL is invalid.",
-    "linking_outside_guild": "Cannot link to/from channels outside of an guild.",
-    "mode_not_defined": "Mode is not defined.",
-    "no_url": "No URL specified.",
-    "no_videos_added": "At least one video should be added to queue.",
-    "non_text_channel": "Specified channel is not a text channel.",
-    "not_in_server": "This command is only available in servers.",
-    "not_in_any_voice": "Join any voice channel to use this command.",
-    "not_in_specific_voice": "Join $1 to use this command.",
-    "nothing_is_playing": "Nothing is not playing.",
-    "send_your_own_command": "You cannot interact with this message; send a new command (`$1$2`) to interact with a new message.",
-    "target_management_not_allowed": "You don't have permission to manage this type of target.",
-    "tracker_init_failed": "Failed to set up tracker. Check if bot has \"Send Messages\" permission in log channel and \"Manage Server\" in this server.",
-    "unknown_channel": "Unknown channel.",
-    "unknown_command": "Unknown command.",
-    "unknown_emoji": "Unknown emoji.",
-    "unknown_server": "Unknown server."
+  "command_processor": {
+    "strings": {
+      "command_usage": "Command usage: `$1`"
+    },
+    "errors": {
+      "unknown_command": "Unknown command.",
+      "too_few_arguments": "Too few arguments.",
+      "too_many_arguments": "Too many arguments.",
+      "invalid_numeric": "$1 is not a valid number.",
+      "value_too_small": "Value of $1 is too small. (Min: $2)",
+      "value_too_large": "Value of $1 is too large. (Max: $2)",
+      "invalid_channel": "$1 is not a valid channel.",
+      "value_too_short": "Value of $1 is too short. (Min: $2)",
+      "value_too_long": "Value of $1 is too long. (Max: $2)",
+      "invalid_boolean": "$1 is not a valid boolean parameter.",
+      "channel_constraints_not_met": "$1 does not meet channel type constraints.",
+      "unsupported_argument_type": "Unknown error. (Code: 42)"
+    }
   },
-  "embeds": {
-    "bot_changelog": {
-      "title": "Changelog"
-    },
-    "bot_invite": {
-      "title": "Bot server invite link"
-    },
-    "bot_uptime": {
-      "title": "Uptime",
-      "text": "Bot uptime: $1\nHost uptime: $2",
-      "time_format": "$1 days, $2 hours, $3 minutes, $4 seconds"
-    },
-    "channel_scan": {
-      "title": "Channel scan",
-      "progress": {
-        "fetching_messages": "Fetching messages...",
-        "fetch_progress": "$1 messages fetched",
-        "fetching_invites": "Fetching invites..."
-      },
-      "finished": {
-        "invites_summary": "Found $1 invites, alive: $2\n",
-        "message_statistics": "Message statistics:\n",
-        "see_attachment": "*See attachment ($1)*",
-        "first_message": "First message",
-        "last_message": "Last message"
-      }
-    },
-    "invitetracker": {
-      "title": "Invite tracker",
-      "not_tracking": "Not tracking",
-      "log_channel": "Log channel: $1",
-      "tracking_started": "Tracking $1 invites.",
+  "invitetracker": {
+    "strings": {
       "invite_created": "Tracking new invite: $1 by $2",
       "invite_deleted": "Invite deleted: $1",
+      "invite_used": "Used invite: $1 by $2",
       "member_joined": "$1 joined",
-      "invite_used": "Used invite: $1 by $2"
-    },
-    "link_list": {
-      "title:": "Channel links",
-      "no_channels_linked": "No channels are linked with this channel."
-    },
-    "emoji_show": {
-      "title_for_normal": "Image of $1",
-      "title_for_animated": "Animated image of $1"
-    },
-    "help": {
-      "title": "Help",
-      "no_description": "No description.",
-      "select_command": "Select a command to view information about it.",
-      "select_command_in_category": "Select a command in this category to view information about it.",
-      "select_command_menu": "Select a command...",
-      "required_permissions": "Required permissions: $1"
-    },
-    "music": {
+      "tracking_started": "Tracking $1 invites."
+    }
+  },
+  "music_player": {
+    "embeds": {
       "title_player": "Player",
       "title_paused": "Player - paused",
       "title_buffering": "Player - buffering...",
-
       "initializing": "Initializing...",
       "now_playing": "Now playing: $1 ($2)\n",
       "playback_finished": "Playback has finished!",
       
-      "loading": "Loading...",
-
       "queue_summary": "Queue length: $1 ($2)\n",
       "load_remaining": "Remaining to load: $1\n",
       "some_removed": "Some videos failed to load and were removed.\n"
     },
-    "permission_list": {
-      "title": "Permission list for $1",
-      "user": "User",
-      "role": "Role",
-      "member": "Member",
-      "no_permissions": "This user has no permissions."
+    "strings": {
+      "loading": "Loading...",
+      "unknown": "unknown"
     },
-    "textgen": {
-      "title": "Text generator",
-      "property_table": "$1 | Avg: $2 | Med: $3 | Min: $4 | Max: $5\n",
-      "word_chain_variants": "Word chain variants",
-      "most_common_next_word_probability": "Most common next word probability",
-      "generation_stop_probability": "Generation stop probability",
-      "property_table_not_enough_data": "$1 | <not enough data>"
+    "errors": {
+      "cannot_become_speaker": "Failed to become a speaker."
     }
   },
   "common": {
-    "channel_linked_here": "$1 is linked here.",
-    "command_usage": "Command usage: `$1`",
-    "initializing_timer": "Initializing timer...",
-    "test": "Test message",
-    "unknown": "unknown"
+    "strings": {
+      "test": "Test message"
+    }
   }
 }

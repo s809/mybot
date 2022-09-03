@@ -1,13 +1,9 @@
-import { GuildChannel } from "discord.js";
 import { CommandMessage } from "../../modules/commands/CommandMessage";
 import { CommandDefinition } from "../../modules/commands/definitions";
-import { Translator } from "../../modules/misc/Translator";
 
-async function resetChannel(msg: CommandMessage) {
-    let translator = Translator.getOrDefault(msg);
-
-    if (!(msg.channel instanceof GuildChannel))
-        return translator.translate("errors.not_in_server");
+async function resetChannel(msg: CommandMessage<true>) {
+    if (msg.channel.isThread())
+        return "thread_channel";
 
     let position = msg.channel.position;
     await Promise.all([

@@ -1,4 +1,3 @@
-import { Translator } from "../modules/misc/Translator";
 import { ApplicationCommandOptionType, GuildTextBasedChannel, PermissionFlagsBits } from "discord.js";
 import { CommandDefinition } from "../modules/commands/definitions";
 import { iterateMessagesChunked } from "../modules/messages/iterateMessages";
@@ -11,16 +10,14 @@ async function deleteRange(msg: CommandMessage<true>, {
     startId: string;
     endId: string;
 }) {
-    const translator = Translator.getOrDefault(msg);
-
     if (!(msg.channel as GuildTextBasedChannel).permissionsFor(msg.guild.members.me!).has(PermissionFlagsBits.ManageMessages))
-        return translator.translate("errors.cannot_manage_messages");
+        return "cannot_manage_messages";
 
     try {
         if (BigInt(startId) > BigInt(endId))
             [startId, endId] = [endId, startId];
     } catch (e) {
-        return translator.translate("errors.invalid_message_range");
+        return "invalid_message_range";
     }
 
     try {
@@ -31,7 +28,7 @@ async function deleteRange(msg: CommandMessage<true>, {
                 await message.delete();
         }
     } catch (e) {
-        return translator.translate("errors.delete_failed");
+        return "delete_failed";
     }
 }
 

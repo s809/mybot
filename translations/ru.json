@@ -1,5 +1,6 @@
 {
-  "locale_strings": ["ru"],
+  "locale_string": "ru",
+  "set_language_regex": "(ru(s(sian)?)?|ру(с(ский)?)?)",
   "command_descriptions": {
     "bot_changelog": "Получить список изменений бота.",
     "bot_invite": "Получить ссылку для приглашения бота на сервер.",

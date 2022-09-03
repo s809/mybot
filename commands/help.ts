@@ -4,13 +4,11 @@ import { APIEmbed, MessageSelectOption, PermissionFlagsBits, SelectMenuInteracti
 import { getRootCommands, toUsageString } from "../modules/commands";
 import { CommandMessage } from "../modules/commands/CommandMessage";
 import { Command, CommandDefinition } from "../modules/commands/definitions";
-import { checkConditions } from "../modules/commands/conditions";
 import { getPrefix } from "../modules/data/getPrefix";
-import { Translator } from "../modules/misc/Translator";
 import { isBotOwner } from "../env";
 
 async function help(msg: CommandMessage) {
-    let translator = Translator.getOrDefault(msg);
+    let translator = msg.translator;
 
     const filterCommands = (list: Command[]) =>
         list.filter(command => !command.ownerOnly || (isBotOwner(msg.author) && msg.channel.isDMBased()));
@@ -27,14 +25,14 @@ async function help(msg: CommandMessage) {
         const levelName = `level${chain.length}`;
 
         let selectOptions = commands.map(x => ({
-            label: x.nameTranslations[translator.localeStrings[0]],
+            label: x.nameTranslations[translator.localeString],
             value: `${levelName}_${x.key}`,
             default: false,
         }));
 
         let selectMenu = new SelectMenuBuilder()
             .setCustomId(levelName)
-            .setPlaceholder(translator.translate("embeds.help.select_command_menu"))
+            .setPlaceholder(translator.translate("embeds.select_command_menu"))
             .setOptions(selectOptions);
 
         let row = new ActionRowBuilder<SelectMenuBuilder>()
@@ -62,28 +60,28 @@ async function help(msg: CommandMessage) {
 
         if (!command) {
             embed = {
-                title: translator.translate("embeds.help.title"),
-                description: translator.translate("embeds.help.select_command")
+                title: translator.translate("embeds.title"),
+                description: translator.translate("embeds.select_command")
             };
         } else {
-            let codeBlock = `\`\`\`\n${toUsageString(msg, command, translator)}\`\`\`\n`;
-            let description = `${command.descriptionTranslations[translator.localeStrings[0]] ?? translator.translate("embeds.help.no_description")}`;
+            let codeBlock = `\`\`\`\n${toUsageString(msg, command, translator.translator)}\`\`\`\n`;
+            let description = `${command.descriptionTranslations[translator.localeString] ?? translator.translate("embeds.no_description")}`;
             let requiredPermissions = command.conditions.filter(x => !x.hideInDescription).map(x => x.name).join(", ");
             
             if (requiredPermissions)
-                requiredPermissions = `\n${translator.translate("embeds.help.required_permissions", requiredPermissions)}`;
+                requiredPermissions = `\n${translator.translate("embeds.required_permissions", requiredPermissions)}`;
             else
                 requiredPermissions = "";
 
             embed = {
-                title: translator.translate("embeds.help.title"),
+                title: translator.translate("embeds.title"),
                 description: (command.handler
                     ? codeBlock + description
-                    : translator.translate("embeds.help.select_command_in_category"))
+                    : translator.translate("embeds.select_command_in_category"))
                     + requiredPermissions,
                 footer: command.handler && command.usableAsAppCommand
                     ? {
-                        text: translator.translate("embeds.help.slash_commands_suggestion")
+                        text: translator.translate("embeds.slash_commands_suggestion")
                     }
                     : undefined
             };

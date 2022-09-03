@@ -6,6 +6,7 @@ const command: CommandDefinition = {
     key: "music",
     conditions: [InVoiceChannel],
     subcommands: await importCommands(import.meta.url),
-    ownerOnly: true
+    ownerOnly: true,
+    allowDMs: false
 };
 export default command;
