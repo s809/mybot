@@ -6,6 +6,7 @@ import { CommandMessage } from "../modules/commands/CommandMessage";
 import { Command, CommandDefinition } from "../modules/commands/definitions";
 import { getPrefix } from "../modules/data/getPrefix";
 import { isBotOwner } from "../env";
+import { Translator } from "../modules/misc/Translator";
 
 async function help(msg: CommandMessage) {
     let translator = msg.translator;
@@ -25,7 +26,7 @@ async function help(msg: CommandMessage) {
         const levelName = `level${chain.length}`;
 
         let selectOptions = commands.map(x => ({
-            label: x.nameTranslations[translator.localeString],
+            label: x.nameTranslations[translator.localeString] ?? x.nameTranslations[Translator.fallbackLocale],
             value: `${levelName}_${x.key}`,
             default: false,
         }));
