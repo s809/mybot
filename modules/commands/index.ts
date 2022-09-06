@@ -10,7 +10,7 @@ import { ApplicationCommandOptionType, LocaleString, Message, PermissionFlagsBit
 import { getPrefix } from "../data/getPrefix";
 import { CommandCondition } from "./conditions";
 import { CommandMessage } from "./CommandMessage";
-import { Translator } from "../misc/Translator";
+import { PrefixedTranslator, Translator } from "../misc/Translator";
 import { hasSameKeys } from "../../util";
 
 var commands: Map<string, Command>;
@@ -264,10 +264,10 @@ export function resolveCommand(path: string | string[], allowPartialResolve: boo
         allowPartialResolve);
 }
 
-export function resolveCommandLocalized(path: string | string[], locale: LocaleString): Command | null {
+export function resolveCommandLocalized(path: string | string[], translator: Translator | PrefixedTranslator): Command | null {
     return resolveCommandInternal(path,
-        commandsByLocale[locale] ?? commandsByLocale[Translator.fallbackLocale],
-        command => command.subcommandsByLocale[locale] ?? command.subcommandsByLocale[Translator.fallbackLocale],
+        translator.getTranslationFromRecord(commandsByLocale),
+        command => translator.getTranslationFromRecord(command.subcommandsByLocale),
         true)
         ?? resolveCommandInternal(path,
             commandsByLocale[Translator.fallbackLocale],
@@ -319,12 +319,9 @@ export function toUsageString(msg: Message | CommandMessage, command: Command, t
     for (const a of command.path.split("/")) {
         const c = map.get(a)!;
         map = c.subcommands;
-        localizedCommandPath += " " + c.nameTranslations[translator.localeString] ?? c.nameTranslations[Translator.fallbackLocale];
+        localizedCommandPath += " " + translator.getTranslationFromRecord(c.nameTranslations);
     }
 
-    const localizedArgs = command.args.stringTranslations[translator.localeString]
-        ?? command.args.stringTranslations[Translator.fallbackLocale]
-        ?? "";
-    
+    const localizedArgs = translator.getTranslationFromRecord(command.args.stringTranslations) ?? "";
     return getPrefix(msg.guildId) + `${localizedCommandPath} ${localizedArgs}`.trim();
 }

@@ -26,7 +26,7 @@ async function help(msg: CommandMessage) {
         const levelName = `level${chain.length}`;
 
         let selectOptions = commands.map(x => ({
-            label: x.nameTranslations[translator.localeString] ?? x.nameTranslations[Translator.fallbackLocale],
+            label: translator.getTranslationFromRecord(x.nameTranslations),
             value: `${levelName}_${x.key}`,
             default: false,
         }));

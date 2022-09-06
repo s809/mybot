@@ -36,7 +36,7 @@ client.on("messageCreate", async msg => {
     }
 
     const translator = Translator.getOrDefault(msg, "command_processor");
-    const command = resolveCommandLocalized(args, translator.localeString);
+    const command = resolveCommandLocalized(args, translator);
     if (!command || !command.handler) return;
 
     // Check permissions
@@ -110,21 +110,25 @@ client.on("messageCreate", async msg => {
         return;
     }
 
-    const checkNumberValue = (input: string, arg: ArrayElement<NonNullable<Command>["args"]["list"]>, check: (x: number) => boolean) => {
+    // Combined for numeric & integer
+    const parseNumberValue = (input: string, arg: ArrayElement<NonNullable<Command>["args"]["list"]>, check: (x: number) => boolean) => {
         const value = parseInt(input);
         const arga = arg as ApplicationCommandNumericOptionData;
-        
+
         if (!check(value))
             throw ["invalid_numeric", input];
+        if (arga.choices && !arga.choices.some(c => c.value === value))
+            throw ["value_not_allowed", input, arga.choices.map(c => c.value).join(", ")];
         if (arga.minValue && value < arga.minValue)
-            throw ["value_too_small", arga.name, arga.minValue];
+            throw ["value_too_small", input, arga.minValue];
         if (arga.maxValue && value > arga.maxValue)
-            throw ["value_too_large", arga.name, arga.maxValue];
+            throw ["value_too_large", input, arga.maxValue];
 
         return value;
     }
 
-    const parseCacheableValue = (input: string, arg: ArrayElement<NonNullable<Command>["args"]["list"]>, parse: (text: string) => string | null, manager: CachedManager<Snowflake, any, any> | undefined) => {
+    // Combined for objects gotten with their managers
+    const parseResolvableValue = (input: string, arg: ArrayElement<NonNullable<Command>["args"]["list"]>, parse: (text: string) => string | null, manager: CachedManager<Snowflake, any, any> | undefined) => {
         const id = parse(input);
         if (id === null)
             throw ["invalid_channel", input];
@@ -136,37 +140,49 @@ client.on("messageCreate", async msg => {
         return result;
     }
 
-    // TODO choices
     const argsObj = {} as Parameters<CommandHandler>["1"];
     const argToGetter = new Map<ApplicationCommandOptionType, (value: string, arg: ArrayElement<NonNullable<Command>["args"]["list"]>) => any>([
-        [ApplicationCommandOptionType.String, (x, arg) => {
+        [ApplicationCommandOptionType.String, (input, arg) => {
             const arga = arg as ApplicationCommandStringOptionData;
 
-            if (arga.minLength && x.length < arga.minLength)
-                throw ["value_too_small", arga.name, arga.minLength];
-            if (arga.maxLength && x.length > arga.maxLength)
-                throw ["value_too_long", arga.name, arga.maxLength];
+            if (arga.choices) {
+                // Transform localized choice to internal value
+                for (const choice of arga.choices) {
+                    const localization = (choice.nameLocalizations as any)[translator.localeString];
+                    if (localization && input.toLocaleLowerCase() === localization // translator's locale
+                        || input.toLocaleLowerCase() === choice.name) // fallback locale
+                        return choice.value;
+                }
+                
+                throw ["value_not_allowed", input, arga.choices.map(choice => `"${(choice.nameLocalizations as any)[translator.localeString] ?? choice.name}"`).join(", ")];
+            } else {
+                if (arga.minLength && input.length < arga.minLength)
+                    throw ["value_too_small", input, arga.minLength];
+                if (arga.maxLength && input.length > arga.maxLength)
+                    throw ["value_too_long", input, arga.maxLength];
+            }
             
-            return x;
+            return input;
         }],
-        [ApplicationCommandOptionType.Number, (x, arg) => checkNumberValue(x, arg, n => !isNaN(n))],
-        [ApplicationCommandOptionType.Integer, (x, arg) => checkNumberValue(x, arg, Number.isSafeInteger)],
-        [ApplicationCommandOptionType.Boolean, (x, arg) => {
-            for (const [i, variants] of translator.translator.booleanValues.entries()) {
-                if (variants.includes(x.toLocaleLowerCase()))
+        [ApplicationCommandOptionType.Number, (input, arg) => parseNumberValue(input, arg, n => !isNaN(n))],
+        [ApplicationCommandOptionType.Integer, (input, arg) => parseNumberValue(input, arg, Number.isSafeInteger)],
+        [ApplicationCommandOptionType.Boolean, input => {
+            const zipped = translator.booleanValues.map((v, i) => v.concat(Translator.fallbackTranslator.booleanValues[i]));
+            for (const [i, variants] of zipped.entries()) {
+                if (variants.includes(input.toLocaleLowerCase()))
                     return Boolean(i);
             }
-            throw ["invalid_boolean", arg.name];
+            throw ["invalid_boolean", input];
         }],
-        [ApplicationCommandOptionType.Channel, (x, arg) => {
-            const resolvedChannel: GuildChannel = parseCacheableValue(x, arg, parseChannelMention, msg.guild?.channels);
+        [ApplicationCommandOptionType.Channel, (input, arg) => {
+            const resolvedChannel: GuildChannel = parseResolvableValue(input, arg, parseChannelMention, msg.guild?.channels);
             const fits = (arg as ApplicationCommandChannelOptionData).channelTypes?.some(type => resolvedChannel.type === type) ?? true;
             if (!fits)
                 throw ["channel_constraints_not_met", resolvedChannel.toString()];
             return resolvedChannel;
         }],
-        [ApplicationCommandOptionType.User, (x, arg) => parseCacheableValue(x, arg, parseUserMention, msg.guild?.members)],
-        [ApplicationCommandOptionType.Role, (x, arg) => parseCacheableValue(x, arg, parseRoleMention, msg.guild?.roles)],
+        [ApplicationCommandOptionType.User, (input, arg) => parseResolvableValue(input, arg, parseUserMention, msg.guild?.members)],
+        [ApplicationCommandOptionType.Role, (input, arg) => parseResolvableValue(input, arg, parseRoleMention, msg.guild?.roles)],
     ]);
 
     for (const arg of command.args.list) {
@@ -184,10 +200,14 @@ client.on("messageCreate", async msg => {
         try {
             argsObj[arg.translationKey] = getter(argValue, arg);
         } catch (e) {
-            if (Array.isArray(e))
-                await msg.channel.send(translator.translate(`errors.${e[0]}`, ...e.slice(1)));
-            else
+            if (Array.isArray(e)) {
+                const argName = translator.getTranslationFromRecord(arg.nameLocalizations!);
+                const valueWithArgName = `"${e[1]}" (${translator.translate("strings.argument_name", argName)})`;
+
+                await msg.channel.send(translator.translate(`errors.${e[0]}`, valueWithArgName, ...e.slice(2)));
+            } else {
                 await msg.channel.send(e.message);
+            }
             return;
         }
     }

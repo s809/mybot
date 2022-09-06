@@ -29,6 +29,14 @@ export class PrefixedTranslator {
         return this.translator.localeString;
     }
 
+    get booleanValues() {
+        return this.translator.booleanValues;
+    }
+
+    get getTranslationFromRecord() {
+        return this.translator.getTranslationFromRecord;
+    }
+
     translate(path: string, ...args: string[]) {
         return this.translator.tryTranslate(`${this.prefix}.${path}`, ...args)
             ?? Translator.fallbackTranslator.tryTranslate(`${this.prefix}.${path}`, ...args)
@@ -146,5 +154,16 @@ export class Translator {
     tryTranslate(path: string, ...args: string[]): string | null {
         var source = get(this.data, path);
         return source ? formatString(source, ...args) : null;
+    }
+
+    /**
+     * Gets a translation value from object using this translator's locale string as a key.
+     * Tries to get result by a fallback locale key if this translator's key was not found.
+     * 
+     * @param obj Object to get value from.
+     * @returns Value from object or undefined.
+     */
+    getTranslationFromRecord(obj: Partial<Record<LocaleString, any>>) {
+        return obj[this.localeString] ?? obj[Translator.fallbackLocale];
     }
 }

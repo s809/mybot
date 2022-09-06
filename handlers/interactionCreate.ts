@@ -19,7 +19,7 @@ client.on('interactionCreate', async interaction => {
         interaction.options.getSubcommand(false)
     ].filter(x => x).join('/');
 
-    const command = resolveCommandLocalized(path, translator.localeString);
+    const command = resolveCommandLocalized(path, translator);
     if (!command) {
         await interaction.reply(translator.translate("errors.unknown_command"));
         return;
