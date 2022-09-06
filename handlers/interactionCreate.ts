@@ -1,6 +1,6 @@
 import { ApplicationCommandOptionType } from "discord.js";
 import { client } from "../env";
-import { resolveCommand } from "../modules/commands";
+import { resolveCommandLocalized } from "../modules/commands";
 import { CommandHandler } from "../modules/commands/definitions";
 import { setTimeout } from "timers/promises"
 import { CommandMessage } from "../modules/commands/CommandMessage";
@@ -19,7 +19,7 @@ client.on('interactionCreate', async interaction => {
         interaction.options.getSubcommand(false)
     ].filter(x => x).join('/');
 
-    const command = resolveCommand(path);
+    const command = resolveCommandLocalized(path, translator.localeString);
     if (!command) {
         await interaction.reply(translator.translate("errors.unknown_command"));
         return;

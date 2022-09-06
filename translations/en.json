@@ -41,7 +41,7 @@
       "name": "reset",
       "description": "Clone and delete this channel.",
       "errors": {
-        "thread_channel": "Cannot reset thread channel."
+        "thread_channel": "Cannot reset a thread."
       }
     },
     "channel_scan": {
@@ -87,10 +87,6 @@
         }
       }
     },
-    "clone_stop": {
-      "name": "stop",
-      "description": "Stop pending clone operation."
-    },
     "delrange": {
       "name": "delrange",
       "description": "Delete all messages within range.",
@@ -108,38 +104,6 @@
         "cannot_manage_messages": "The bot is unable to manage messages.",
         "invalid_message_range": "Enter a valid message range.",
         "delete_failed": "Failed to delete messages."
-      }
-    },
-    "emoji": {
-      "name": "emoji",
-      "description": "Emoji commands"
-    },
-    "emoji_import": {
-      "name": "import",
-      "description": "Import emoji from another server.",
-      "args": {
-        "serverId": {
-          "name": "server-id",
-          "description": "ID of the server to import emoji from."
-        },
-        "emojiName": {
-          "name": "emoji-name",
-          "description": "Name of the emoji to import."
-        },
-        "newName": {
-          "name": "new-name",
-          "description": "New name for the imported emoji."
-        }
-      }
-    },
-    "emoji_show": {
-      "name": "show",
-      "description": "Show emoji from current server.",
-      "args": {
-        "emojiOrName": {
-          "name": "emoji-or-name",
-          "description": "Emoji to show or name of the emoji to show."
-        }
       }
     },
     "eval": {
@@ -186,7 +150,7 @@
         "select_command_in_category": "Select a command in this category to view information about it.",
         "select_command_menu": "Select a command...",
         "required_permissions": "Required permissions: $1",
-        "slash_commands_suggestion": "This command can also be used as a slash (`/`) command."
+        "slash_commands_suggestion": "This command can also be used as a slash (\"/\") command."
       },
       "errors": {
         "send_your_own_command": "You cannot interact with this message; send a new command (`$1$2`) to interact with a new message."
@@ -238,18 +202,6 @@
         "cannot_manage_language": "You cannot manage a language of this server.",
         "invalid_language": "Invalid language."
       }
-    },
-    "link": {
-      "name": "link",
-      "description": "Enable copying of messages in this channel to another."
-    },
-    "link_list": {
-      "name": "list",
-      "description": "Get channel links for this server."
-    },
-    "link_remove": {
-      "name": "remove",
-      "description": "Remove link to/from this channel."
     },
     "music": {
       "name": "music",
@@ -320,30 +272,6 @@
         "tokens": {
           "name": "tokens",
           "description": "Tokens to test."
-        }
-      }
-    },
-    "permission": {
-      "name": "permission",
-      "description": "Manage permissions of specific item.\nItem should be manageable by caller.",
-      "args": {
-        "id": {
-          "name": "id",
-          "description": "ID of the item to manage permissions of."
-        },
-        "permission": {
-          "name": "permission",
-          "description": "Permission to grant or revoke."
-        }
-      }
-    },
-    "permission_list": {
-      "name": "list",
-      "description": "Get permissions of specific item.",
-      "args": {
-        "id": {
-          "name": "id",
-          "description": "ID of the item to get permissions of."
         }
       }
     },
@@ -489,28 +417,6 @@
       "description": "Enable text generator for this channel.",
       "errors": {
         "already_disabled": "Already enabled."
-      }
-    },
-    "textgen_info": {
-      "name": "info",
-      "description": "Show information about data for text generator for this channel.",
-      "args": {
-        "branchCutoff": {
-          "name": "branch-cutoff",
-          "description": "Number of branches to show."
-        },
-        "branchCounterDepth": {
-          "name": "branch-counter-depth",
-          "description": "Depth of branch counter."
-        }
-      },
-      "embeds": {
-        "title": "Text generator",
-        "property_table": "$1 | Avg: $2 | Med: $3 | Min: $4 | Max: $5\n",
-        "word_chain_variants": "Word chain variants",
-        "most_common_next_word_probability": "Most common next word probability",
-        "generation_stop_probability": "Generation stop probability",
-        "property_table_not_enough_data": "$1 | <not enough data>\n"
       }
     }
   },

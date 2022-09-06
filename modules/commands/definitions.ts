@@ -64,6 +64,7 @@ export type Command = Overwrite<{
     handler: CommandHandler | null;
 
     subcommands: Map<string, Command>;
+    subcommandsByLocale: Record<LocaleString, Command["subcommands"]>;
 }>
 
 export type CommandHandler = (

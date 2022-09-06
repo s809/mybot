@@ -14,6 +14,7 @@ import { Translator } from "../misc/Translator";
 import { hasSameKeys } from "../../util";
 
 var commands: Map<string, Command>;
+var commandsByLocale = {} as Command["subcommandsByLocale"];
 
 interface InheritableOptions {
     path: string;
@@ -27,7 +28,7 @@ interface InheritableOptions {
 function prepareSubcommands(list: CommandDefinition[], inheritedOptions?: InheritableOptions): Map<string, Command> {
     const map = new Map<string, Command>();
 
-    for (let definition of list.values()) {
+    for (const definition of list.values()) {
         const options: InheritableOptions = {
             requirements: inheritedOptions?.requirements.slice() ?? [],
             path: inheritedOptions?.path
@@ -146,7 +147,10 @@ function prepareSubcommands(list: CommandDefinition[], inheritedOptions?: Inheri
                             }
 
                             for (const [locale, translation] of Object.entries(nameLocalizations)) {
-                                const argString = arg.required === false ? `[${translation}]` : `<${translation}>`;
+                                const argString = arg.required !== false
+                                    ? `<${translation}${arg.isExtras ? "..." : ""}>`
+                                    : `[${translation}]`;
+                                
                                 if (!argStringTranslations[locale as LocaleString])
                                     argStringTranslations[locale as LocaleString] = argString;
                                 else
@@ -189,6 +193,7 @@ function prepareSubcommands(list: CommandDefinition[], inheritedOptions?: Inheri
                 subcommands: definition.subcommands
                     ? prepareSubcommands(definition.subcommands, options)
                     : new Map<string, Command>(),
+                subcommandsByLocale: {} as Command["subcommandsByLocale"] // initialized by call to function below
             });
         } catch (e) {
             if (!e.message.includes("\nPath: "))
@@ -200,12 +205,24 @@ function prepareSubcommands(list: CommandDefinition[], inheritedOptions?: Inheri
     return map;
 }
 
+function prepareSubcommandsByLocale(map: Map<string, Command>, toFill: Command["subcommandsByLocale"]) {
+    for (const command of map.values()) {
+        for (const [locale, name] of Object.entries(command.nameTranslations)) {
+            (toFill as any)[locale] ??= new Map();
+            (toFill as any)[locale].set(name, command);
+        }
+
+        prepareSubcommandsByLocale(command.subcommands, command.subcommandsByLocale);
+    }
+}
+
 /**
  * Loads commands into internal cache.
  */
 export async function loadCommands() {
     const definitions = await importCommands(pathToFileURL(botDirectory + "/commands/foo").toString());
     commands = prepareSubcommands(definitions);
+    prepareSubcommandsByLocale(commands, commandsByLocale);
 }
 
 /**
@@ -215,19 +232,22 @@ export async function loadCommands() {
  * @param allowPartialResolve Whether to allow resolving to closest match.
  * @returns Command, if it was found.
  */
-export function resolveCommand(path: string | string[], allowPartialResolve: boolean = false): Command | null {
+function resolveCommandInternal(path: string | string[],
+    root: Map<string, Command>,
+    getSubcommands: (command: Command) => Map<string, Command>,
+    allowPartialResolve: boolean = false): Command | null {
     if (!Array.isArray(path))
         path = path.split("/");
 
     let command;
-    let list: Map<string, Command> | undefined = commands;
+    let list: Map<string, Command> | undefined = root;
     do {
         let found: Command | undefined = list.get(path[0]);
         if (!found) break;
 
         command = found;
 
-        list = command.subcommands;
+        list = getSubcommands(command);
         path.shift();
     } while (list);
 
@@ -235,6 +255,24 @@ export function resolveCommand(path: string | string[], allowPartialResolve: boo
         return null;
 
     return command ?? null;
+}
+
+export function resolveCommand(path: string | string[], allowPartialResolve: boolean = false): Command | null {
+    return resolveCommandInternal(path,
+        commands,
+        command => command.subcommands,
+        allowPartialResolve);
+}
+
+export function resolveCommandLocalized(path: string | string[], locale: LocaleString): Command | null {
+    return resolveCommandInternal(path,
+        commandsByLocale[locale] ?? commandsByLocale[Translator.fallbackLocale],
+        command => command.subcommandsByLocale[locale] ?? command.subcommandsByLocale[Translator.fallbackLocale],
+        true)
+        ?? resolveCommandInternal(path,
+            commandsByLocale[Translator.fallbackLocale],
+            command => command.subcommandsByLocale[Translator.fallbackLocale],
+            true);
 }
 
 /**
@@ -245,7 +283,7 @@ export function getRootCommands(): Command[] {
 }
 
 /**
- * Recursively iterates map of with commands.
+ * Recursively iterates a map with commands.
  * 
  * @param list List of commands to iterate.
  */
@@ -276,5 +314,17 @@ export function* iterateCommands() {
  * @returns Usage string of a command.
  */
 export function toUsageString(msg: Message | CommandMessage, command: Command, translator: Translator): string {
-    return `${getPrefix(msg.guildId)}${command.path.replaceAll("/", " ")} ${command.args.stringTranslations[translator.localeString] ?? ""}`;
+    let localizedCommandPath = "";
+    let map = commands;
+    for (const a of command.path.split("/")) {
+        const c = map.get(a)!;
+        map = c.subcommands;
+        localizedCommandPath += " " + c.nameTranslations[translator.localeString] ?? c.nameTranslations[Translator.fallbackLocale];
+    }
+
+    const localizedArgs = command.args.stringTranslations[translator.localeString]
+        ?? command.args.stringTranslations[Translator.fallbackLocale]
+        ?? "";
+    
+    return getPrefix(msg.guildId) + `${localizedCommandPath} ${localizedArgs}`.trim();
 }

@@ -1,5 +1,5 @@
 import { client, data, isBotOwner } from "../env";
-import { resolveCommand, toUsageString } from "../modules/commands";
+import { resolveCommandLocalized, toUsageString } from "../modules/commands";
 import { checkConditions } from "../modules/commands/conditions";
 import sendLongText from "../modules/messages/sendLongText";
 import { ArrayElement, parseChannelMention, parseRoleMention, parseUserMention, sanitizePaths } from "../util";
@@ -35,7 +35,8 @@ client.on("messageCreate", async msg => {
         args[i] = str.replace("\\\"", "\"").replace("\\\\", "\\");
     }
 
-    const command = resolveCommand(args, true);
+    const translator = Translator.getOrDefault(msg, "command_processor");
+    const command = resolveCommandLocalized(args, translator.localeString);
     if (!command || !command.handler) return;
 
     // Check permissions
@@ -90,8 +91,6 @@ client.on("messageCreate", async msg => {
     }
 
     const commandMessage = new CommandMessage(command, Translator.getOrDefault(msg, command.translationPath), msg);
-
-    const translator = Translator.getOrDefault(msg, "command_processor");
 
     // Check conditions
     const checkResult = checkConditions(commandMessage, command);
