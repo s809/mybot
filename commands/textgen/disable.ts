@@ -1,17 +1,15 @@
 import { CommandMessage } from "../../modules/commands/CommandMessage";
 import { CommandDefinition } from "../../modules/commands/definitions";
-import { hasFlag, resolveFlaggableItem, removeFlag } from "../../modules/data/flags";
-import { FlagData, TextGenData } from "../../modules/data/models";
+import { getChannel } from "../../modules/data/databaseUtil";
 
-async function disableTextGen(msg: CommandMessage) {
-    const item = <FlagData & TextGenData>(await resolveFlaggableItem(msg.message!, msg.channel.id))!.dataEntry;
+async function disableTextGen(msg: CommandMessage<true>) {
+    const item = (await getChannel(msg.channel))!;
 
-    if (!hasFlag(item, "genText"))
+    if (!item[1].textGenData)
         return "already_disabled";
     
-    removeFlag(item, "genText");
-    delete item.genCounters;
-    delete item.genData;
+    delete item[1].textGenData;
+    await item[0].save();
 }
 
 const command: CommandDefinition = {

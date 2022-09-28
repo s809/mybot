@@ -1,22 +1,17 @@
-import { ApplicationCommandOptionType, GuildTextBasedChannel } from "discord.js";
-import { data } from "../../env";
+import { ApplicationCommandOptionType, GuildTextBasedChannel, PermissionFlagsBits } from "discord.js";
 import { CommandMessage } from "../../modules/commands/CommandMessage";
 import { CommandDefinition, textChannels } from "../../modules/commands/definitions";
-import { tryInitTrackedGuild } from "../../modules/misc/inviteTracker";
+import { trackInvites } from "../../modules/misc/inviteTracker";
 
 async function enableInviteTracker(msg: CommandMessage<true>, {
     channel
 }: {
     channel: GuildTextBasedChannel;
 }) {
-    let guildData = data.guilds[msg.guildId];
-    guildData.inviteTracker = {
-        ...guildData.inviteTracker,
-        logChannelId: channel.id
-    };
+    if (!msg.guild.members.me?.permissions.has(PermissionFlagsBits.ManageGuild))
+        return "need_manage_guild_permission";
 
-    if (!await tryInitTrackedGuild(msg.guild))
-        return "tracker_init_failed";
+    await trackInvites(channel);
 }
 
 const command: CommandDefinition = {

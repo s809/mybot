@@ -9,6 +9,7 @@ import {
 import { logError } from "./log";
 import { loadCommands } from "./modules/commands";
 import { refreshCommands } from "./modules/commands/appCommands";
+import "./database";
 
 (async () => {
     await loadCommands();

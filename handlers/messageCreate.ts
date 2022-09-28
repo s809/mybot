@@ -1,9 +1,8 @@
-import { client, data, isBotOwner } from "../env";
+import { client, isBotOwner } from "../env";
 import { resolveCommandLocalized, toUsageString } from "../modules/commands";
 import { checkConditions } from "../modules/commands/conditions";
 import sendLongText from "../modules/messages/sendLongText";
 import { ArrayElement, parseChannelMention, parseRoleMention, parseUserMention, sanitizePaths } from "../util";
-import { hasFlag } from "../modules/data/flags";
 import { getPrefix } from "../modules/data/getPrefix";
 import { Translator } from "../modules/misc/Translator";
 import { logError } from "../log";
@@ -11,20 +10,24 @@ import { setTimeout } from "timers/promises";
 import { CommandMessage } from "../modules/commands/CommandMessage";
 import { Command, CommandHandler } from "../modules/commands/definitions";
 import { ApplicationCommandChannelOptionData, ApplicationCommandNumericOptionData, ApplicationCommandOptionType, ApplicationCommandPermissions, ApplicationCommandPermissionType, ApplicationCommandStringOptionData, CachedManager, GuildChannel, PermissionFlagsBits, PermissionsBitField, Snowflake } from "discord.js";
+import { Guild, User } from "../database/models";
 
 client.on("messageCreate", async msg => {
     if (msg.author.bot || msg.webhookId) return;
 
     if (!isBotOwner(msg.author)) {
         // User ban
-        if (hasFlag(data.users[msg.author.id], "banned")) return;
+        const user = await User.findByIdOrDefault(msg.author.id);
+        if (user.flags.includes("banned")) return;
 
         // Guild ban
-        if (msg.guildId)
-            if (hasFlag(data.guilds[msg.guildId], "banned")) return;
+        if (msg.guildId) {
+            const guild = await Guild.findByIdOrDefault(msg.guildId);
+            if (guild.flags.includes("banned")) return;
+        }
     }
 
-    const prefix = getPrefix(msg.guildId);
+    const prefix = await getPrefix(msg.guildId);
     if (!msg.content.startsWith(prefix)) return;
 
     const args = msg.content.slice(prefix.length).match(/[^"\s]+|"(?:\\"|[^"])+"/g) ?? [];
@@ -35,7 +38,7 @@ client.on("messageCreate", async msg => {
         args[i] = str.replace("\\\"", "\"").replace("\\\\", "\\");
     }
 
-    const translator = Translator.getOrDefault(msg, "command_processor");
+    const translator = await Translator.getOrDefault(msg, "command_processor");
     const command = resolveCommandLocalized(args, translator);
     if (!command || !command.handler) return;
 
@@ -90,7 +93,7 @@ client.on("messageCreate", async msg => {
             return;
     }
 
-    const commandMessage = new CommandMessage(command, Translator.getOrDefault(msg, command.translationPath), msg);
+    const commandMessage = new CommandMessage(command, await Translator.getOrDefault(msg, command.translationPath), msg);
 
     // Check conditions
     const checkResult = checkConditions(commandMessage, command);

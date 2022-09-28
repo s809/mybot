@@ -1,47 +1,43 @@
 import assert from "assert";
 import { Message } from "discord.js";
-import { client, data } from "../../env";
-import { TextGenData } from "../data/models";
+import { ChannelData } from "../../database/models";
+import { client } from "../../env";
 
-export function generateSingleSample(genData: Exclude<TextGenData["genData"], undefined>, maxWords = 30) {
-    let words = Object.getOwnPropertyNames(genData);
-    let nextWord = words[Math.floor(Math.random() * words.length)];
+type TextGenData = NonNullable<ChannelData["textGenData"]>;
+
+export function generateSingleSample(genData: TextGenData, maxWords = 30) {
+    const firstWordGroup = [...genData.entrypoints.values()][Math.floor(Math.random() * genData.entrypoints.size)];
+    let nextWord = firstWordGroup[Math.floor(Math.random() * firstWordGroup.length)];
+    
     let result = nextWord;
 
-    let wordData = genData[nextWord];
-    for (let i = 0; i < maxWords; i++) {
-        let chosenCumulativeProbability = Math.random();
-        let nextWord: string | undefined;
+    for (let i = 1; i < maxWords; i++) {
+        const wordData = genData.words.get(nextWord)!;
 
-        let words = Object.getOwnPropertyNames(wordData);
-        if (words.includes("__genEnd"))
-            words.splice(words.indexOf("__genEnd"));
-
-        for (let word of words) {
-            chosenCumulativeProbability -= wordData[word];
-            if (chosenCumulativeProbability <= 0) {
+        let cumulativeProbability = Math.random();
+        for (const [word, probability] of wordData.nextWords) {
+            cumulativeProbability -= probability;
+            if (cumulativeProbability <= 0) {
                 nextWord = word;
                 break;
             }
         }
-        if (chosenCumulativeProbability > 0 || nextWord === "__genEnd")
+
+        if (cumulativeProbability > 0) {
+            assert(wordData.wasLast);
             break;
+        }
         
         result += " " + nextWord;
-        wordData = genData[nextWord!];
     }
 
     return result;
 };
 
-export function generate(msg: Message<true>, samples = 10) {
-    let genData = data.guilds[msg.guildId].channels[msg.channelId].genData;
-    if (!genData)
-        throw new Error("No gen data found");
-
+export function generate(textGenData: TextGenData, samples = 10) {
     let text = "";
     for (let i = 0; i < samples; i++) {
-        let newText = generateSingleSample(genData);
+        let newText = generateSingleSample(textGenData);
         if (newText.length > text.length)
             text = newText;
     }
@@ -57,33 +53,46 @@ export function shouldGenerate(msg: Message<true>, randomProbability = 1 / 50) {
     return isRandom || isReply || isMention;
 };
 
-export function collectWordsFromMessage(msg: Message<true>, channelData: TextGenData, maxWordLength = 30) {
-    let words = msg.content.split(/\s+/g).filter(word => word.length && word.length <= maxWordLength);
-    words.push("__genEnd");
+export function collectWordsFromMessage(msg: Message<true>, textGenData: TextGenData, maxWordLength = 30) {
+    const words = msg.content.split(/\s+/g).filter(word => word.length && word.length <= maxWordLength);
+    if (words.length === 1 && words[0] === "") return;
 
-    for (let i = 0; i < words.length - 1; i++) {
-        let word = words[i];
-        let nextWord = words[i + 1];
-        let genCounters = channelData.genCounters!;
-        genCounters[word] ??= 0;
+    const afterFirst = textGenData.entrypoints.get(words[0]);
+    if (afterFirst)
+        afterFirst.push(...words.filter(word => !afterFirst.includes(word)));
+    else
+        textGenData.entrypoints.set(words[0], words);
 
-        if (typeof genCounters[word] !== "number")
-            continue;
+    for (let i = 0; i < words.length; i++) {
+        const current = words[i];
+        const next = words[i + 1];
 
-        channelData.genData![word] ??= {};
-        let wordData = channelData.genData![word];
+        const entry = textGenData.words.get(current) ?? {
+            encounterCount: 0,
+            nextWords: new Map(),
+            wasLast: false
+        };
+        const isNewEntry = !entry.encounterCount;
 
-        if (nextWord === "__genEnd" && Object.getOwnPropertyNames(wordData).includes("__genEnd"))
-            continue;
+        if (next) {
+            const wordData = entry.nextWords;
+            if (!wordData.has(next))
+                wordData.set(next, 0);
 
-        wordData[nextWord] ??= 0;
+            for (const [word, probability] of wordData.entries()) {
+                let count = probability * entry.encounterCount;
+                if (word === next)
+                    count++;
+                wordData.set(word, count / (entry.encounterCount + 1));
+            }
 
-        for (let w of Object.getOwnPropertyNames(wordData)) {
-            let count = wordData[w] * genCounters[word];
-            if (w === nextWord)
-                count++;
-            wordData[w] = count / (genCounters[word] + 1);
+            entry.encounterCount++;
+        } else if (!entry.wasLast) {
+            entry.wasLast = true;
+            entry.encounterCount++;
         }
-        genCounters[word]++;
+        
+        if (isNewEntry)
+            textGenData.words.set(current, entry);
     }
 }

@@ -1,16 +1,17 @@
-import { client, data } from "../env";
-import { hasFlag, resolveFlaggableItem } from "../modules/data/flags";
+import { client } from "../env";
+import { getChannel } from "../modules/data/databaseUtil";
 import { shouldGenerate, collectWordsFromMessage, generate } from "../modules/messages/genText";
 
 // Collect words from messages
-client.on("messageCreate", msg => {
+client.on("messageCreate", async msg => {
     if (!msg.inGuild()) return;
     if (msg.author.bot || msg.webhookId) return;
+    
+    const channelData = (await getChannel(msg.channel))!;
+    if (!channelData[1].textGenData) return;
 
-    let channelData = data.guilds[msg.guildId].channels[msg.channelId];
-    if (!hasFlag(channelData, "genText")) return;
-
-    collectWordsFromMessage(msg, channelData);
+    collectWordsFromMessage(msg, channelData[1].textGenData);
+    await channelData[0].save();
 });
 
 // Message generation
@@ -18,10 +19,12 @@ client.on("messageCreate", async msg => {
     if (!msg.inGuild()) return;
     if (msg.author.bot || msg.webhookId) return;
     if (!shouldGenerate(msg)) return;
-    if (!hasFlag((await resolveFlaggableItem(msg, msg.channel.id))!.dataEntry, "genText")) return;
+    
+    const channelData = (await getChannel(msg.channel))!;
+    if (!channelData[1].textGenData) return;
 
     await msg.channel.send({
-        content: generate(msg, 10),
+        content: generate(channelData[1].textGenData, 10),
         allowedMentions: {
             parse: ["users"]
         }

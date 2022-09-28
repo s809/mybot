@@ -2,26 +2,32 @@ import { ApplicationCommandOptionType } from "discord.js";
 import { CommandMessage } from "../../modules/commands/CommandMessage";
 import { CommandDefinition } from "../../modules/commands/definitions";
 import { importCommands } from "../../modules/commands/importHelper";
-import { resolveFlaggableItem, toggleFlag } from "../../modules/data/flags";
+import { FlaggableType, resolveFlaggableItem, toggleFlag, flaggableTypeChoices } from "../../modules/data/flags";
 
 async function flag(msg: CommandMessage, {
+    type,
     id,
     flag
 }: {
+    type: FlaggableType;
     id: string;
     flag: string;
 }) {
-    let resolvedItem = await resolveFlaggableItem(msg.message!, id);
+    const resolvedItem = await resolveFlaggableItem(type, id);
 
-    if (!resolvedItem)
+    if (!resolvedItem[1])
         return "Unknown item.";
 
-    toggleFlag(resolvedItem.dataEntry, flag);
+    toggleFlag(resolvedItem[1], flag);
 }
 
 const command: CommandDefinition = {
     key: "flag",
     args: [{
+        translationKey: "type",
+        type: ApplicationCommandOptionType.String,
+        choices: flaggableTypeChoices
+    }, {
         translationKey: "id",
         type: ApplicationCommandOptionType.String,
     }, {

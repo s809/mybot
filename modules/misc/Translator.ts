@@ -1,7 +1,7 @@
 import { CommandInteraction, Guild, GuildResolvable, LocaleString, Message } from "discord.js";
 import { readdirSync, readFileSync } from "fs";
 import { get } from "lodash-es";
-import { data } from "../../env";
+import { Guild as DbGuild, User as DbUser } from "../../database/models";
 import { formatString } from "../../util";
 
 export class PrefixedTranslator {
@@ -82,27 +82,27 @@ export class Translator {
         Translator._translators.set(this.localeString, this);
     }
 
-    static getLanguage(nameOrContext: string | Message | CommandInteraction | GuildResolvable) {
+    static async getLanguage(nameOrContext: string | Message | CommandInteraction | GuildResolvable) {
         if (typeof nameOrContext === "string") {
             return nameOrContext;
         } else if (nameOrContext instanceof Guild) {
-            return data.guilds[nameOrContext.id].language
+            return (await DbGuild.findByIdOrDefault(nameOrContext.id)).language
         } else if (nameOrContext.guild) {
-            return data.guilds[nameOrContext.guild.id].language;
+            return (await DbGuild.findByIdOrDefault(nameOrContext.guild.id)).language;
         } else if (nameOrContext instanceof Message) {
-            return data.users[nameOrContext.author.id].language;
+            return (await DbGuild.findByIdOrDefault(nameOrContext.author.id)).language;
         } else if (nameOrContext instanceof CommandInteraction) {
-            return data.users[nameOrContext.user.id].language;
+            return (await DbGuild.findByIdOrDefault(nameOrContext.user.id)).language;
         } else {
-            throw new Error("Invalid context type.");
+            throw new Error("Invalid context.");
         }
     }
 
     /**
      * @see Translator.getOrDefault
      */
-    static get(nameOrContext: NameOrContext): Translator | null {
-        return Translator._translators.get(this.getLanguage(nameOrContext)) ?? null;
+    static async get(nameOrContext: NameOrContext): Promise<Translator | null> {
+        return Translator._translators.get(await this.getLanguage(nameOrContext)) ?? null;
     }
 
     /**
@@ -110,7 +110,7 @@ export class Translator {
      * 
      * @param nameOrContext Message or name to use.
      */
-    static getOrDefault(nameOrContext: NameOrContext): Translator;
+    static async getOrDefault(nameOrContext: NameOrContext): Promise<Translator>;
     
     /**
      * Returns a translator by language name or given context.
@@ -118,10 +118,10 @@ export class Translator {
      * @param nameOrContext Message or name to use.
      * @param prefix Prefix to use with returned instance.
      */
-    static getOrDefault(nameOrContext: NameOrContext, prefix: string): PrefixedTranslator;
+    static async getOrDefault(nameOrContext: NameOrContext, prefix: string): Promise<PrefixedTranslator>;
 
-    static getOrDefault(nameOrContext: NameOrContext, prefix?: string): Translator | PrefixedTranslator {
-        const translator = Translator.get(nameOrContext) ?? Translator.fallbackTranslator;
+    static async getOrDefault(nameOrContext: NameOrContext, prefix?: string): Promise<PrefixedTranslator | Translator> {
+        const translator = await Translator.get(nameOrContext) ?? Translator.fallbackTranslator;
         if (!prefix)
             return translator;
         

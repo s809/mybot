@@ -1,12 +1,12 @@
 import { CommandMessage } from "../../modules/commands/CommandMessage";
 import { CommandDefinition } from "../../modules/commands/definitions";
-import { getInviteTrackerDataOrClean } from "../../modules/misc/inviteTracker";
+import { getInviteTrackerData } from "../../modules/misc/inviteTracker";
 
 async function inviteTrackerInfo(msg: CommandMessage<true>) {
     let translator = msg.translator;
     let infoStr;
 
-    let [inviteTrackerData, logChannel] = getInviteTrackerDataOrClean(msg.guildId);
+    let [inviteTrackerData, logChannel] = await getInviteTrackerData(msg.guild);
     if (!inviteTrackerData)
         infoStr = translator.translate("embeds.not_tracking");
     else

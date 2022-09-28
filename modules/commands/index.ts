@@ -11,7 +11,6 @@ import { getPrefix } from "../data/getPrefix";
 import { CommandCondition } from "./conditions";
 import { CommandMessage } from "./CommandMessage";
 import { PrefixedTranslator, Translator } from "../misc/Translator";
-import { hasSameKeys } from "../../util";
 
 var commands: Map<string, Command>;
 var commandsByLocale = {} as Command["subcommandsByLocale"];
@@ -27,6 +26,17 @@ interface InheritableOptions {
 
 function prepareSubcommands(list: CommandDefinition[], inheritedOptions?: InheritableOptions): Map<string, Command> {
     const map = new Map<string, Command>();
+
+    const checkLocalizations = (a: any, b: any, name: string, name2?: string) => {
+        for (const key of Object.keys(b)){
+            if (!(key in a))
+                throw new Error(`Missing ${name} in locale ${key}`);
+        }
+        for (const key of Object.keys(a)) {
+            if (!(key in b))
+                throw new Error(`Missing ${name2 ?? name} in locale ${key}`);
+        }
+    }
 
     for (const definition of list.values()) {
         const options: InheritableOptions = {
@@ -89,8 +99,7 @@ function prepareSubcommands(list: CommandDefinition[], inheritedOptions?: Inheri
             // Make sure that command is fully translated.
             const nameTranslations = getLocalizations("name")
             const descriptionTranslations = getLocalizations("description");
-            if (!hasSameKeys(nameTranslations, descriptionTranslations))
-                throw new Error("Command is not fully translated.");
+            checkLocalizations(nameTranslations, descriptionTranslations, "command name", "command description")
             if (!nameTranslations[Translator.fallbackLocale])
                 throw new Error("Command is not translated to the fallback locale.");
 
@@ -123,8 +132,8 @@ function prepareSubcommands(list: CommandDefinition[], inheritedOptions?: Inheri
                             const commandNameTranslations = nameTranslations;
                             const nameLocalizations = getLocalizations(`args.${arg.translationKey}.name`);
                             const descriptionLocalizations = getLocalizations(`args.${arg.translationKey}.description`);
-                            if (!hasSameKeys(commandNameTranslations, nameLocalizations) || !hasSameKeys(commandNameTranslations, descriptionLocalizations))
-                                throw new Error("Translation of the argument is not consistent with the command's translation.");
+                            checkLocalizations(commandNameTranslations, nameLocalizations, "argument name");
+                            checkLocalizations(commandNameTranslations, descriptionLocalizations, "argument description");
 
                             if (arg.required === false)
                                 optionalArgsStarted = true; // If an optional argument is found, all following arguments are optional.
@@ -165,15 +174,19 @@ function prepareSubcommands(list: CommandDefinition[], inheritedOptions?: Inheri
                                 description: descriptionLocalizations[Translator.fallbackLocale],
                                 descriptionLocalizations,
                                 choices: arg.choices?.map(choice => {
-                                    const nameLocalizations = getLocalizations(`args.${arg.translationKey}.choices.${choice.translationKey}.name`);
-                                    if (!hasSameKeys(commandNameTranslations, nameLocalizations))
-                                        throw new Error(`Translation of the choice ${choice.translationKey} is not consistent with the argument's translation.`);
+                                    try {
+                                        const nameLocalizations = getLocalizations(`args.${arg.translationKey}.choices.${choice.translationKey}.name`);
+                                        checkLocalizations(commandNameTranslations, nameLocalizations, "choice name");
 
-                                    return {
-                                        name: nameLocalizations[Translator.fallbackLocale],
-                                        nameLocalizations,
-                                        value: choice.value
-                                    };
+                                        return {
+                                            name: nameLocalizations[Translator.fallbackLocale],
+                                            nameLocalizations,
+                                            value: choice.value
+                                        };
+                                    } catch (e) {
+                                        e.message += `\nChoice: ${choice.translationKey}`;
+                                        throw e;
+                                    }
                                 }),
                                 required: arg.required ?? true,
                             };

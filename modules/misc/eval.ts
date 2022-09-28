@@ -12,8 +12,8 @@ import { CommandMessage } from "../commands/CommandMessage";
  * @returns
  */
 export async function botEval(code: string, msg: CommandMessage | null, scriptName: string | null = null) {
-    const { data, client: _client } = await import("../../env");
-    const { getSrc } = await import("../data/UserDataManager");
+    const { client: _client } = await import("../../env");
+    const { Guild: DbGuild, User: DbUser } = await import("../../database/models");
 
     const _context = scriptName ? ScriptContext.getOrCreate(_client, scriptName) : null;
     
@@ -24,7 +24,7 @@ export async function botEval(code: string, msg: CommandMessage | null, scriptNa
         clearTimeout,
         setInterval,
         clearInterval,
-    } = _context ? _context.functions : global;
+    } = _context?.functions ?? global;
     const client = _context?.client ?? _client;
 
     let response;

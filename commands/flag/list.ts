@@ -1,26 +1,24 @@
 import { ApplicationCommandOptionType, User } from "discord.js";
 import { CommandMessage } from "../../modules/commands/CommandMessage";
 import { CommandDefinition } from "../../modules/commands/definitions";
-import { resolveFlaggableItem } from "../../modules/data/flags";
+import { FlaggableType, resolveFlaggableItem, flaggableTypeChoices } from "../../modules/data/flags";
 
 async function flagList(msg: CommandMessage, {
+    type,
     id
 }: {
+    type: FlaggableType,
     id: string;
 }) {
-    let resolvedItem = await resolveFlaggableItem(msg.message!, id);
+    const resolvedItem = await resolveFlaggableItem(type, id);
 
-    if (!resolvedItem)
+    if (!resolvedItem[0])
         return "Unknown item.";
-
-    let flagStr = resolvedItem.dataEntry.flags.join("\n");
-    if (!flagStr.length)
-        flagStr = "None";
 
     await msg.reply({
         embeds: [{
-            title: `Flags of ${resolvedItem.item instanceof User ? resolvedItem.item.tag : resolvedItem.item.name}`,
-            description: flagStr
+            title: `Flags of ${resolvedItem[0] instanceof User ? resolvedItem[0].tag : resolvedItem[0].name}`,
+            description: resolvedItem[1]?.flags.join("\n") || "None"
         }]
     });
 }
@@ -28,6 +26,10 @@ async function flagList(msg: CommandMessage, {
 const command: CommandDefinition = {
     key: "list",
     args: [{
+        translationKey: "type",
+        type: ApplicationCommandOptionType.String,
+        choices: flaggableTypeChoices
+    }, {
         translationKey: "id",
         type: ApplicationCommandOptionType.String,
     }],

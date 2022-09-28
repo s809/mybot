@@ -10,7 +10,7 @@ import { CommandMessage } from "../../modules/commands/CommandMessage";
 
 async function shell(msg: CommandMessage) {
     let command = skipStringAfter(msg.content,
-        getPrefix(msg.guildId),
+        await getPrefix(msg.guildId),
         shell.name
     );
     let { stdout, stderr } = await exec(command, { encoding: "utf8" });

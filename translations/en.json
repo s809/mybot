@@ -120,6 +120,24 @@
       "name": "flag",
       "description": "Toggle flags of the item.",
       "args": {
+        "type": {
+          "name": "type",
+          "description": "Type of target.",
+          "choices": {
+            "user": {
+              "name": "user",
+              "description": "User"
+            },
+            "guild": {
+              "name": "guild",
+              "description": "Guild"
+            },
+            "channel": {
+              "name": "Channel",
+              "description": "Channel"
+            }
+          }
+        },
         "id": {
           "name": "id",
           "description": "ID of the item to change flags of."
@@ -134,6 +152,24 @@
       "name": "list",
       "description": "List flags of the item.",
       "args": {
+        "type": {
+          "name": "type",
+          "description": "Type of target.",
+          "choices": {
+            "user": {
+              "name": "user",
+              "description": "User"
+            },
+            "guild": {
+              "name": "guild",
+              "description": "Guild"
+            },
+            "channel": {
+              "name": "Channel",
+              "description": "Channel"
+            }
+          }
+        },
         "id": {
           "name": "id",
           "description": "ID of the item to list flags of."

@@ -6,13 +6,13 @@ import { CommandMessage } from "../modules/commands/CommandMessage";
 import { Command, CommandDefinition } from "../modules/commands/definitions";
 import { getPrefix } from "../modules/data/getPrefix";
 import { isBotOwner } from "../env";
-import { Translator } from "../modules/misc/Translator";
 
 async function help(msg: CommandMessage) {
     let translator = msg.translator;
+    const isBotOwnerResult = await isBotOwner(msg.author);
 
     const filterCommands = (list: Command[]) =>
-        list.filter(command => !command.ownerOnly || (isBotOwner(msg.author) && msg.channel.isDMBased()));
+        list.filter(command => !command.ownerOnly || (isBotOwnerResult && msg.channel.isDMBased()));
 
     let levelNameToPosition: Map<string, number> = new Map();
     let chain: {
@@ -103,7 +103,7 @@ async function help(msg: CommandMessage) {
     }).on("collect", async (interaction: SelectMenuInteraction) => {
         if (interaction.user != msg.author) {
             interaction.reply({
-                content: translator.translate("errors.send_your_own_command", getPrefix(msg.guildId), "help"),
+                content: translator.translate("errors.send_your_own_command", await getPrefix(msg.guildId), "help"),
                 ephemeral: true
             });
             return;

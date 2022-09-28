@@ -11,7 +11,7 @@ import { Translator } from "../modules/misc/Translator";
 
 client.on('interactionCreate', async interaction => {
     if (!interaction.isChatInputCommand()) return;
-    const translator = Translator.getOrDefault(interaction, "command_processor");
+    const translator = await Translator.getOrDefault(interaction, "command_processor");
 
     const path = [
         interaction.command!.name,
@@ -61,7 +61,7 @@ client.on('interactionCreate', async interaction => {
     }
 
     try {
-        const translator = Translator.getOrDefault(interaction, command.translationPath);
+        const translator = await Translator.getOrDefault(interaction, command.translationPath);
         const commandMessage = new CommandMessage(command, translator, interaction);
         
         let result: string | undefined;

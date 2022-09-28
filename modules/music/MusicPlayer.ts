@@ -3,7 +3,7 @@ import { AudioPlayer, AudioPlayerStatus, AudioResource, createAudioPlayer, creat
 import { formatDuration } from "../../util";
 import { AlwaysLastMessage, sendAlwaysLastMessage } from "../../modules/messages/AlwaysLastMessage";
 import { PrefixedTranslator, Translator } from "../../modules/misc/Translator";
-import { MessageEditOptions, GuildTextBasedChannel, VoiceBasedChannel, ChannelType } from "discord.js";
+import { MessageEditOptions, GuildTextBasedChannel, VoiceBasedChannel, ChannelType, LocaleString } from "discord.js";
 import { MusicPlayerQueue, MusicPlayerQueueEntry } from "./MusicPlayerQueue";
 import { createDiscordJSAdapter } from "../../modules/music/voiceAdapter";
 import { musicPlayingGuilds, voiceTimeouts } from "../../env";
@@ -33,7 +33,13 @@ export class MusicPlayer {
     /** Status message. */
     private statusMessage!: AlwaysLastMessage;
     /** Translator of this entry. */
-    private translator: PrefixedTranslator;
+    private get translator() {
+        if (!this._translator)
+            throw new Error("Translator is not initialized.");
+        return this._translator;
+    }
+    private _translator: PrefixedTranslator | null = null;
+    private localeString: LocaleString;
     /** Custom text. */
     private text: string | null = null;
 
@@ -42,7 +48,7 @@ export class MusicPlayer {
         this.queue = new MusicPlayerQueue(initialEntries);
         this.queue.on("updateStatus", () => this.updateStatus());
         this.queue.on("error", () => this.stop())
-        this.translator = Translator.getOrDefault(translator.localeString, "music_player");
+        this.localeString = translator.localeString;
     }
 
     /**
@@ -142,6 +148,8 @@ export class MusicPlayer {
     }
 
     async runPlayer(statusChannel: GuildTextBasedChannel) {
+        this._translator = await Translator.getOrDefault(this.localeString, "music_player");
+
         this.statusMessage = await sendAlwaysLastMessage(statusChannel, {
             embeds: [{
                 title: this.translator.translate("embeds.title_player"),

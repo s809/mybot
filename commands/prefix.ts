@@ -1,14 +1,14 @@
 import { ApplicationCommandOptionType, PermissionFlagsBits } from "discord.js";
-import { data } from "../env";
+import { Guild } from "../database/models";
 import { CommandMessage } from "../modules/commands/CommandMessage";
 import { CommandDefinition } from "../modules/commands/definitions";
 
-function prefix(msg: CommandMessage<true>, {
+async function prefix(msg: CommandMessage<true>, {
     newPrefix
 }: {
     newPrefix: string;
 }) {
-    data.guilds[msg.guildId].prefix = newPrefix;
+    await Guild.findByIdOrDefaultAndUpdate(msg.guildId, { prefix: newPrefix });
 }
 
 const command: CommandDefinition = {

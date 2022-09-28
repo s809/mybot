@@ -1,14 +1,14 @@
-import { data } from "../../env";
+import { Guild } from "../../database/models";
 import { CommandMessage } from "../../modules/commands/CommandMessage";
 import { CommandDefinition } from "../../modules/commands/definitions";
-import { cleanTrackedGuild } from "../../modules/misc/inviteTracker";
+import { untrackInvites } from "../../modules/misc/inviteTracker";
 
-function disableInviteTracker(msg: CommandMessage<true>) {
-    let guildData = data.guilds[msg.guildId];
+async function disableInviteTracker(msg: CommandMessage<true>) {
+    const guildData = (await Guild.findByIdOrDefault(msg.guildId))!;
     if (!guildData.inviteTracker)
         return "already_disabled";
 
-    cleanTrackedGuild(msg.guildId);
+    untrackInvites(msg.guildId);
 }
 
 const command: CommandDefinition = {

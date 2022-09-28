@@ -1,19 +1,18 @@
-import { Message } from "discord.js";
 import { CommandMessage } from "../../modules/commands/CommandMessage";
 import { CommandDefinition } from "../../modules/commands/definitions";
-import { hasFlag, resolveFlaggableItem, setFlag } from "../../modules/data/flags";
-import { FlagData, TextGenData } from "../../modules/data/models";
-import { Translator } from "../../modules/misc/Translator";
+import { getChannel } from "../../modules/data/databaseUtil";
 
-async function enableTextGen(msg: CommandMessage) {
-    const item = <FlagData & TextGenData>(await resolveFlaggableItem(msg.message!, msg.channel.id))!.dataEntry;
+async function enableTextGen(msg: CommandMessage<true>) {
+    const item = (await getChannel(msg.channel))!;
 
-    if (hasFlag(item, "genText"))
+    if (item[1].textGenData)
         return "already_enabled";
     
-    setFlag(item, "genText");
-    item.genCounters = {};
-    item.genData = {};
+    item[1].textGenData = {
+        entrypoints: new Map(),
+        words: new Map()
+    };
+    await item[0].save();
 }
 
 const command: CommandDefinition = {

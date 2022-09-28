@@ -151,18 +151,6 @@ export function capitalizeWords(text: string) {
     return text.toLowerCase().replace(/(^\w|\s\w)/g, m => m.toUpperCase());
 }
 
-/**
- * Checks if objects have same keys.
- * 
- * @param a First object.
- * @param b Second object.
- * @returns True if objects have same keys.
- */
-export function hasSameKeys(a: any, b: any) {
-    return Object.keys(a).length === Object.keys(b).length
-        && Object.keys(a).every(k => k in b)
-}
-
 export type Overwrite<T, U> = Omit<T, keyof U> & U;
 
 export type ArrayElement<ArrayType extends readonly unknown[]> =
@@ -171,3 +159,5 @@ export type ArrayElement<ArrayType extends readonly unknown[]> =
 export type DistributiveOmit<T, K extends keyof any> = T extends any
     ? Omit<T, K>
     : never;
+
+export type MapValue<T> = T extends Map<any, infer I> ? I : never;

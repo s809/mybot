@@ -1,6 +1,6 @@
-import { Message, CommandInteraction, CacheType, GuildResolvable } from "discord.js";
+import { Message, CommandInteraction, CacheType, GuildResolvable, Guild } from "discord.js";
 import { client, storedInviteCounts } from "../env";
-import { cleanTrackedGuild, getInviteTrackerDataOrClean, tryInitTrackedGuild } from "../modules/misc/inviteTracker";
+import { untrackInvites, getInviteTrackerData, tryStartTracking } from "../modules/misc/inviteTracker";
 import { Translator } from "../modules/misc/Translator";
 
 function getTranslator(context: Message<boolean> | CommandInteraction<CacheType> | GuildResolvable) {
@@ -9,32 +9,30 @@ function getTranslator(context: Message<boolean> | CommandInteraction<CacheType>
 
 client.on("ready", async () => {
     for (let guild of client.guilds.cache.values())
-        tryInitTrackedGuild(guild);
+        tryStartTracking(guild);
 });
 
 client.on("inviteCreate", async invite => {
-    let [inviteTrackerData, channel] = getInviteTrackerDataOrClean(invite.guild!.id);
+    let [inviteTrackerData, channel] = await getInviteTrackerData(invite.guild as Guild);
     if (!inviteTrackerData) return;
 
     storedInviteCounts.get(invite.guild!.id)!.set(invite.code, invite.uses!);
-    await channel!.send(getTranslator(invite).translate("strings.invite_created", invite.code, invite.inviter?.tag ?? "REPORT THIS"))
-        .catch(() => cleanTrackedGuild(invite.guild!.id));
+    await channel!.send((await getTranslator(invite)).translate("strings.invite_created", invite.code, invite.inviter?.tag ?? "System"))
 });
 
 client.on("inviteDelete", async invite => {
-    let [inviteTrackerData, channel] = getInviteTrackerDataOrClean(invite.guild!.id);
+    let [inviteTrackerData, channel] = await getInviteTrackerData(invite.guild as Guild);
     if (!inviteTrackerData) return;
 
     storedInviteCounts.get(invite.guild!.id)!.delete(invite.code);
-    await channel!.send(getTranslator(invite).translate("strings.invite_deleted", invite.code))
-        .catch(() => cleanTrackedGuild(invite.guild!.id));
+    await channel!.send((await getTranslator(invite)).translate("strings.invite_deleted", invite.code))
 });
 
 client.on("guildMemberAdd", async member => {
-    let [inviteTrackerData, channel] = getInviteTrackerDataOrClean(member.guild.id);
+    const [inviteTrackerData, channel] = await getInviteTrackerData(member.guild);
     if (!inviteTrackerData) return;
 
-    let translator = getTranslator(member);
+    const translator = await getTranslator(member);
     try {
         await channel!.send(translator.translate("strings.member_joined", member.user.tag));
     
@@ -48,6 +46,6 @@ client.on("guildMemberAdd", async member => {
             }
         }
     } catch (e) {
-        cleanTrackedGuild(member.guild.id);
+        untrackInvites(member.guild.id);
     }
 });

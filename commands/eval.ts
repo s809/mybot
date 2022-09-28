@@ -9,7 +9,7 @@ import { sanitizePaths, skipStringAfter } from "../util";
 async function evalCommand(msg: CommandMessage) {
     await sendLongText(msg.channel, sanitizePaths(
         await botEval(skipStringAfter(msg.content!,
-            getPrefix(msg.guildId),
+            await getPrefix(msg.guildId),
             "eval"
         ), msg))
     );

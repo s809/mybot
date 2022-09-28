@@ -1,43 +1,52 @@
 import { Guild, GuildTextBasedChannel, Snowflake } from "discord.js";
-import { data, client, storedInviteCounts } from "../../env";
-import { InviteTrackerData } from "../data/models";
+import { storedInviteCounts } from "../../env";
+import { Guild as DbGuild, InviteTrackerData } from "../../database/models";
 import { Translator } from "./Translator";
 
-export function getInviteTrackerDataOrClean(guildId: Snowflake): [InviteTrackerData, GuildTextBasedChannel] | [null, null] {
-    let inviteTrackerData = data.guilds[guildId]?.inviteTracker;
-    if (!inviteTrackerData)
-        return [null, null];
-
-    let channel = client.channels.resolve(inviteTrackerData.logChannelId) as GuildTextBasedChannel;
-    if (!channel) {
-        cleanTrackedGuild(guildId);
-        return [null, null];
-    }
-
-    return [inviteTrackerData, channel];
+export async function getInviteTrackerData(guild: Guild): Promise<[InviteTrackerData, GuildTextBasedChannel] | []> {
+    const { inviteTracker } = await DbGuild.findByIdOrDefault(guild.id);
+    if (!inviteTracker) return [];
+    
+    const channel = guild.channels.resolve(inviteTracker.logChannelId) as GuildTextBasedChannel;
+    return channel
+        ? [inviteTracker, channel]
+        : [];
 }
 
-export async function tryInitTrackedGuild(guild: Guild) {
-    let [inviteTrackerData, channel] = getInviteTrackerDataOrClean(guild.id);
-    if (!inviteTrackerData) return;
+export async function trackInvites(channel: GuildTextBasedChannel) {
+    await DbGuild.findByIdOrDefaultAndUpdate(channel.guildId, {
+        inviteTracker: {
+            logChannelId: channel.id
+        }
+    });
+    await startTracking(channel);
+}
 
-    let map = new Map();
-    storedInviteCounts.set(guild.id, map);
+export async function untrackInvites(guildId: Snowflake) {
+    storedInviteCounts.delete(guildId);
+    await DbGuild.findByIdOrDefaultAndUpdate(guildId, {
+        $unset: {
+            inviteTracker: 1
+        }
+    });
+}
+
+export async function tryStartTracking(guild: Guild) {
+    const channel = (await getInviteTrackerData(guild))[1];
+    if (!channel) return false;
+
+    startTracking(channel);
+    return true;
+}
+
+export async function startTracking(channel: GuildTextBasedChannel) {
+    const map = new Map();
+    storedInviteCounts.set(channel.guildId, map);
 
     try {
-        for (let [code, invite] of await guild.invites.fetch())
+        for (const [code, invite] of await channel.guild.invites.fetch())
             map.set(code, invite.uses);
 
-        await channel!.send(Translator.getOrDefault(guild, "invitetracker").translate("strings.tracking_started", map.size.toString()));
-        return true;
-    }
-    catch (e) {
-        cleanTrackedGuild(guild.id);
-        return false;
-    }
-}
-
-export function cleanTrackedGuild(guildId: Snowflake) {
-    storedInviteCounts.delete(guildId);
-    delete data.guilds[guildId].inviteTracker;
+        await channel.send((await Translator.getOrDefault(channel.guild, "invitetracker")).translate("strings.tracking_started", map.size.toString()));
+    } catch { }
 }
