@@ -108,7 +108,7 @@ client.on("messageCreate", async msg => {
             : translator.translate("errors.too_many_arguments");
 
         await msg.channel.send(errorStr + "\n"
-            + translator.translate("strings.command_usage", toUsageString(msg, command, translator.translator)));
+            + translator.translate("strings.command_usage", await toUsageString(msg, command, translator.translator)));
         await msg.react("❌");
         return;
     }

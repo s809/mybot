@@ -326,15 +326,14 @@ export function* iterateCommands() {
  * @param command Command which usage needs to be printed.
  * @returns Usage string of a command.
  */
-export function toUsageString(msg: Message | CommandMessage, command: Command, translator: Translator): string {
-    let localizedCommandPath = "";
+export async function toUsageString(msg: Message | CommandMessage, command: Command, translator: Translator): Promise<string> {
     let map = commands;
-    for (const a of command.path.split("/")) {
+    const localizedCommandPath = command.path.split("/").map(a => {
         const c = map.get(a)!;
         map = c.subcommands;
-        localizedCommandPath += " " + translator.getTranslationFromRecord(c.nameTranslations);
-    }
+        return translator.getTranslationFromRecord(c.nameTranslations);
+    }).join(" ");
 
     const localizedArgs = translator.getTranslationFromRecord(command.args.stringTranslations) ?? "";
-    return getPrefix(msg.guildId) + `${localizedCommandPath} ${localizedArgs}`.trim();
+    return `${await getPrefix(msg.guildId)}${localizedCommandPath} ${localizedArgs}`.trimEnd();
 }

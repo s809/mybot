@@ -56,7 +56,7 @@ async function help(msg: CommandMessage) {
     };
     pushToChain(filterCommands(getRootCommands()));
 
-    const makeOptions = (command: Command | null) => {
+    const makeOptions = async (command: Command | null) => {
         let embed: APIEmbed;
 
         if (!command) {
@@ -65,7 +65,7 @@ async function help(msg: CommandMessage) {
                 description: translator.translate("embeds.select_command")
             };
         } else {
-            let codeBlock = `\`\`\`\n${toUsageString(msg, command, translator.translator)}\`\`\`\n`;
+            let codeBlock = `\`\`\`\n${await toUsageString(msg, command, translator.translator)}\`\`\`\n`;
             let description = `${command.descriptionTranslations[translator.localeString] ?? translator.translate("embeds.no_description")}`;
             let requiredPermissions = command.conditions.filter(x => !x.hideInDescription).map(x => x.name).join(", ");
             
@@ -95,7 +95,7 @@ async function help(msg: CommandMessage) {
         };
     };
 
-    let resp = await msg.reply(makeOptions(null));
+    let resp = await msg.reply(await makeOptions(null));
 
     resp.createMessageComponentCollector({
         idle: 60000,
@@ -127,7 +127,7 @@ async function help(msg: CommandMessage) {
         for (const option of entry.selectMenu.options)
             option.setDefault(option.data.value === interaction.values[0]);
 
-        await interaction.update(makeOptions(command));
+        await interaction.update(await makeOptions(command));
     }).on("end", () => {
         resp.delete();
     });
