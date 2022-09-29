@@ -10,20 +10,19 @@ export function generateSingleSample(genData: TextGenData, maxWords = 30) {
     let nextWord = firstWordGroup[Math.floor(Math.random() * firstWordGroup.length)];
     
     let result = nextWord;
-
     for (let i = 1; i < maxWords; i++) {
         const wordData = genData.words.get(nextWord)!;
+        let wordIndex = Math.random() * wordData.encounterCount;
 
-        let cumulativeProbability = Math.random();
-        for (const [word, probability] of wordData.nextWords) {
-            cumulativeProbability -= probability;
-            if (cumulativeProbability <= 0) {
+        for (const [word, encounters] of wordData.nextWords) {
+            wordIndex -= encounters;
+            if (wordIndex <= 0) {
                 nextWord = word;
                 break;
             }
         }
 
-        if (cumulativeProbability > 0) {
+        if (wordIndex > 0) {
             assert(wordData.wasLast);
             break;
         }
@@ -57,11 +56,10 @@ export function collectWordsFromMessage(msg: Message<true>, textGenData: TextGen
     const words = msg.content.split(/\s+/g).filter(word => word.length && word.length <= maxWordLength);
     if (words.length === 1 && words[0] === "") return;
 
-    const afterFirst = textGenData.entrypoints.get(words[0]);
-    if (afterFirst)
-        afterFirst.push(...words.filter(word => !afterFirst.includes(word)));
-    else
-        textGenData.entrypoints.set(words[0], words);
+    textGenData.entrypoints.set(words[0], [...new Set([
+        ...(textGenData.entrypoints.get(words[0]) ?? []),
+        ...words
+    ])]);
 
     for (let i = 0; i < words.length; i++) {
         const current = words[i];
@@ -75,17 +73,7 @@ export function collectWordsFromMessage(msg: Message<true>, textGenData: TextGen
         const isNewEntry = !entry.encounterCount;
 
         if (next) {
-            const wordData = entry.nextWords;
-            if (!wordData.has(next))
-                wordData.set(next, 0);
-
-            for (const [word, probability] of wordData.entries()) {
-                let count = probability * entry.encounterCount;
-                if (word === next)
-                    count++;
-                wordData.set(word, count / (entry.encounterCount + 1));
-            }
-
+            entry.nextWords.set(next, entry.nextWords.get(next) + 1 || 1);
             entry.encounterCount++;
         } else if (!entry.wasLast) {
             entry.wasLast = true;
