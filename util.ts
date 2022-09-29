@@ -109,19 +109,6 @@ export function skipStringAfter(text: string, ...parts: string[]) {
 }
 
 /**
- * Wraps string in quotes if it has whitespace in it.
- * 
- * @param text Text to wrap.
- * @returns Wrapped text.
- */
-export function wrapInQuotesIfNeed(text: string) {
-    if (text.match(/\s/))
-        return `"${text}"`;
-    else
-        return text;
-}
-
-/**
  * Formats string. \
  * Tokens used for formatting are **$1**, **$2** and so on.
  * 
@@ -149,6 +136,19 @@ export function formatString(text: string, ...args: string[]) {
  */
 export function capitalizeWords(text: string) {
     return text.toLowerCase().replace(/(^\w|\s\w)/g, m => m.toUpperCase());
+}
+
+/**
+ * Transforms a given string using a transformation map.
+ * 
+ * @param text String to transform.
+ * @param map Map to use for transforming.
+ * @returns Transformed string.
+ */
+export function transformString(text: string, map: [string, string][]) {
+    for (const [from, to] of map)
+        text = text.replaceAll(from, to);
+    return text;
 }
 
 export type Overwrite<T, U> = Omit<T, keyof U> & U;

@@ -2,6 +2,7 @@ import assert from "assert";
 import { Message } from "discord.js";
 import { ChannelData } from "../../database/models";
 import { client } from "../../env";
+import { transformString } from "../../util";
 
 type TextGenData = NonNullable<ChannelData["textGenData"]>;
 
@@ -27,7 +28,11 @@ export function generateSingleSample(genData: TextGenData, maxWords = 30) {
             break;
         }
         
-        result += " " + nextWord;
+        result += " " + transformString(nextWord, [
+            ["\\dot", "."],
+            ["\\dollar", "$"],
+            ["\\\\", "\\"]
+        ]);
     }
 
     return result;
@@ -53,7 +58,13 @@ export function shouldGenerate(msg: Message<true>, randomProbability = 1 / 50) {
 };
 
 export function collectWordsFromMessage(msg: Message<true>, textGenData: TextGenData, maxWordLength = 30) {
-    const words = msg.content.trim().split(/\s+/g).filter(word => word.length <= maxWordLength);
+    const words = transformString(msg.content.trim(), [
+        ["\\", "\\\\"],
+        [".", "\\dot"],
+        ["$", "\\dollar"]
+    ])
+        .split(/\s+/g)
+        .filter(word => word.length <= maxWordLength);
     if (!words[0]?.length) return;
 
     textGenData.entrypoints.set(words[0], [...new Set([
