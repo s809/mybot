@@ -53,8 +53,8 @@ export function shouldGenerate(msg: Message<true>, randomProbability = 1 / 50) {
 };
 
 export function collectWordsFromMessage(msg: Message<true>, textGenData: TextGenData, maxWordLength = 30) {
-    const words = msg.content.split(/\s+/g).filter(word => word.length && word.length <= maxWordLength);
-    if (words.length === 1 && words[0] === "") return;
+    const words = msg.content.trim().split(/\s+/g).filter(word => word.length <= maxWordLength);
+    if (!words[0]?.length) return;
 
     textGenData.entrypoints.set(words[0], [...new Set([
         ...(textGenData.entrypoints.get(words[0]) ?? []),
