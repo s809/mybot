@@ -2,7 +2,7 @@ import assert from "assert";
 import { Message } from "discord.js";
 import { ChannelData } from "../../database/models";
 import { client } from "../../env";
-import { transformString } from "../../util";
+import { escapeKey, unescapeKey } from "../data/databaseUtil";
 
 type TextGenData = NonNullable<ChannelData["textGenData"]>;
 
@@ -10,7 +10,7 @@ export function generateSingleSample(genData: TextGenData, maxWords = 30) {
     const firstWordGroup = [...genData.entrypoints.values()][Math.floor(Math.random() * genData.entrypoints.size)];
     let nextWord = firstWordGroup[Math.floor(Math.random() * firstWordGroup.length)];
     
-    let result = nextWord;
+    let result = unescapeKey(nextWord);
     for (let i = 1; i < maxWords; i++) {
         const wordData = genData.words.get(nextWord)!;
         let wordIndex = Math.random() * wordData.encounterCount;
@@ -28,11 +28,7 @@ export function generateSingleSample(genData: TextGenData, maxWords = 30) {
             break;
         }
         
-        result += " " + transformString(nextWord, [
-            ["\\dot", "."],
-            ["\\dollar", "$"],
-            ["\\\\", "\\"]
-        ]);
+        result += " " + unescapeKey(nextWord);
     }
 
     return result;
@@ -58,11 +54,7 @@ export function shouldGenerate(msg: Message<true>, randomProbability = 1 / 50) {
 };
 
 export function collectWordsFromMessage(msg: Message<true>, textGenData: TextGenData, maxWordLength = 30) {
-    const words = transformString(msg.content.trim(), [
-        ["\\", "\\\\"],
-        [".", "\\dot"],
-        ["$", "\\dollar"]
-    ])
+    const words = escapeKey(msg.content.trim())
         .split(/\s+/g)
         .filter(word => word.length <= maxWordLength);
     if (!words[0]?.length) return;

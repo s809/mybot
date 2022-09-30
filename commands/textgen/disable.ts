@@ -8,7 +8,7 @@ async function disableTextGen(msg: CommandMessage<true>) {
     if (!item[1].textGenData)
         return "already_disabled";
     
-    delete item[1].textGenData;
+    item[1].textGenData = undefined;
     await item[0].save();
 }
 
