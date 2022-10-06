@@ -53,37 +53,79 @@ export function shouldGenerate(msg: Message<true>, randomProbability = 1 / 50) {
     return isRandom || isReply || isMention;
 };
 
-export function collectWordsFromMessage(msg: Message<true>, textGenData: TextGenData, maxWordLength = 30) {
+export function makeTextGenUpdateQuery(msg: Message<true>, path: string, maxWordLength = 30) {
     const words = escapeKey(msg.content.trim())
         .split(/\s+/g)
         .filter(word => word.length <= maxWordLength);
     if (!words[0]?.length) return;
-
-    textGenData.entrypoints.set(words[0], [...new Set([
-        ...(textGenData.entrypoints.get(words[0]) ?? []),
-        ...words
-    ])]);
+    
+    const changes = new Map<string, {
+        addEncounters: number,
+        nextWords: Map<string, number>,
+        foundLast: boolean
+    }>();
 
     for (let i = 0; i < words.length; i++) {
         const current = words[i];
         const next = words[i + 1];
 
-        const entry = textGenData.words.get(current) ?? {
-            encounterCount: 0,
-            nextWords: new Map(),
-            wasLast: false
-        };
-        const isNewEntry = !entry.encounterCount;
+        let entry = changes.get(current);
+        if (!entry) {
+            entry = {
+                addEncounters: 0,
+                nextWords: new Map(),
+                foundLast: false
+            }
+            changes.set(current, entry);
+        }
 
         if (next) {
-            entry.nextWords.set(next, entry.nextWords.get(next) + 1 || 1);
-            entry.encounterCount++;
-        } else if (!entry.wasLast) {
-            entry.wasLast = true;
-            entry.encounterCount++;
+            entry.nextWords.set(next, entry.nextWords.get(next)! + 1 || 1);
+            entry.addEncounters++;
+        } else {
+            entry.foundLast = true;
         }
-        
-        if (isNewEntry)
-            textGenData.words.set(current, entry);
     }
+
+    return [{
+        $set: {
+            [`${path}.entrypoints.${words[0]}`]: {
+                $setUnion: [
+                    { $ifNull: [`$${path}.entrypoints.${words[0]}`, []] },
+                    words
+                ]
+            },
+            ...Object.fromEntries([...changes].flatMap(([word, entry]) => {
+                const wasLastPath = `${path}.words.${word}.wasLast`;
+                const encounterCountPath = `${path}.words.${word}.encounterCount`;
+                const nextWordsPath = `${path}.words.${word}.nextWords`;
+
+                return [
+                    [encounterCountPath, {
+                        $add: [
+                            { $ifNull: [`$${encounterCountPath}`, 0] },
+                            entry.addEncounters,
+                            Number(entry.foundLast) && { $toInt: { $not: `$${wasLastPath}` } }
+                        ]
+                    }],
+                    [wasLastPath, entry.foundLast || {
+                        $ifNull: [`$${wasLastPath}`, false]
+                    }],
+                    ...(entry.nextWords.size
+                        ? [...entry.nextWords].map(
+                            ([nextWord, count]) => {
+                                const nextWordPath = `${nextWordsPath}.${nextWord}`;
+
+                                return [nextWordPath, {
+                                    $add: [
+                                        { $ifNull: [`$${nextWordPath}`, 0] },
+                                        count
+                                    ]
+                                }];
+                            })
+                        : [<any>[nextWordsPath, { $ifNull: [`$${nextWordsPath}`, {}] }]])
+                ];
+            }))
+        }
+    }];
 }

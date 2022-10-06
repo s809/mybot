@@ -1,6 +1,7 @@
+import { Guild } from "../database/models";
 import { client } from "../env";
 import { getChannel } from "../modules/data/databaseUtil";
-import { shouldGenerate, collectWordsFromMessage, generate } from "../modules/messages/genText";
+import { shouldGenerate, makeTextGenUpdateQuery, generate } from "../modules/messages/genText";
 
 // Collect words from messages
 client.on("messageCreate", async msg => {
@@ -10,8 +11,15 @@ client.on("messageCreate", async msg => {
     const channelData = (await getChannel(msg.channel))!;
     if (!channelData[1].textGenData) return;
 
-    collectWordsFromMessage(msg, channelData[1].textGenData);
-    await channelData[0].save();
+    const result = makeTextGenUpdateQuery(msg, `channels.${msg.channelId}.textGenData`);
+    if (!result) return;
+
+    await Guild.updateOne({
+        _id: msg.guildId,
+        [`channels.${msg.channelId}.textGenData`]: {
+            $exists: true
+        }
+    }, result);
 });
 
 // Message generation
