@@ -1,4 +1,4 @@
-import { GuildChannel, ChannelResolvable, GuildMember, Role } from "discord.js";
+import { ChannelResolvable, GuildMember, Role, Channel, GuildChannel, GuildBasedChannel } from "discord.js";
 import { ChannelData, Guild, MemberData, RoleData } from "../../database/models";
 import { DocumentOf } from "../../database/types";
 import { guildChannelDefaults, guildMemberDefaults, guildRoleDefaults } from "../../database/defaults";
@@ -20,8 +20,8 @@ function getOrSet<T>(map: Map<string, T>, id: string, getDefaults: () => T) {
 }
 
 export async function getChannel(channel: ChannelResolvable): Promise<[DocumentOf<typeof Guild>, ChannelData] | null> {
-    const resolved = client.channels.resolve(channel);
-    if (!(resolved instanceof GuildChannel)) return null;
+    const resolved = client.channels.resolve(channel) as GuildBasedChannel;
+    if (!resolved?.guild) return null;
 
     const dbGuild = await Guild.findByIdOrDefault(resolved.guildId);
     return [dbGuild, getOrSet(dbGuild.channels, resolved.id, guildChannelDefaults)];
