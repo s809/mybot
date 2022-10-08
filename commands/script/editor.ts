@@ -116,7 +116,8 @@ async function scriptEditor(msg: CommandMessage) {
             context?.rename(`${list._id}/${newName}`);
         }
         list.items.set(newName, interaction.fields.getTextInputValue("content"));
-        await list.save();
+        list = await list.save();
+        categories[categories.findIndex(l => l.id === list.id)] = list;
         name = newName;
 
         await (interaction as any).update(getOptions()); // TODO remove cast once typings are added
@@ -223,10 +224,11 @@ async function scriptEditor(msg: CommandMessage) {
                         context?.destroy();
                         list.items.delete(name!);
 
-                        await Promise.all([
+                        [list] = await Promise.all([
                             list.save(),
                             interaction.update(getOptions())
                         ]);
+                        categories[categories.findIndex(l => l.id === list.id)] = list;
                         break;
                     case "restart":
                         await interaction.deferReply({ ephemeral: true });
