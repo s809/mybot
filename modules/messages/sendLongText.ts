@@ -2,7 +2,7 @@
  * @file Provides utility functions for sending messages.
  */
 import { EmbedBuilder } from "@discordjs/builders";
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, InteractionReplyOptions, Message, MessageActionRowComponentBuilder, MessageOptions, MessagePayload, ReplyMessageOptions, TextBasedChannel } from "discord.js";
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, InteractionReplyOptions, Message, MessageCreateOptions, MessagePayload, MessageReplyOptions, TextBasedChannel } from "discord.js";
 import { CommandMessage, CommandResponse } from "../commands/CommandMessage";
 
 const title = "Page %page% of %pagecount%";
@@ -114,7 +114,7 @@ function splitTextByDelimiter(text: string, textWrap: string, delimiter: string)
  * @param embed Embed template for wrapping text.
  * Title and desctiption will be overwritten.
  */
-async function sendPagedTextWithButtons(sendFunction: ((options: InteractionReplyOptions | ReplyMessageOptions) => Promise<CommandResponse>) | ((options: string | MessagePayload | MessageOptions) => Promise<Message<boolean>>), pages: string[], embed: EmbedBuilder = new EmbedBuilder()) {
+async function sendPagedTextWithButtons(sendFunction: ((options: InteractionReplyOptions | MessageReplyOptions) => Promise<CommandResponse>) | ((options: string | MessagePayload | MessageCreateOptions) => Promise<Message<boolean>>), pages: string[], embed: EmbedBuilder = new EmbedBuilder()) {
     let backButton = new ButtonBuilder({
         customId: "back",
         style: ButtonStyle.Primary,

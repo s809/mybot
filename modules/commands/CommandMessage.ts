@@ -1,4 +1,4 @@
-import { CommandInteraction, Guild, GuildMember, If, InteractionDeferReplyOptions, InteractionReplyOptions, InteractionResponse, Message, MessageCollectorOptionsParams, MessageComponentType, MessageEditOptions, MessageOptions, ReplyMessageOptions, TextBasedChannel, WebhookEditMessageOptions, GuildTextBasedChannel, CacheType, ChatInputCommandInteraction } from 'discord.js';
+import { CommandInteraction, Guild, GuildMember, If, InteractionDeferReplyOptions, InteractionReplyOptions, InteractionResponse, Message, MessageCollectorOptionsParams, MessageComponentType, MessageEditOptions, TextBasedChannel, WebhookEditMessageOptions, GuildTextBasedChannel, MessageCreateOptions, MessageReplyOptions } from 'discord.js';
 import { PrefixedTranslator } from '../misc/Translator';
 import { Command } from './definitions';
 
@@ -38,7 +38,7 @@ export class CommandMessage<InGuild extends boolean = boolean> {
         }
     }
 
-    async reply(options: string | InteractionReplyOptions | ReplyMessageOptions) {
+    async reply(options: string | InteractionReplyOptions | MessageReplyOptions) {
         if (this.interaction) {
             return new CommandResponse({
                 interaction: this.interaction,
@@ -51,16 +51,16 @@ export class CommandMessage<InGuild extends boolean = boolean> {
                 message: await this.interaction.fetchReply()
             });
         } else {
-            return this.sendSeparate(options as ReplyMessageOptions);
+            return this.sendSeparate(options as MessageReplyOptions);
         }
     }
 
-    async replyOrSendSeparate(options: InteractionReplyOptions | ReplyMessageOptions) {
+    async replyOrSendSeparate(options: InteractionReplyOptions | MessageReplyOptions) {
         return this.reply(options)
-            .catch(() => this.sendSeparate(options as ReplyMessageOptions));
+            .catch(() => this.sendSeparate(options as MessageReplyOptions));
     }
 
-    async sendSeparate(options: string | ReplyMessageOptions) {
+    async sendSeparate(options: string | MessageReplyOptions) {
         return new CommandResponse({
             message: await (this.interaction?.channel ?? this.message!.channel).send(options)
         });
@@ -124,7 +124,7 @@ export class CommandResponse {
         this.deferChannel = deferChannel;
     }
 
-    async edit(options: string | MessageOptions | MessageEditOptions | WebhookEditMessageOptions | InteractionReplyOptions) {
+    async edit(options: string | MessageCreateOptions | MessageEditOptions | WebhookEditMessageOptions | InteractionReplyOptions) {
         if (this.interaction) {
             if (this.interaction.deferred)
                 this.message = await this.interaction.followUp(options as InteractionReplyOptions);
@@ -132,7 +132,7 @@ export class CommandResponse {
                 this.message = await this.interaction.editReply(options as WebhookEditMessageOptions);
         } else {
             if (this.deferChannel) {
-                this.message = await this.deferChannel.send(options as MessageOptions);
+                this.message = await this.deferChannel.send(options as MessageCreateOptions);
                 this.deferChannel = undefined;
             } else {
                 this.message = await this.message!.edit(options as MessageEditOptions);
