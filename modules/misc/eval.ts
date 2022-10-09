@@ -30,7 +30,7 @@ export async function botEval(code: string, msg: CommandMessage | null, scriptNa
     let response;
     try {
         try {
-            response = await eval(`(async () => ${code})();`);
+            response = await eval(`(async () => (\n${code}\n))();`);
         } catch (e) {
             if (!(e instanceof SyntaxError))
                 throw e;
