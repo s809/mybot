@@ -29,6 +29,7 @@ export const Guild = model("guilds", new Schema({
         })
     })
 }, {
+    strict: false,
     statics: {
         findByIdOrDefault(id) {
             return findByIdOrDefault(this, id, guildDefaults);
@@ -48,6 +49,7 @@ export const User = model("users", new Schema({
     ...languageData,
     ...flagData
 }, {
+    strict: false,
     statics: {
         findByIdOrDefault(id) {
             return findByIdOrDefault(this, id, userDefaults);
