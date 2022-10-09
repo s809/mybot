@@ -79,8 +79,8 @@
           "fetching_invites": "Fetching invites..."
         },
         "finished": {
-          "invites_summary": "Found $1 invites, alive: $2\n",
-          "message_statistics": "Message statistics:\n",
+          "invites_summary": "Found $1 invites, alive: $2",
+          "message_statistics": "Message statistics:",
           "see_attachment": "*See attachment ($1)*",
           "first_message": "First message",
           "last_message": "Last message"
@@ -213,7 +213,8 @@
         }
       },
       "errors": {
-        "tracker_init_failed": "Failed to set up tracker. Check if bot has \"Send Messages\" permission in log channel and \"Manage Server\" in this server."
+        "already_enabled": "Already enabled.",
+        "missing_permissions": "Failed to set up tracker. Check if bot is allowed to manage server and create invites."
       }
     },
     "invitetracker_info": {
@@ -452,7 +453,7 @@
       "name": "enable",
       "description": "Enable text generator for this channel.",
       "errors": {
-        "already_disabled": "Already enabled."
+        "already_enabled": "Already enabled."
       }
     }
   },
@@ -492,12 +493,12 @@
       "title_paused": "Player - paused",
       "title_buffering": "Player - buffering...",
       "initializing": "Initializing...",
-      "now_playing": "Now playing: $1 ($2)\n",
+      "now_playing": "Now playing: $1 ($2)",
       "playback_finished": "Playback has finished!",
       
-      "queue_summary": "Queue length: $1 ($2)\n",
-      "load_remaining": "Remaining to load: $1\n",
-      "some_removed": "Some videos failed to load and were removed.\n"
+      "queue_summary": "Queue length: $1 ($2)",
+      "load_remaining": "Remaining to load: $1",
+      "some_removed": "Some videos failed to load and were removed."
     },
     "strings": {
       "loading": "Loading...",

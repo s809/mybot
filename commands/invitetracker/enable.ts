@@ -8,8 +8,8 @@ async function enableInviteTracker(msg: CommandMessage<true>, {
 }: {
     channel: GuildTextBasedChannel;
 }) {
-    if (!msg.guild.members.me?.permissions.has(PermissionFlagsBits.ManageGuild))
-        return "need_manage_guild_permission";
+    if (!msg.guild.members.me?.permissions.has(PermissionFlagsBits.ManageGuild | PermissionFlagsBits.CreateInstantInvite))
+        return "missing_permissions";
 
     await trackInvites(channel);
 }

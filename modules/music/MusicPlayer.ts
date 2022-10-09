@@ -79,19 +79,19 @@ export class MusicPlayer {
             embeds: [{
                 title: this.text ?? this.translator.translate("embeds.title_player"),
                 description: (this.currentVideo
-                    ? this.translator.translate("embeds.now_playing", currentTitleStr, currentDurationStr)
+                    ? this.translator.translate("embeds.now_playing", currentTitleStr, currentDurationStr) + "\n"
                     : "")
                     + queueData.text || undefined,
                 footer: this.queue.entries.length
                     ? {
                         text: this.translator.translate("embeds.queue_summary",
                                 this.queue.entries.length.toString(),
-                                queueData.formattedDuration)
+                                queueData.formattedDuration) + "\n"
                             + (remainingToLoad
-                                ? this.translator.translate("embeds.load_remaining", remainingToLoad.toString())
+                                ? this.translator.translate("embeds.load_remaining", remainingToLoad.toString()) + "\n"
                                 : "")
                             + (this.queue.hadErrors
-                                ? this.translator.translate("embeds.some_removed")
+                                ? this.translator.translate("embeds.some_removed") + "\n"
                                 : "")
                     }
                     : undefined

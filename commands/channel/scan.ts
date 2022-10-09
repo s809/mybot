@@ -116,7 +116,7 @@ async function scanChannel(msg: CommandMessage<true>, {
             }
             catch (e) { /* Skip */ }
         }
-        result = translator.translate("embeds.finished.invites_summary", invites.size.toString(), aliveInviteCount.toString()) + result;
+        result = translator.translate("embeds.finished.invites_summary", invites.size.toString(), aliveInviteCount.toString()) + "\n" + result;
         await sendLongText(msg.channel, result, {
             code: null,
             multipleMessages: true,
@@ -155,7 +155,7 @@ async function scanChannel(msg: CommandMessage<true>, {
             let authorStr = `${author.tag} (${author.id})`;
             let statTitle = translator.translate("embeds.finished.message_statistics");
 
-            let unsanitizedResult = statTitle + "```\n" + result + "```";
+            let unsanitizedResult = statTitle + "\n```\n" + result + "```";
             if (unsanitizedResult.length > 4096) {
                 files.push(statTitle.replace(":", ` for ${authorStr}:`) + result);
                 result = statTitle + translator.translate("embeds.finished.see_attachment", files.length.toString());
