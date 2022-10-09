@@ -8,7 +8,6 @@ import { User as DatabaseUser } from "./database/models";
 import { dirname } from "path";
 import { fileURLToPath } from "url";
 import { MusicPlayer } from "./modules/music/MusicPlayer";
-import { logDebug } from "./log";
 
 export const version: string = JSON.parse(readFileSync("./package.json", "utf8")).version;
 export const botDirectory = fileURLToPath(dirname(import.meta.url));
@@ -61,5 +60,3 @@ export const voiceTimeouts = {
 
 export const musicPlayingGuilds = new Map<Guild, MusicPlayer>();
 export const storedInviteCounts = new Map<Snowflake, Map<string, number>>();
-
-logDebug("Running in debug mode.");

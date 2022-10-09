@@ -1,5 +1,5 @@
 import { Team, TextBasedChannel } from "discord.js";
-import { client, logChannel } from "./env";
+import { client, debug, logChannel } from "./env";
 import { wrapText } from "./util";
 
 async function sendMessage(message: string, ping = false) {
@@ -15,7 +15,7 @@ async function sendMessage(message: string, ping = false) {
 }
 
 export const log = console.log;
-export const logDebug = console.debug;
+export const logDebug = debug ? console.debug : () => { };
 
 export function logError(e: Error, origin: NodeJS.UncaughtExceptionOrigin | null = null) {
     console.error(e);

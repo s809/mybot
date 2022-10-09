@@ -6,12 +6,14 @@ import {
     client,
     token
 } from "./env";
-import { logError } from "./log";
+import { logDebug, logError } from "./log";
 import { loadCommands } from "./modules/commands";
 import { refreshCommands } from "./modules/commands/appCommands";
 import "./database";
 
 (async () => {
+    logDebug("Running in debug mode.");
+    
     await loadCommands();
     
     await import("./handlers");
