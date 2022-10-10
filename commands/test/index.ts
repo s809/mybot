@@ -1,4 +1,4 @@
-import { debug } from "../../env";
+import { debug } from "../../constants";
 import { CommandDefinition } from "../../modules/commands/definitions";
 import { importCommands } from "../../modules/commands/importHelper";
 

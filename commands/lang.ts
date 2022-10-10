@@ -17,9 +17,9 @@ async function lang(msg: CommandMessage, {
         return "invalid_language";
 
     if (msg.guildId)
-        await Guild.findByIdOrDefaultAndUpdate(msg.guildId, { language: localeString });
+        await Guild.updateByIdWithUpsert(msg.guildId, { language: localeString });
     else
-        await User.findByIdOrDefaultAndUpdate(msg.guildId, { language: localeString });
+        await User.updateByIdWithUpsert(msg.author.id, { language: localeString });
 }
 
 const command: CommandDefinition = {

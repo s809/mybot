@@ -2,10 +2,8 @@
  * @file Main bot file.
  */
 
-import {
-    client,
-    token
-} from "./env";
+import { client } from "./env";
+import { token } from "./constants";
 import { logDebug, logError } from "./log";
 import { loadCommands } from "./modules/commands";
 import { refreshCommands } from "./modules/commands/appCommands";

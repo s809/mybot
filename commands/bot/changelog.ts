@@ -4,7 +4,7 @@
 import { execSync } from "child_process";
 import sendLongText from "../../modules/messages/sendLongText";
 import { EmbedBuilder } from "discord.js";
-import { version as currentVersion, debug } from "../../env";
+import { version as currentVersion, debug } from "../../constants";
 import { CommandDefinition } from "../../modules/commands/definitions";
 import { log } from "../../log";
 import { CommandMessage } from "../../modules/commands/CommandMessage";

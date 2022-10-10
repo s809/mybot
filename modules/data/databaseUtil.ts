@@ -19,21 +19,21 @@ function getOrSet<T>(map: Map<string, T>, id: string, getDefaults: () => T) {
     return map.get(id) ?? (map.set(id, getDefaults()), map.get(id)!);
 }
 
-export async function getChannel(channel: ChannelResolvable): Promise<[DocumentOf<typeof Guild>, ChannelData] | null> {
+export async function getChannel(channel: ChannelResolvable, field?: string): Promise<[DocumentOf<typeof Guild>, ChannelData] | null> {
     const resolved = client.channels.resolve(channel) as GuildBasedChannel;
     if (!resolved?.guild) return null;
 
-    const dbGuild = await Guild.findByIdOrDefault(resolved.guildId);
+    const dbGuild = await Guild.findByIdOrDefault(resolved.guildId, { [`channels.${resolved.id}${field ? `.${field}` : ""}`]: 1 });
     return [dbGuild, getOrSet(dbGuild.channels, resolved.id, guildChannelDefaults)];
 }
 
-export async function getMember(member: GuildMember): Promise<[DocumentOf<typeof Guild>, MemberData]> {
-    const dbGuild = await Guild.findByIdOrDefault(member.guild.id);
+export async function getMember(member: GuildMember, field?: string): Promise<[DocumentOf<typeof Guild>, MemberData]> {
+    const dbGuild = await Guild.findByIdOrDefault(member.guild.id, { [`members.${member.id}${field ? `.${field}` : ""}`]: 1 });
     return [dbGuild, getOrSet(dbGuild.members, member.id, guildMemberDefaults)];
 }
 
-export async function getRole(role: Role): Promise<[DocumentOf<typeof Guild>, RoleData]> {
-    const dbGuild = await Guild.findByIdOrDefault(role.guild.id);
+export async function getRole(role: Role, field?: string): Promise<[DocumentOf<typeof Guild>, RoleData]> {
+    const dbGuild = await Guild.findByIdOrDefault(role.guild.id, { [`roles.${role.id}${field ? `.${field}` : ""}`]: 1 });
     return [dbGuild, getOrSet(dbGuild.roles, role.id, guildRoleDefaults)];
 }
 

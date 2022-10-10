@@ -3,7 +3,7 @@
  */
 
 import { pathToFileURL } from "url";
-import { botDirectory } from "../../env";
+import { botDirectory, defaults } from "../../constants";
 import { importCommands } from "./importHelper";
 import { Command, CommandDefinition } from "./definitions";
 import { ApplicationCommandOptionType, LocaleString, Message, PermissionFlagsBits, PermissionResolvable } from "discord.js";
@@ -100,8 +100,8 @@ function prepareSubcommands(list: CommandDefinition[], inheritedOptions?: Inheri
             const nameTranslations = getLocalizations("name")
             const descriptionTranslations = getLocalizations("description");
             checkLocalizations(nameTranslations, descriptionTranslations, "command name", "command description")
-            if (!nameTranslations[Translator.fallbackLocale])
-                throw new Error("Command is not translated to the fallback locale.");
+            if (!nameTranslations[defaults.locale])
+                throw new Error("Command is not translated to the default locale.");
 
             let minArgs = 0;
             let maxArgs = 0;
@@ -169,9 +169,9 @@ function prepareSubcommands(list: CommandDefinition[], inheritedOptions?: Inheri
                             return {
                                 ...arg,
 
-                                name: nameLocalizations[Translator.fallbackLocale],
+                                name: nameLocalizations[defaults.locale],
                                 nameLocalizations,
-                                description: descriptionLocalizations[Translator.fallbackLocale],
+                                description: descriptionLocalizations[defaults.locale],
                                 descriptionLocalizations,
                                 choices: arg.choices?.map(choice => {
                                     try {
@@ -179,7 +179,7 @@ function prepareSubcommands(list: CommandDefinition[], inheritedOptions?: Inheri
                                         checkLocalizations(commandNameTranslations, nameLocalizations, "choice name");
 
                                         return {
-                                            name: nameLocalizations[Translator.fallbackLocale],
+                                            name: nameLocalizations[defaults.locale],
                                             nameLocalizations,
                                             value: choice.value
                                         };
@@ -283,8 +283,8 @@ export function resolveCommandLocalized(path: string | string[], translator: Tra
         command => translator.getTranslationFromRecord(command.subcommandsByLocale),
         true)
         ?? resolveCommandInternal(path,
-            commandsByLocale[Translator.fallbackLocale],
-            command => command.subcommandsByLocale[Translator.fallbackLocale],
+            commandsByLocale[defaults.locale],
+            command => command.subcommandsByLocale[defaults.locale],
             true);
 }
 

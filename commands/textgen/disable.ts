@@ -3,7 +3,7 @@ import { CommandDefinition } from "../../modules/commands/definitions";
 import { getChannel } from "../../modules/data/databaseUtil";
 
 async function disableTextGen(msg: CommandMessage<true>) {
-    const item = (await getChannel(msg.channel))!;
+    const item = (await getChannel(msg.channel, "textGenData"))!;
 
     if (!item[1].textGenData)
         return "already_disabled";

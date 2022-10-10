@@ -8,7 +8,7 @@ client.on("messageCreate", async msg => {
     if (!msg.inGuild()) return;
     if (msg.author.bot || msg.webhookId) return;
     
-    const channelData = (await getChannel(msg.channel))!;
+    const channelData = (await getChannel(msg.channel, "textGenData"))!;
     if (!channelData[1].textGenData) return;
 
     const result = makeTextGenUpdateQuery(msg, `channels.${msg.channelId}.textGenData`);
@@ -28,7 +28,7 @@ client.on("messageCreate", async msg => {
     if (msg.author.bot || msg.webhookId) return;
     if (!shouldGenerate(msg)) return;
     
-    const channelData = (await getChannel(msg.channel))!;
+    const channelData = (await getChannel(msg.channel, "textGenData"))!;
     if (!channelData[1].textGenData) return;
 
     await msg.channel.send({

@@ -2,6 +2,7 @@ import { CommandInteraction, Guild, GuildResolvable, LocaleString, Message } fro
 import { readdirSync, readFileSync } from "fs";
 import { get } from "lodash-es";
 import { Guild as DbGuild, User as DbUser } from "../../database/models";
+import { defaults } from "../../constants";
 import { formatString } from "../../util";
 
 export class PrefixedTranslator {
@@ -52,11 +53,10 @@ export class Translator {
 
     private data: object;
 
-    static readonly fallbackLocale: LocaleString = "en-US";
     static get fallbackTranslator() {
-        const translator = this._translators.get(this.fallbackLocale);
+        const translator = this._translators.get(defaults.locale);
         if (!translator)
-            throw new Error("Fallback translator not initialized.");
+            throw new Error("Default translator is not initialized.");
         return translator;
     }
 
@@ -86,13 +86,13 @@ export class Translator {
         if (typeof nameOrContext === "string") {
             return nameOrContext;
         } else if (nameOrContext instanceof Guild) {
-            return (await DbGuild.findByIdOrDefault(nameOrContext.id)).language
+            return (await DbGuild.findByIdOrDefault(nameOrContext.id, { language: 1 })).language
         } else if (nameOrContext.guild) {
-            return (await DbGuild.findByIdOrDefault(nameOrContext.guild.id)).language;
+            return (await DbGuild.findByIdOrDefault(nameOrContext.guild.id, { language: 1 })).language;
         } else if (nameOrContext instanceof Message) {
-            return (await DbGuild.findByIdOrDefault(nameOrContext.author.id)).language;
+            return (await DbGuild.findByIdOrDefault(nameOrContext.author.id, { language: 1 })).language;
         } else if (nameOrContext instanceof CommandInteraction) {
-            return (await DbGuild.findByIdOrDefault(nameOrContext.user.id)).language;
+            return (await DbGuild.findByIdOrDefault(nameOrContext.user.id, { language: 1 })).language;
         } else {
             throw new Error("Invalid context.");
         }
@@ -158,12 +158,12 @@ export class Translator {
 
     /**
      * Gets a translation value from object using this translator's locale string as a key.
-     * Tries to get result by a fallback locale key if this translator's key was not found.
+     * Tries to get result by a default locale key if this translator's key was not found.
      * 
      * @param obj Object to get value from.
      * @returns Value from object or undefined.
      */
     getTranslationFromRecord(obj: Partial<Record<LocaleString, any>>) {
-        return obj[this.localeString] ?? obj[Translator.fallbackLocale];
+        return obj[this.localeString] ?? obj[defaults.locale];
     }
 }

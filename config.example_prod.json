@@ -1,0 +1,14 @@
+{
+  "token": "Insert your token here",
+  "logChannel": null,
+  "defaults": {
+    "locale": "en-US",
+    "prefix": "!"
+  },
+  "voice": {
+    "readyWaitTimeout": 5000,
+    "playingWaitTimeout": 10000,
+    "nextTrackDelay": 3000,
+    "pauseResumeTimeout": 120000
+  }
+}

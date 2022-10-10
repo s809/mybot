@@ -1,6 +1,6 @@
 import { Snowflake } from "discord.js";
 import { Guild } from "../../database/models";
-import { defaultPrefix } from "../../env";
+import { defaults } from "../../constants";
 
 /**
  * Retrieves prefix for specified guild.
@@ -10,6 +10,6 @@ import { defaultPrefix } from "../../env";
  */
 export async function getPrefix(guildId: Snowflake | null) {
     return guildId
-        ? (await Guild.findByIdOrDefault(guildId)).prefix
-        : defaultPrefix;
+        ? (await Guild.findByIdOrDefault(guildId, { prefix: 1 })).prefix
+        : defaults.prefix;
 }

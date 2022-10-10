@@ -1,7 +1,7 @@
 import { spawn } from "child_process";
 import { once } from "events";
 import { Readable } from "stream";
-import { debug } from "../../env";
+import { debug } from "../../constants";
 import { logDebug } from "../../log";
 
 async function detectOpusStream(readable: Readable) {

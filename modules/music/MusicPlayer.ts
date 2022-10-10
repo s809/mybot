@@ -6,7 +6,8 @@ import { PrefixedTranslator, Translator } from "../../modules/misc/Translator";
 import { MessageEditOptions, GuildTextBasedChannel, VoiceBasedChannel, ChannelType, LocaleString } from "discord.js";
 import { MusicPlayerQueue, MusicPlayerQueueEntry } from "./MusicPlayerQueue";
 import { createDiscordJSAdapter } from "../../modules/music/voiceAdapter";
-import { musicPlayingGuilds, voiceTimeouts } from "../../env";
+import { musicPlayingGuilds } from "../../env";
+import { voice } from "../../constants";
 import { setTimeout } from "timers/promises";
 import { getDownloadStream } from "../../modules/music/youtubeDl";
 import { makeOpusStream } from "../../modules/music/ffmpeg";
@@ -167,7 +168,7 @@ export class MusicPlayer {
         musicPlayingGuilds.set(this.voiceChannel.guild, this);
 
         try {
-            await entersState(this.connection, VoiceConnectionStatus.Ready, voiceTimeouts.voiceReady);
+            await entersState(this.connection, VoiceConnectionStatus.Ready, voice.readyWaitTimeout);
 
             this.player = createAudioPlayer();
             this.player.on("error", () => { /* Ignored */ });
@@ -196,14 +197,14 @@ export class MusicPlayer {
                 this.resource = createAudioResource(this.readable);
 
                 this.player.play(this.resource);
-                await entersState(this.player, AudioPlayerStatus.Playing, voiceTimeouts.playerPlaying);
+                await entersState(this.player, AudioPlayerStatus.Playing, voice.playingWaitTimeout);
 
                 await this.updateStatus(null);
 
                 do {
                     if (this.player.state.status === AudioPlayerStatus.Paused) {
                         await Promise.any([
-                            setTimeout(voiceTimeouts.paused),
+                            setTimeout(voice.pauseResumeTimeout),
                             once(this.player, "stateChange")
                         ]);
                         if (this.player.state.status === AudioPlayerStatus.Paused)
@@ -218,7 +219,7 @@ export class MusicPlayer {
 
                 switch (this.player.state.status) {
                     case AudioPlayerStatus.Idle:
-                        await setTimeout(voiceTimeouts.playerIdle);
+                        await setTimeout(voice.nextTrackDelay);
                         break;
                     case AudioPlayerStatus.AutoPaused:
                         return;

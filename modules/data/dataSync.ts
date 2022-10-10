@@ -10,7 +10,7 @@ export async function onChannelRemove(channel: Channel | {
 }) {
     if (!(channel instanceof BaseGuildTextChannel)) return;
 
-    const dbGuild = await DbGuild.findById(channel.guildId);
+    const dbGuild = await DbGuild.findById(channel.guildId, { [`channels.${channel.id}`]: 1 });
     if (dbGuild?.channels.delete(channel.id))
         await dbGuild.save();
 }
@@ -21,7 +21,7 @@ export async function onRoleRemove(role: Role | {
         id: Snowflake;
     };
 }) {
-    const dbGuild = await DbGuild.findById(role.guild.id);
+    const dbGuild = await DbGuild.findById(role.guild.id, { [`roles.${role.id}`]: 1 });
     if (dbGuild?.channels.delete(role.id))
         await dbGuild.save();
 }
@@ -32,13 +32,17 @@ export async function onMemberRemove(member: GuildMember | {
         id: Snowflake;
     };
 }) {
-    const dbGuild = await DbGuild.findById(member.guild.id);
+    const dbGuild = await DbGuild.findById(member.guild.id, { [`members.${member.id}`]: 1 });
     if (dbGuild?.channels.delete(member.id))
         await dbGuild?.save();
 }
 
 export async function syncGuild(guild: Guild) {
-    const dbGuild = await DbGuild.findById(guild.id);
+    const dbGuild = await DbGuild.findById(guild.id, {
+        channels: 1,
+        roles: 1,
+        members: 1
+    });
     if (!dbGuild) return;
 
     // Remove missing channels

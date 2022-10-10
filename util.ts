@@ -1,7 +1,7 @@
 /**
  * @file Some useful functions.
  */
-import { botDirectory } from "./env";
+import { botDirectory } from "./constants";
 
 /**
  * Extracts ID from mention.

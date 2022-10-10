@@ -2,7 +2,7 @@ import assert from 'assert';
 import { ChatInputApplicationCommandData, ApplicationCommandType, ApplicationCommandOptionType, ApplicationCommandSubGroupData } from 'discord.js';
 import { getRootCommands, iterateCommands, iterateSubcommands } from '.';
 import { client } from '../../env';
-import { Translator } from '../misc/Translator';
+import { defaults } from "../../constants";
 
 export async function refreshCommands() {
     const commands: ChatInputApplicationCommandData[] = [];
@@ -18,8 +18,8 @@ export async function refreshCommands() {
             const data: ChatInputApplicationCommandData & {
                 options: typeof command.args.list;
             } = {
-                name: command.nameTranslations[Translator.fallbackLocale],
-                description: command.descriptionTranslations[Translator.fallbackLocale],
+                name: command.nameTranslations[defaults.locale],
+                description: command.descriptionTranslations[defaults.locale],
                 nameLocalizations: command.nameTranslations,
                 descriptionLocalizations: command.descriptionTranslations,
                 options: command.args.list,
@@ -69,7 +69,7 @@ export async function refreshCommands() {
     for (const appCommand of result.values()) {
         if (appCommand.type !== ApplicationCommandType.ChatInput) continue;
 
-        const rootCommand = rootCommands.find(x => x.nameTranslations[Translator.fallbackLocale] === appCommand.name);
+        const rootCommand = rootCommands.find(x => x.nameTranslations[defaults.locale] === appCommand.name);
         assert(rootCommand, `Failed to find source command for ${appCommand.name}`);
         rootCommand.appCommandId = appCommand.id;
         

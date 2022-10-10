@@ -34,11 +34,11 @@ export function resolveFlaggableItem(type: FlaggableType, id: Snowflake): Promis
 export async function resolveFlaggableItem(type: FlaggableType, id: Snowflake): Promise<[any, any]> {
     switch (type) {
         case "user":
-            return [await client.users.fetch(id).catch(() => null), DbUser.findById(id)];
+            return [await client.users.fetch(id).catch(() => null), DbUser.findById(id, { flags: 1 })];
         case "guild":
-            return [client.guilds.resolve(id), DbGuild.findById(id)];
+            return [client.guilds.resolve(id), DbGuild.findById(id, { flags: 1 })];
         case "channel":
-            return [client.channels.resolve(id), getChannel(id)];
+            return [client.channels.resolve(id), getChannel(id, "flags")];
         default:
             return [null, null];
     }

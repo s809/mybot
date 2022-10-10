@@ -4,7 +4,7 @@ import { Guild as DbGuild, InviteTrackerData } from "../../database/models";
 import { Translator } from "./Translator";
 
 export async function getInviteTrackerData(guild: Guild): Promise<[InviteTrackerData, GuildTextBasedChannel] | []> {
-    const { inviteTracker } = await DbGuild.findByIdOrDefault(guild.id);
+    const { inviteTracker } = await DbGuild.findByIdOrDefault(guild.id, { inviteTracker: 1 });
     if (!inviteTracker) return [];
     
     const channel = guild.channels.resolve(inviteTracker.logChannelId) as GuildTextBasedChannel;
@@ -14,7 +14,7 @@ export async function getInviteTrackerData(guild: Guild): Promise<[InviteTracker
 }
 
 export async function trackInvites(channel: GuildTextBasedChannel) {
-    await DbGuild.findByIdOrDefaultAndUpdate(channel.guildId, {
+    await DbGuild.updateByIdWithUpsert(channel.guildId, {
         inviteTracker: {
             logChannelId: channel.id
         }
@@ -24,7 +24,7 @@ export async function trackInvites(channel: GuildTextBasedChannel) {
 
 export async function untrackInvites(guildId: Snowflake) {
     storedInviteCounts.delete(guildId);
-    await DbGuild.findByIdOrDefaultAndUpdate(guildId, {
+    await DbGuild.updateByIdWithUpsert(guildId, {
         $unset: {
             inviteTracker: 1
         }

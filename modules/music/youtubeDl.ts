@@ -1,6 +1,6 @@
 import { execFile, spawn } from "child_process";
 import { promisify } from "util";
-import { debug } from "../../env";
+import { debug } from "../../constants";
 
 /**
  * Fetches video or playlist.

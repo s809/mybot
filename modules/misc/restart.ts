@@ -2,7 +2,7 @@ import { exec, execSync } from "child_process";
 import { Awaitable } from "discord.js";
 import { promisify } from "util";
 import { database } from "../../database";
-import { debug } from "../../env";
+import { debug } from "../../constants";
 
 export async function doRestart(callback?: () => Awaitable<void>) {
     if (!debug)

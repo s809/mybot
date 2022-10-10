@@ -17,12 +17,12 @@ client.on("messageCreate", async msg => {
 
     if (!isBotOwner(msg.author)) {
         // User ban
-        const user = await User.findByIdOrDefault(msg.author.id);
+        const user = await User.findByIdOrDefault(msg.author.id, { flags: 1 });
         if (user.flags.includes("banned")) return;
 
         // Guild ban
         if (msg.guildId) {
-            const guild = await Guild.findByIdOrDefault(msg.guildId);
+            const guild = await Guild.findByIdOrDefault(msg.guildId, { flags: 1 });
             if (guild.flags.includes("banned")) return;
         }
     }
@@ -153,7 +153,7 @@ client.on("messageCreate", async msg => {
                 for (const choice of arga.choices) {
                     const localization = (choice.nameLocalizations as any)[translator.localeString];
                     if (localization && input.toLocaleLowerCase() === localization // translator's locale
-                        || input.toLocaleLowerCase() === choice.name) // fallback locale
+                        || input.toLocaleLowerCase() === choice.name) // default locale
                         return choice.value;
                 }
                 

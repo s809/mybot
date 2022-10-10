@@ -1,5 +1,6 @@
 import { Team, TextBasedChannel } from "discord.js";
-import { client, debug, logChannel } from "./env";
+import { client } from "./env";
+import { debug, logChannel } from "./constants";
 import { wrapText } from "./util";
 
 async function sendMessage(message: string, ping = false) {

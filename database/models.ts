@@ -1,23 +1,24 @@
 import { model, Schema } from 'mongoose';
 import { MapValue } from '../util';
-import { guildDefaults, userDefaults, findByIdOrDefault, findByIdOrDefaultAndUpdate } from './defaults';
+import { guildDefaults, userDefaults, findByIdOrDefault } from './defaults';
 import { DocumentOf } from './types';
-import { stringId, languageData, flagData, mapOf, requiredAll, requiredMapOf, required, requiredAllExceptParent } from './parts';
+import { defaultValue, stringId, languageData, flagData, mapOf, requiredAll, requiredMapOf, required, requiredAllExceptParent } from './parts';
+import { defaults } from "../constants";
 
 export const Guild = model("guilds", new Schema({
     ...stringId,
 
     ...languageData,
     ...flagData,
-    prefix: required(String),
+    prefix: defaultValue(required(String), defaults.prefix),
 
     inviteTracker: requiredAllExceptParent({
         logChannelId: String
     }),
 
-    roles: requiredMapOf({}),
-    members: requiredMapOf({}),
-    channels: requiredMapOf({
+    roles: defaultValue(requiredMapOf({}), new Map()),
+    members: defaultValue(requiredMapOf({}), new Map()),
+    channels: defaultValue(requiredMapOf({
         ...flagData,
         textGenData: requiredAllExceptParent({
             entrypoints: mapOf([String]),
@@ -27,15 +28,15 @@ export const Guild = model("guilds", new Schema({
                 wasLast: Boolean
             })),
         })
-    })
+    }), new Map())
 }, {
     strict: false,
     statics: {
-        findByIdOrDefault(id) {
-            return findByIdOrDefault(this, id, guildDefaults);
+        findByIdOrDefault(id, projection?) {
+            return findByIdOrDefault(this, guildDefaults, id, projection);
         },
-        findByIdOrDefaultAndUpdate(id, doc) {
-            return findByIdOrDefaultAndUpdate(this, id, doc, guildDefaults);
+        updateByIdWithUpsert(id, update) {
+            return this.updateOne({ _id: id }, update, { upsert: true });
         }
     }
 }));
@@ -51,11 +52,11 @@ export const User = model("users", new Schema({
 }, {
     strict: false,
     statics: {
-        findByIdOrDefault(id) {
-            return findByIdOrDefault(this, id, userDefaults);
+        findByIdOrDefault(id, projection?) {
+            return findByIdOrDefault(this, userDefaults, id, projection);
         },
-        findByIdOrDefaultAndUpdate(id, doc) {
-            return findByIdOrDefaultAndUpdate(this, id, doc, userDefaults);
+        updateByIdWithUpsert(id, update) {
+            return this.updateOne({ _id: id }, update, { upsert: true });
         }
     }
 }));

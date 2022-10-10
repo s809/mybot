@@ -8,7 +8,7 @@ async function prefix(msg: CommandMessage<true>, {
 }: {
     newPrefix: string;
 }) {
-    await Guild.findByIdOrDefaultAndUpdate(msg.guildId, { prefix: newPrefix });
+    await Guild.updateByIdWithUpsert(msg.guildId, { prefix: newPrefix });
 }
 
 const command: CommandDefinition = {
