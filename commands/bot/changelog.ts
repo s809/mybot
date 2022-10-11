@@ -20,53 +20,40 @@ function prepareChangelog() {
 
     log("Preparing changelog...");
 
-    let commitCount = parseInt(execSync("git rev-list --count HEAD", { encoding: "utf8" }));
+    const commitCount = parseInt(execSync("git rev-list --count HEAD", { encoding: "utf8" }));
 
-    let str = `${currentVersion}:\n`;
-    let lastVersion = currentVersion;
-    let lastMessage = "";
-
+    const messages: [string, string[]][] = [[currentVersion.split("-")[0], []]];
+    let isHardVersion = false;
     for (let i = 0; i < commitCount; i++) {
-        let hardVersion, packageVersion;
-        try {
-            hardVersion = execSync(`git grep --only-matching "\\"v.*\\"" HEAD~${i} -- main.js env.js`, { encoding: "utf8" })
+        let version;
+
+        if (!isHardVersion) {
+            version = execSync(`git grep --only-matching "version.*\\".*\\"" HEAD~${i} -- package.json`, { encoding: "utf8" })
+                .split("\"")[2]
+                .split("-")[0];
+            
+            if (version === "1.0.0") {
+                isHardVersion = true;
+                i--;
+                continue;
+            }
+        } else {
+            version = execSync(`git grep --only-matching "\\"v.*\\"" HEAD~${i} -- main.js env.js`, { encoding: "utf8" })
                 .split("\"")[1]
                 .slice(1);
-
-            if (!hardVersion.match(/\d(\.\d)+/))
-                hardVersion = "";
-        }
-        catch {
-            hardVersion = "";
         }
 
-        try {
-            packageVersion = execSync(`git grep --only-matching "version.*\\".*\\"" HEAD~${i} -- package.json`, { encoding: "utf8" })
-                .split("\"")[2];
-        } catch {
-            packageVersion = "";
-        }
+        const message = execSync(`git log -1 HEAD~${i} --format=%B`, { encoding: "utf8" }).trim();
 
-        let version = hardVersion > packageVersion ? hardVersion : packageVersion;
-        let msg = execSync(`git log -1 HEAD~${i} --format=%B`, { encoding: "utf8" });
-
-        if (version !== lastVersion) {
-            if (lastVersion !== currentVersion) {
-                if (lastVersion !== "")
-                    str += "\n";
-
-                str += lastVersion + ":\n";
-            }
-            lastVersion = version;
-        }
-
-        str += lastMessage;
-        lastMessage = msg.slice(0, -1);
+        const lastGroup = messages[messages.length - 1];
+        if (version !== lastGroup[0])
+            messages.push([version, [message]]);
+        else
+            lastGroup[1].push(message);
     }
-    str += `\n${lastVersion}:\n${lastMessage.slice(0, -1)}`;
 
     log("Finished.");
-    return str;
+    return messages.map(([version, list]) => [version, list.join("\n")].join(":\n")).join("\n\n");
 }
 
 const logstr = prepareChangelog();
