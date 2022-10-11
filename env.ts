@@ -29,3 +29,4 @@ export async function isBotOwner(user: User) {
 
 export const musicPlayingGuilds = new Map<Guild, MusicPlayer>();
 export const storedInviteCounts = new Map<Snowflake, Map<string, number>>();
+export const textGenEnabledChannels = new Set<string>();

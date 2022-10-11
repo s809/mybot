@@ -24,7 +24,7 @@ export async function trackInvites(channel: GuildTextBasedChannel) {
 
 export async function untrackInvites(guildId: Snowflake) {
     storedInviteCounts.delete(guildId);
-    await DbGuild.updateByIdWithUpsert(guildId, {
+    await DbGuild.updateOne({ _id: guildId }, {
         $unset: {
             inviteTracker: 1
         }

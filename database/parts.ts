@@ -8,11 +8,9 @@ export function mapOf<T>(of: T) {
 }
 
 function modifyType<T, U>(type: T, join: U): (T extends object
-    ? T extends any[]
+    ? T extends any[] | Function
         ? { type: T }
-        : T extends Function
-            ? { type: T }
-            : T
+        : T
     : { type: T })
     & U {
     const result = typeof type === "object" && !Array.isArray(type)

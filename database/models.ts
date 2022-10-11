@@ -18,17 +18,7 @@ export const Guild = model("guilds", new Schema({
 
     roles: defaultValue(requiredMapOf({}), new Map()),
     members: defaultValue(requiredMapOf({}), new Map()),
-    channels: defaultValue(requiredMapOf({
-        ...flagData,
-        textGenData: requiredAllExceptParent({
-            entrypoints: mapOf([String]),
-            words: mapOf(requiredAll({
-                encounterCount: Number,
-                nextWords: mapOf(Number),
-                wasLast: Boolean
-            })),
-        })
-    }), new Map())
+    channels: defaultValue(requiredMapOf(flagData), new Map())
 }, {
     strict: false,
     statics: {
@@ -65,3 +55,13 @@ export const ScriptList = model("scripts", new Schema({
     ...stringId,
     items: requiredMapOf(String)
 }));
+
+export const TextGenData = model("textGenData", new Schema({
+    ...stringId,
+    entrypoints: defaultValue(requiredMapOf([String]), new Map()),
+    words: defaultValue(mapOf(requiredAll({
+        encounterCount: Number,
+        nextWords: mapOf(Number),
+        wasLast: Boolean
+    })), new Map())
+}))

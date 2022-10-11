@@ -1,5 +1,5 @@
 import { BaseGuildTextChannel, Channel, Guild, GuildMember, Role, Snowflake } from "discord.js";
-import { Guild as DbGuild } from "../../database/models";
+import { Guild as DbGuild, TextGenData } from "../../database/models";
 
 // Do NOT add anything to database unless something is actually to be written
 // to avoid spamming it with tons of empty structures.
@@ -10,9 +10,12 @@ export async function onChannelRemove(channel: Channel | {
 }) {
     if (!(channel instanceof BaseGuildTextChannel)) return;
 
-    const dbGuild = await DbGuild.findById(channel.guildId, { [`channels.${channel.id}`]: 1 });
-    if (dbGuild?.channels.delete(channel.id))
-        await dbGuild.save();
+    await DbGuild.updateOne({ _id: channel.guildId }, {
+        $unset: {
+            [`channels.${channel.id}`]: 1
+        }
+    });
+    await TextGenData.deleteOne({ _id: channel.id });
 }
 
 export async function onRoleRemove(role: Role | {
@@ -21,9 +24,11 @@ export async function onRoleRemove(role: Role | {
         id: Snowflake;
     };
 }) {
-    const dbGuild = await DbGuild.findById(role.guild.id, { [`roles.${role.id}`]: 1 });
-    if (dbGuild?.channels.delete(role.id))
-        await dbGuild.save();
+    await DbGuild.updateOne({ _id: role.guild.id }, {
+        $unset: {
+            [`roles.${role.id}`]: 1
+        }
+    });
 }
 
 export async function onMemberRemove(member: GuildMember | {
@@ -32,9 +37,11 @@ export async function onMemberRemove(member: GuildMember | {
         id: Snowflake;
     };
 }) {
-    const dbGuild = await DbGuild.findById(member.guild.id, { [`members.${member.id}`]: 1 });
-    if (dbGuild?.channels.delete(member.id))
-        await dbGuild?.save();
+    await DbGuild.updateOne({ _id: member.guild.id }, {
+        $unset: {
+            [`members.${member.id}`]: 1
+        }
+    });
 }
 
 export async function syncGuild(guild: Guild) {

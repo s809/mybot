@@ -1,18 +1,14 @@
+import { TextGenData } from "../../database/models";
+import { textGenEnabledChannels } from "../../env";
 import { CommandMessage } from "../../modules/commands/CommandMessage";
 import { CommandDefinition } from "../../modules/commands/definitions";
-import { getChannel } from "../../modules/data/databaseUtil";
 
 async function enableTextGen(msg: CommandMessage<true>) {
-    const item = (await getChannel(msg.channel, "textGenData"))!;
-
-    if (item[1].textGenData)
+    const result = await TextGenData.updateOne({ _id: msg.channelId }, {}, { upsert: true });
+    if (!result.upsertedCount)
         return "already_enabled";
-    
-    item[1].textGenData = {
-        entrypoints: new Map(),
-        words: new Map()
-    };
-    await item[0].save();
+
+    textGenEnabledChannels.add(msg.channelId);
 }
 
 const command: CommandDefinition = {

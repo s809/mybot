@@ -1,38 +1,33 @@
-import { Guild } from "../database/models";
-import { client } from "../env";
-import { getChannel } from "../modules/data/databaseUtil";
+import { Guild, TextGenData } from "../database/models";
+import { client, textGenEnabledChannels } from "../env";
 import { shouldGenerate, makeTextGenUpdateQuery, generate } from "../modules/messages/genText";
 
-// Collect words from messages
 client.on("messageCreate", async msg => {
     if (!msg.inGuild()) return;
     if (msg.author.bot || msg.webhookId) return;
     
-    const channelData = (await getChannel(msg.channel, "textGenData"))!;
-    if (!channelData[1].textGenData) return;
+    // Fetch if result is not cached
+    if (!textGenEnabledChannels.has(msg.channelId)) {
+        if (!await TextGenData.findById(msg.channelId)) return;
+        textGenEnabledChannels.add(msg.channelId);
+    }
 
-    const result = makeTextGenUpdateQuery(msg, `channels.${msg.channelId}.textGenData`);
+    // Collect words from messages
+
+    const result = makeTextGenUpdateQuery(msg);
     if (!result) return;
 
-    await Guild.updateOne({
-        _id: msg.guildId,
-        [`channels.${msg.channelId}.textGenData`]: {
-            $exists: true
-        }
-    }, result);
-});
-
-// Message generation
-client.on("messageCreate", async msg => {
-    if (!msg.inGuild()) return;
-    if (msg.author.bot || msg.webhookId) return;
-    if (!shouldGenerate(msg)) return;
+    if (!shouldGenerate(msg)) {
+        await TextGenData.updateOne({ _id: msg.channelId }, result);
+        return;
+    }
     
-    const channelData = (await getChannel(msg.channel, "textGenData"))!;
-    if (!channelData[1].textGenData) return;
-
+    const textGenData = await TextGenData.findByIdAndUpdate(msg.channelId, result, { new: true });
+    if (!textGenData) return;
+    
+    // Message generation
     await msg.channel.send({
-        content: generate(channelData[1].textGenData, 10),
+        content: generate(textGenData, 10),
         allowedMentions: {
             parse: ["users"]
         }

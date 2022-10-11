@@ -1,12 +1,11 @@
 import assert from "assert";
 import { Message } from "discord.js";
-import { ChannelData } from "../../database/models";
+import { TextGenData } from "../../database/models";
+import { DocumentOf } from "../../database/types";
 import { client } from "../../env";
 import { escapeKey, unescapeKey } from "../data/databaseUtil";
 
-type TextGenData = NonNullable<ChannelData["textGenData"]>;
-
-export function generateSingleSample(genData: TextGenData, maxWords = 30) {
+export function generateSingleSample(genData: DocumentOf<typeof TextGenData>, maxWords = 30) {
     const firstWordGroup = [...genData.entrypoints.values()][Math.floor(Math.random() * genData.entrypoints.size)];
     let nextWord = firstWordGroup[Math.floor(Math.random() * firstWordGroup.length)];
     
@@ -34,7 +33,7 @@ export function generateSingleSample(genData: TextGenData, maxWords = 30) {
     return result;
 };
 
-export function generate(textGenData: TextGenData, samples = 10) {
+export function generate(textGenData: DocumentOf<typeof TextGenData>, samples = 10) {
     let text = "";
     for (let i = 0; i < samples; i++) {
         let newText = generateSingleSample(textGenData);
@@ -53,7 +52,7 @@ export function shouldGenerate(msg: Message<true>, randomProbability = 1 / 50) {
     return isRandom || isReply || isMention;
 };
 
-export function makeTextGenUpdateQuery(msg: Message<true>, path: string, maxWordLength = 30) {
+export function makeTextGenUpdateQuery(msg: Message<true>, maxWordLength = 30) {
     const words = escapeKey(msg.content.trim())
         .split(/\s+/g)
         .filter(word => word.length <= maxWordLength);
@@ -89,16 +88,16 @@ export function makeTextGenUpdateQuery(msg: Message<true>, path: string, maxWord
 
     return [{
         $set: {
-            [`${path}.entrypoints.${words[0]}`]: {
+            [`entrypoints.${words[0]}`]: {
                 $setUnion: [
-                    { $ifNull: [`$${path}.entrypoints.${words[0]}`, []] },
+                    { $ifNull: [`$entrypoints.${words[0]}`, []] },
                     words
                 ]
             },
             ...Object.fromEntries([...changes].flatMap(([word, entry]) => {
-                const wasLastPath = `${path}.words.${word}.wasLast`;
-                const encounterCountPath = `${path}.words.${word}.encounterCount`;
-                const nextWordsPath = `${path}.words.${word}.nextWords`;
+                const wasLastPath = `words.${word}.wasLast`;
+                const encounterCountPath = `words.${word}.encounterCount`;
+                const nextWordsPath = `words.${word}.nextWords`;
 
                 return [
                     [encounterCountPath, {
