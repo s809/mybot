@@ -52,6 +52,12 @@ function prepareChangelog() {
             lastGroup[1].push(message);
     }
 
+    // Move post-release messages to next release
+    for (const [i, [, list]] of messages.entries()) {
+        if (i === 0) continue;
+        messages[i - 1][1].push(...list.splice(0, list.length - 1));
+    }
+
     log("Finished.");
     return messages.map(([version, list]) => [version, list.join("\n")].join(":\n")).join("\n\n");
 }
