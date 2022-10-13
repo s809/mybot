@@ -1,8 +1,9 @@
-import { ApplicationCommandOptionType } from "discord.js";
+import { ApplicationCommandOptionType, GuildChannel } from "discord.js";
+import { Guild, User } from "../../database/models";
 import { CommandMessage } from "../../modules/commands/CommandMessage";
 import { CommandDefinition } from "../../modules/commands/definitions";
 import { importCommands } from "../../modules/commands/importHelper";
-import { FlaggableType, resolveFlaggableItem, toggleFlag, flaggableTypeChoices } from "../../modules/data/flags";
+import { FlaggableType, resolveFlaggableItem, flaggableTypeChoices } from "../../modules/data/flags";
 
 async function flag(msg: CommandMessage, {
     type,
@@ -18,7 +19,49 @@ async function flag(msg: CommandMessage, {
     if (!resolvedItem[1])
         return "Unknown item.";
 
-    toggleFlag(resolvedItem[1], flag);
+    let model: typeof Guild | typeof User = Guild;
+    let _id = resolvedItem[0].id;
+    let dbPath = "flags";
+    switch (type) {
+        case "user":
+            model = User;
+            break;
+        case "guild":
+            break;
+        case "channel":
+            _id = (resolvedItem[0] as GuildChannel).guildId;
+            dbPath = `channels.${resolvedItem[0].id}.flags`;
+            break;
+    }
+
+    await model.updateOne({ _id }, [{
+        $set: {
+            [dbPath]: {
+                $cond: {
+                    if: {
+                        $in: [
+                            flag,
+                            `$${dbPath}`
+                        ]
+                    },
+                    then: {
+                        $filter: {
+                            input: `$${dbPath}`,
+                            cond: {
+                                $ne: ["$$this", flag]
+                            }
+                        }
+                    },
+                    else: {
+                        $setUnion: [
+                            `$${dbPath}`,
+                            [flag]
+                        ]
+                    }
+                }
+            }
+        }
+    }])
 }
 
 const command: CommandDefinition = {

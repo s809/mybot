@@ -1,14 +1,11 @@
 import { Guild, GuildChannel, Snowflake, User } from "discord.js";
+import { isNull } from "lodash-es";
 import { ChannelData, Guild as DbGuild, User as DbUser } from "../../database/models";
 import { DocumentOf } from "../../database/types";
 import { client } from "../../env";
 import { ArrayElement } from "../../util";
 import { CommandDefinition } from "../commands/definitions";
 import { getChannel } from "./databaseUtil";
-
-interface WithFlagData {
-    flags: string[];
-};
 
 export type FlaggableType = "user" | "guild" | "channel";
 export const flaggableTypeChoices: ArrayElement<NonNullable<CommandDefinition["args"]>>["choices"] = [{
@@ -31,33 +28,15 @@ export function resolveFlaggableItem(type: FlaggableType, id: Snowflake): Promis
     [GuildChannel, ChannelData] |
     [null, null]
 >;
-export async function resolveFlaggableItem(type: FlaggableType, id: Snowflake): Promise<[any, any]> {
+export async function resolveFlaggableItem(type: FlaggableType, id: Snowflake): Promise<any> {
     switch (type) {
         case "user":
-            return [await client.users.fetch(id).catch(() => null), DbUser.findById(id, { flags: 1 })];
+            return [await client.users.fetch(id).catch(() => null), await DbUser.findByIdOrDefault(id, { flags: 1 })];
         case "guild":
-            return [client.guilds.resolve(id), DbGuild.findById(id, { flags: 1 })];
+            return [client.guilds.resolve(id), await DbGuild.findByIdOrDefault(id, { flags: 1 })];
         case "channel":
-            return [client.channels.resolve(id), getChannel(id, "flags")];
+            return [client.channels.resolve(id), (await getChannel(id, "flags"))?.[1] ?? null];
         default:
             return [null, null];
     }
-}
-
-export function toggleFlag(dataEntry: WithFlagData, flag: string) {
-    if (!dataEntry.flags.includes(flag))
-        dataEntry.flags.push(flag);
-    else
-        dataEntry.flags.splice(dataEntry.flags.indexOf(flag));
-}
-
-export function setFlag(dataEntry: WithFlagData, flag: string) {
-    if (!dataEntry.flags.includes(flag))
-        dataEntry.flags.push(flag);
-}
-
-export function removeFlag(dataEntry: WithFlagData, flag: string) {
-    const index = dataEntry.flags.indexOf(flag);
-    if (index !== -1)
-        dataEntry.flags.splice(index, 2);
 }

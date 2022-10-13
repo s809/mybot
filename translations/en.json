@@ -133,7 +133,7 @@
               "description": "Guild"
             },
             "channel": {
-              "name": "Channel",
+              "name": "channel",
               "description": "Channel"
             }
           }
@@ -165,7 +165,7 @@
               "description": "Guild"
             },
             "channel": {
-              "name": "Channel",
+              "name": "channel",
               "description": "Channel"
             }
           }
