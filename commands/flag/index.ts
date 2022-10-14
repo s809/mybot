@@ -34,29 +34,36 @@ async function flag(msg: CommandMessage, {
             break;
     }
 
-    await model.updateOne({ _id }, [{
+    await (model as any).updateByIdWithUpsert(_id, [{
         $set: {
             [dbPath]: {
-                $cond: {
-                    if: {
-                        $in: [
-                            flag,
-                            `$${dbPath}`
-                        ]
+                $let: {
+                    vars: {
+                        currentFlags: { $ifNull: [`$${dbPath}`, []] }
                     },
-                    then: {
-                        $filter: {
-                            input: `$${dbPath}`,
-                            cond: {
-                                $ne: ["$$this", flag]
+                    in: {
+                        $cond: {
+                            if: {
+                                $in: [
+                                    flag,
+                                    "$$currentFlags"
+                                ]
+                            },
+                            then: {
+                                $filter: {
+                                    input: "$$currentFlags",
+                                    cond: {
+                                        $ne: ["$$this", flag]
+                                    }
+                                }
+                            },
+                            else: {
+                                $setUnion: [
+                                    "$$currentFlags",
+                                    [flag]
+                                ]
                             }
                         }
-                    },
-                    else: {
-                        $setUnion: [
-                            `$${dbPath}`,
-                            [flag]
-                        ]
                     }
                 }
             }
