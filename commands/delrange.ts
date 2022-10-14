@@ -14,7 +14,7 @@ async function deleteRange(msg: CommandMessage<true>, {
         return "cannot_manage_messages";
 
     try {
-        if (BigInt(startId) > BigInt(endId))
+        if (BigInt(startId) < BigInt(endId))
             [startId, endId] = [endId, startId];
     } catch (e) {
         return "invalid_message_range";
