@@ -131,6 +131,12 @@ export class Translator {
         return prefixedTranslator;
     }
 
+    static getLocalizations(translationPath: string) {
+        return Object.fromEntries([...Translator.translators.values()]
+            .map(t => [t.localeString, t.tryTranslate(translationPath)] as [LocaleString, string | null])
+            .filter(([, translation]) => translation !== null)) as Record<LocaleString, string>;
+    }
+
     /**
      * Get a translation string.
      * 

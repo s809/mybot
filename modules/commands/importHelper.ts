@@ -1,16 +1,15 @@
 import { readdir } from "fs/promises";
 import { dirname } from "path";
 import { fileURLToPath } from "url";
-import { CommandDefinition } from "./definitions";
 
 /**
- * Imports modules in directory of {@link modulePath} as child commands.
+ * Imports modules in directory of {@link modulePath}.
  * Ignores index.js.
  * 
  * @param modulePath Path to module.
- * @returns Imported commands.
+ * @returns Imported modules.
  */
-export async function importCommands(modulePath: string): Promise<CommandDefinition[]> {
+export async function importModules<T>(modulePath: string): Promise<T[]> {
     const dir = dirname(modulePath);
     let modules = [];
 

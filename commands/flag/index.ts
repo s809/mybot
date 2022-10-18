@@ -2,7 +2,7 @@ import { ApplicationCommandOptionType, GuildChannel } from "discord.js";
 import { Guild, User } from "../../database/models";
 import { CommandMessage } from "../../modules/commands/CommandMessage";
 import { CommandDefinition } from "../../modules/commands/definitions";
-import { importCommands } from "../../modules/commands/importHelper";
+import { importModules } from "../../modules/commands/importHelper";
 import { FlaggableType, resolveFlaggableItem, flaggableTypeChoices } from "../../modules/data/flags";
 
 async function flag(msg: CommandMessage, {
@@ -87,6 +87,6 @@ const command: CommandDefinition = {
     ownerOnly: true,
     alwaysReactOnSuccess: true,
     handler: flag,
-    subcommands: await importCommands(import.meta.url)
+    subcommands: await importModules(import.meta.url)
 };
 export default command;

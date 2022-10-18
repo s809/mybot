@@ -4,7 +4,7 @@
 
 import { pathToFileURL } from "url";
 import { botDirectory, defaults } from "../../constants";
-import { importCommands } from "./importHelper";
+import { importModules } from "./importHelper";
 import { Command, CommandDefinition } from "./definitions";
 import { ApplicationCommandOptionType, LocaleString, Message, PermissionFlagsBits, PermissionResolvable } from "discord.js";
 import { getPrefix } from "../data/getPrefix";
@@ -52,9 +52,6 @@ function prepareSubcommands(list: CommandDefinition[], inheritedOptions?: Inheri
 
         try {
             const translationPath = `commands.${options.path.replaceAll("/", "_")}`;
-            const getLocalizations = (key: string) => Object.fromEntries([...Translator.translators.values()]
-                .map(t => [t.localeString, t.tryTranslate(`${translationPath}.${key}`)] as [LocaleString, string | null])
-                .filter(([, translation]) => translation !== null)) as Record<LocaleString, string>;
 
             // Definitions' requirements are additive.
             if (definition.conditions) {
@@ -97,8 +94,8 @@ function prepareSubcommands(list: CommandDefinition[], inheritedOptions?: Inheri
             }
 
             // Make sure that command is fully translated.
-            const nameTranslations = getLocalizations("name")
-            const descriptionTranslations = getLocalizations("description");
+            const nameTranslations = Translator.getLocalizations(`${translationPath}.name`)
+            const descriptionTranslations = Translator.getLocalizations(`${translationPath}.description`);
             checkLocalizations(nameTranslations, descriptionTranslations, "command name", "command description")
             if (!nameTranslations[defaults.locale])
                 throw new Error("Command is not translated to the default locale.");
@@ -130,8 +127,8 @@ function prepareSubcommands(list: CommandDefinition[], inheritedOptions?: Inheri
                         try {
                             // Make sure that argument's translation is consistent with command's translation.
                             const commandNameTranslations = nameTranslations;
-                            const nameLocalizations = getLocalizations(`args.${arg.translationKey}.name`);
-                            const descriptionLocalizations = getLocalizations(`args.${arg.translationKey}.description`);
+                            const nameLocalizations = Translator.getLocalizations(`${translationPath}.args.${arg.translationKey}.name`);
+                            const descriptionLocalizations = Translator.getLocalizations(`${translationPath}.args.${arg.translationKey}.description`);
                             checkLocalizations(commandNameTranslations, nameLocalizations, "argument name");
                             checkLocalizations(commandNameTranslations, descriptionLocalizations, "argument description");
 
@@ -175,7 +172,7 @@ function prepareSubcommands(list: CommandDefinition[], inheritedOptions?: Inheri
                                 descriptionLocalizations,
                                 choices: arg.choices?.map(choice => {
                                     try {
-                                        const nameLocalizations = getLocalizations(`args.${arg.translationKey}.choices.${choice.translationKey}.name`);
+                                        const nameLocalizations = Translator.getLocalizations(`${translationPath}.args.${arg.translationKey}.choices.${choice.translationKey}.name`);
                                         checkLocalizations(commandNameTranslations, nameLocalizations, "choice name");
 
                                         return {
@@ -233,7 +230,7 @@ function prepareSubcommandsByLocale(map: Map<string, Command>, toFill: Command["
  * Loads commands into internal cache.
  */
 export async function loadCommands() {
-    const definitions = await importCommands(pathToFileURL(botDirectory + "/commands/foo").toString());
+    const definitions = await importModules<CommandDefinition>(pathToFileURL(botDirectory + "/commands/foo").toString());
     commands = prepareSubcommands(definitions);
     prepareSubcommandsByLocale(commands, commandsByLocale);
 }

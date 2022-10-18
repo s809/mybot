@@ -8,8 +8,8 @@ import { CommandMessage } from "./CommandMessage";
 import { CommandCondition } from "./conditions";
 
 export const textChannels = [
-    ChannelType.GuildNews,
-    ChannelType.GuildPublicThread, ChannelType.GuildPrivateThread, ChannelType.GuildNewsThread,
+    ChannelType.GuildAnnouncement,
+    ChannelType.PublicThread, ChannelType.PrivateThread, ChannelType.AnnouncementThread,
     ChannelType.GuildText
 ];
 

@@ -1,11 +1,11 @@
-import { importCommands } from "../../modules/commands/importHelper";
+import { importModules } from "../../modules/commands/importHelper";
 import { CommandDefinition } from "../../modules/commands/definitions";
 import { InVoiceChannel } from "../../modules/commands/conditions";
 
 const command: CommandDefinition = {
     key: "music",
     conditions: [InVoiceChannel],
-    subcommands: await importCommands(import.meta.url),
+    subcommands: await importModules(import.meta.url),
     ownerOnly: true,
     allowDMs: false
 };

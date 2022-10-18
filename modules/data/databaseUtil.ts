@@ -1,4 +1,4 @@
-import { ChannelResolvable, GuildMember, Role, Channel, GuildChannel, GuildBasedChannel } from "discord.js";
+import { ChannelResolvable, GuildMember, Role, GuildBasedChannel } from "discord.js";
 import { ChannelData, Guild, MemberData, RoleData } from "../../database/models";
 import { DocumentOf } from "../../database/types";
 import { guildChannelDefaults, guildMemberDefaults, guildRoleDefaults } from "../../database/defaults";
@@ -15,26 +15,22 @@ const reverseTransformationMap = structuredClone(transformationMap)
     .reverse()
     .map(x => x.reverse() as [string, string]);
 
-function getOrSet<T>(map: Map<string, T>, id: string, getDefaults: () => T) {
-    return map.get(id) ?? (map.set(id, getDefaults()), map.get(id)!);
-}
-
 export async function getChannel(channel: ChannelResolvable, field?: string): Promise<[DocumentOf<typeof Guild>, ChannelData] | null> {
     const resolved = client.channels.resolve(channel) as GuildBasedChannel;
     if (!resolved?.guild) return null;
 
     const dbGuild = await Guild.findByIdOrDefault(resolved.guildId, { [`channels.${resolved.id}${field ? `.${field}` : ""}`]: 1 });
-    return [dbGuild, getOrSet(dbGuild.channels, resolved.id, guildChannelDefaults)];
+    return [dbGuild, dbGuild.channels.getOrSet(resolved.id, guildChannelDefaults(), true)];
 }
 
 export async function getMember(member: GuildMember, field?: string): Promise<[DocumentOf<typeof Guild>, MemberData]> {
     const dbGuild = await Guild.findByIdOrDefault(member.guild.id, { [`members.${member.id}${field ? `.${field}` : ""}`]: 1 });
-    return [dbGuild, getOrSet(dbGuild.members, member.id, guildMemberDefaults)];
+    return [dbGuild, dbGuild.members.getOrSet(member.id, guildMemberDefaults(), true)];
 }
 
 export async function getRole(role: Role, field?: string): Promise<[DocumentOf<typeof Guild>, RoleData]> {
     const dbGuild = await Guild.findByIdOrDefault(role.guild.id, { [`roles.${role.id}${field ? `.${field}` : ""}`]: 1 });
-    return [dbGuild, getOrSet(dbGuild.roles, role.id, guildRoleDefaults)];
+    return [dbGuild, dbGuild.roles.getOrSet(role.id, guildRoleDefaults(), true)];
 }
 
 export function escapeKey(key: string) {

@@ -3,6 +3,7 @@ import "./dataSyncEvents";
 import "./voiceStateUpdate";
 import "./inviteTrackerEvents";
 import "./messageCreate";
-import "./interactionCreate";
+import "./chatInteractionCreate";
+import "./contextMenuInteractionCreate";
 import "./genTextEvents";
 import "./invalidated";

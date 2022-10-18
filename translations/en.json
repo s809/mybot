@@ -457,6 +457,19 @@
       }
     }
   },
+  "contextMenuCommands": {
+    "selectMessage": {
+      "name": "Select Message",
+      "strings": {
+        "selected": "Selected!",
+        "message_id": "Message ID: $1",
+        "message_id_range": "Message ID range: $1 - $2",
+        "message": "Message",
+        "begin_message": "Begin Message",
+        "end_message": "End Message"
+      }
+    }
+  },
   "command_processor": {
     "strings": {
       "command_usage": "Command usage: `$1`",

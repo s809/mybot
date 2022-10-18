@@ -1,12 +1,14 @@
 import assert from 'assert';
-import { ChatInputApplicationCommandData, ApplicationCommandType, ApplicationCommandOptionType, ApplicationCommandSubGroupData } from 'discord.js';
+import { ChatInputApplicationCommandData, ApplicationCommandType, ApplicationCommandOptionType, ApplicationCommandSubGroupData, ApplicationCommandDataResolvable } from 'discord.js';
 import { getRootCommands, iterateCommands, iterateSubcommands } from '.';
 import { client } from '../../env';
 import { defaults } from "../../constants";
+import { getContextMenuCommandData, setContextMenuCommands } from './contextMenuCommands';
 
 export async function refreshCommands() {
     const commands: ChatInputApplicationCommandData[] = [];
 
+    // Chat commands
     for (const command of iterateCommands()) {
         if (!command.usableAsAppCommand)
             continue;
@@ -54,7 +56,7 @@ export async function refreshCommands() {
                     });
                     break;
                 default:
-                    throw new Error("Command depth exceeded.");
+                    throw new Error("Command depth was exceeded.");
             }
         } catch (e) {
             e.message += `\nPath: ${command.path}`;
@@ -62,20 +64,38 @@ export async function refreshCommands() {
         }
     }
 
-    const result = await client.application?.commands.set(commands);
+    // Context menu commands
+    const contextMenuCommands = await getContextMenuCommandData();
+
+    const result = await client.application?.commands.set(
+        (commands as ApplicationCommandDataResolvable[])
+            .concat(contextMenuCommands.map(({ appCommandData }) => appCommandData))
+    );
     if (!result) return;
 
     const rootCommands = getRootCommands();
     for (const appCommand of result.values()) {
-        if (appCommand.type !== ApplicationCommandType.ChatInput) continue;
+        switch (appCommand.type) {
+            case ApplicationCommandType.ChatInput:
+                const rootCommand = rootCommands.find(x => x.nameTranslations[defaults.locale] === appCommand.name);
+                assert(rootCommand, `Failed to find source command for ${appCommand.name}`);
+                rootCommand.appCommandId = appCommand.id;
 
-        const rootCommand = rootCommands.find(x => x.nameTranslations[defaults.locale] === appCommand.name);
-        assert(rootCommand, `Failed to find source command for ${appCommand.name}`);
-        rootCommand.appCommandId = appCommand.id;
-        
-        for (const command of iterateSubcommands(rootCommand.subcommands)) {
-            if (command.usableAsAppCommand)
-                command.appCommandId = appCommand.id;
+                for (const command of iterateSubcommands(rootCommand.subcommands)) {
+                    if (command.usableAsAppCommand)
+                        command.appCommandId = appCommand.id;
+                }
+                break;
+            case ApplicationCommandType.Message:
+            case ApplicationCommandType.User:
+                const command = contextMenuCommands.find(command => appCommand.name === command.appCommandData.name);
+                if (command)
+                    command.appCommandId = appCommand.id;
+                break;
+            default:
+                break;
         }
     }
+
+    setContextMenuCommands(contextMenuCommands);
 }

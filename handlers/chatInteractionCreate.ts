@@ -28,12 +28,12 @@ client.on('interactionCreate', async interaction => {
 
     const argsObj = {} as Parameters<CommandHandler>["1"];
     const argToGetter = new Map<ApplicationCommandOptionType, (name: string, require?: boolean) => any>([
-            [ApplicationCommandOptionType.String, interaction.options.getString],
-            [ApplicationCommandOptionType.Number, interaction.options.getNumber],
-            [ApplicationCommandOptionType.Boolean, interaction.options.getBoolean],
-            [ApplicationCommandOptionType.Channel, interaction.options.getChannel],
-            [ApplicationCommandOptionType.User, interaction.options.getUser],
-            [ApplicationCommandOptionType.Role, interaction.options.getRole],
+        [ApplicationCommandOptionType.String, interaction.options.getString],
+        [ApplicationCommandOptionType.Number, interaction.options.getNumber],
+        [ApplicationCommandOptionType.Boolean, interaction.options.getBoolean],
+        [ApplicationCommandOptionType.Channel, interaction.options.getChannel],
+        [ApplicationCommandOptionType.User, interaction.options.getUser],
+        [ApplicationCommandOptionType.Role, interaction.options.getRole],
     ]);
     
     for (const arg of command.args.list) {

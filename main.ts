@@ -26,6 +26,7 @@ import "./database";
             return;
         }
 
+        debugger;
         logError(e, origin);
     });
 })();
