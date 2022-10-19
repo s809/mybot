@@ -195,36 +195,27 @@
     },
     "invitetracker": {
       "name": "invitetracker",
-      "description": "Show information about invite tracking."
-    },
-    "invitetracker_disable": {
-      "name": "disable",
-      "description": "Disable tracking of invites.",
-      "errors": {
-        "already_disabled": "Already disabled."
-      }
-    },
-    "invitetracker_enable": {
-      "name": "enable",
-      "description": "Enable tracking of invites.",
+      "description": "Manage invite tracking.",
       "args": {
-        "channel": {
-          "name": "channel",
-          "description": "Channel to send tracking messages to."
+        "action": {
+          "name": "action",
+          "description": "Action to do.",
+          "choices": {
+            "enable": {
+              "name": "enable",
+              "description": "Enable tracking of invites."
+            },
+            "disable": {
+              "name": "disable",
+              "description": "Disable tracking of invites."
+            }
+          }
         }
       },
       "errors": {
         "already_enabled": "Already enabled.",
+        "already_disabled": "Already disabled.",
         "missing_permissions": "Failed to set up tracker. Check if bot is allowed to manage server and create invites."
-      }
-    },
-    "invitetracker_info": {
-      "name": "info",
-      "description": "Show info about invite tracking on this server.",
-      "embeds": {
-        "title": "Invite tracker",
-        "not_tracking": "Not tracking",
-        "log_channel": "Log channel: $1"
       }
     },
     "lang": {
@@ -445,20 +436,26 @@
     },
     "textgen": {
       "name": "textgen",
-      "description": "Text generator commands"
-    },
-    "textgen_disable": {
-      "name": "disable",
-      "description": "Disable text generator for this channel.",
+      "description": "Manage text generation",
+      "args": {
+        "action": {
+          "name": "action",
+          "description": "Action to do.",
+          "choices": {
+            "enable": {
+              "name": "enable",
+              "description": "Enable text generator for this channel."
+            },
+            "disable": {
+              "name": "disable",
+              "description": "Disable text generator for this channel."
+            }
+          }
+        }
+      },
       "errors": {
+        "already_enabled": "Already enabled.",
         "already_disabled": "Already disabled."
-      }
-    },
-    "textgen_enable": {
-      "name": "enable",
-      "description": "Enable text generator for this channel.",
-      "errors": {
-        "already_enabled": "Already enabled."
       }
     }
   },
