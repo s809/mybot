@@ -61,8 +61,8 @@ client.on('interactionCreate', async interaction => {
     }
 
     try {
-        const translator = await Translator.getOrDefault(interaction, command.translationPath);
-        const commandMessage = new CommandMessage(command, translator, interaction);
+        const commandTranslator = await Translator.getOrDefault(interaction, command.translationPath);
+        const commandMessage = new CommandMessage(command, commandTranslator, interaction);
         
         let result: string | undefined;
         try {
@@ -89,15 +89,20 @@ client.on('interactionCreate', async interaction => {
         }
 
         const errorTranslationPath = `${command.translationPath}.errors.${result ?? ""}`;
-        if (!interaction.replied) {
-            await interaction.reply({
+        if (!commandMessage.response?.replyCompleted) {
+            const options = {
                 content: result
                     ? (Translator.fallbackTranslator.tryTranslate(errorTranslationPath)
-                        ? translator.translate(errorTranslationPath)
+                        ? commandTranslator.translate(errorTranslationPath)
                         : result)
-                    : "Done!",
+                    : translator.translate("strings.done"),
                 ephemeral: true
-            })
+            };
+
+            if (!commandMessage.response)
+                await commandMessage.reply(options);
+            else
+                await commandMessage.response.edit(options);
         }
     } catch (e) {
         logError(e);

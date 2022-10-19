@@ -3,7 +3,7 @@ import { ChatInputApplicationCommandData, ApplicationCommandType, ApplicationCom
 import { getRootCommands, iterateCommands, iterateSubcommands } from '.';
 import { client } from '../../env';
 import { defaults } from "../../constants";
-import { getContextMenuCommandData, setContextMenuCommands } from './contextMenuCommands';
+import { getContextMenuCommands, setContextMenuCommands } from './contextMenuCommands';
 
 export async function refreshCommands() {
     const commands: ChatInputApplicationCommandData[] = [];
@@ -65,7 +65,7 @@ export async function refreshCommands() {
     }
 
     // Context menu commands
-    const contextMenuCommands = await getContextMenuCommandData();
+    const contextMenuCommands = await getContextMenuCommands();
 
     const result = await client.application?.commands.set(
         (commands as ApplicationCommandDataResolvable[])

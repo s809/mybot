@@ -18,7 +18,7 @@ export interface ContextMenuCommand<T extends AllowedCommandTypes = AllowedComma
     appCommandData: ApplicationCommandData;
 }
 
-export async function getContextMenuCommandData(): Promise<ContextMenuCommand[]> {
+export async function getContextMenuCommands(): Promise<ContextMenuCommand[]> {
     if (commands.size)
         return [...commands.values()];
 
@@ -34,7 +34,8 @@ export async function getContextMenuCommandData(): Promise<ContextMenuCommand[]>
             appCommandData: {
                 type: definition.type,
                 name: nameLocalizations[defaults.locale],
-                nameLocalizations
+                nameLocalizations,
+                dmPermission: false
             }
         };
     });

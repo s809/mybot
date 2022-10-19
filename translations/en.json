@@ -103,6 +103,7 @@
       "errors": {
         "cannot_manage_messages": "The bot is unable to manage messages.",
         "invalid_message_range": "Enter a valid message range.",
+        "nothing_is_selected": "Nothing is selected. (Right-click on a message(s) you want to delete and go to Applications -> Select Message)",
         "delete_failed": "Failed to delete messages."
       }
     },
@@ -408,6 +409,10 @@
       "name": "longtextembed",
       "description": "Send long text embed."
     },
+    "test_sendmessages": {
+      "name": "sendmessages",
+      "description": "Send 10 messages."
+    },
     "test_slowcommand": {
       "name": "slowcommand",
       "description": "Slow command."
@@ -473,7 +478,8 @@
   "command_processor": {
     "strings": {
       "command_usage": "Command usage: `$1`",
-      "argument_name": "argument: \"$1\""
+      "argument_name": "argument: \"$1\"",
+      "done": "Done!"
     },
     "errors": {
       "unknown_command": "Unknown command.",

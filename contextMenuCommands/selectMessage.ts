@@ -11,13 +11,10 @@ const command: ContextMenuCommandDefinition<MessageContextMenuCommandInteraction
             .channels.getOrSet(interaction.channelId, {
                 members: new Map()
             })
-            .members.getOrSet(interaction.user.id, {
-                messageSelectionRange: {
-                    begin: interaction.targetId,
-                    end: interaction.targetId
-                }
-            })
-            .messageSelectionRange!;
+            .members.getOrSet(interaction.user.id, {}).messageSelectionRange ??= {
+                begin: interaction.targetId,
+                end: interaction.targetId
+            };
         
         if (interaction.targetId > range.begin)
             range.end = interaction.targetId;

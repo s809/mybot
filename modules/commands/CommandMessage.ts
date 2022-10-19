@@ -7,6 +7,11 @@ export class CommandMessage<InGuild extends boolean = boolean> {
     readonly translator: PrefixedTranslator;
     readonly message?: Message;
     readonly interaction?: CommandInteraction;
+    
+    get response() {
+        return this._response;
+    }
+    _response: CommandResponse | null = null;
 
     constructor(command: Command, translator: PrefixedTranslator, source: Message | CommandInteraction) {
         this.command = command;
@@ -27,12 +32,12 @@ export class CommandMessage<InGuild extends boolean = boolean> {
 
     async deferReply(options: InteractionDeferReplyOptions = {}) {
         if (this.interaction) {
-            return new CommandResponse({
+            return this._response = new CommandResponse({
                 interaction: this.interaction,
                 response: await this.interaction!.deferReply({ ephemeral: true, ...options })
             });
         } else {
-            return new CommandResponse({
+            return this._response =  new CommandResponse({
                 deferChannel: this.message!.channel,
             });
         }
@@ -40,7 +45,7 @@ export class CommandMessage<InGuild extends boolean = boolean> {
 
     async reply(options: string | InteractionReplyOptions | MessageReplyOptions) {
         if (this.interaction) {
-            return new CommandResponse({
+            return this._response = new CommandResponse({
                 interaction: this.interaction,
                 response: await this.interaction.reply({
                     ephemeral: true,
@@ -106,6 +111,9 @@ export class CommandResponse {
     readonly response?: InteractionResponse;
 
     private message?: Message;
+    get replyCompleted() {
+        return !!this.message;
+    }
 
     constructor({
         message,
