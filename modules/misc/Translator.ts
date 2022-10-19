@@ -85,6 +85,8 @@ export class Translator {
     static async getLanguage(nameOrContext: string | Message | CommandInteraction | GuildResolvable) {
         if (typeof nameOrContext === "string") {
             return nameOrContext;
+        } else if (nameOrContext instanceof CommandInteraction && (nameOrContext.ephemeral ?? true)) {
+            return nameOrContext.locale;
         } else if (nameOrContext instanceof Guild) {
             return (await DbGuild.findByIdOrDefault(nameOrContext.id, { language: 1 })).language
         } else if (nameOrContext.guild) {
