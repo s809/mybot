@@ -69,7 +69,7 @@ export function defaultValue(type: any, defaultValue: any) {
 }
 
 export const languageData = {
-    language: defaultValue(required(String), defaults.locale)
+    language: String
 }
 
 export const flagData = {

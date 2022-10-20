@@ -1,9 +1,11 @@
-import { CommandInteraction, Guild, GuildResolvable, LocaleString, Message } from "discord.js";
+import { CommandInteraction, Guild, GuildResolvable, LocaleString, Message, User } from "discord.js";
 import { readdirSync, readFileSync } from "fs";
 import { get } from "lodash-es";
 import { Guild as DbGuild, User as DbUser } from "../../database/models";
 import { defaults } from "../../constants";
 import { formatString } from "../../util";
+
+const defaultDiscordLocale: LocaleString = "en-US";
 
 export class PrefixedTranslator {
     readonly translator: Translator;
@@ -82,19 +84,53 @@ export class Translator {
         Translator._translators.set(this.localeString, this);
     }
 
-    static async getLanguage(nameOrContext: string | Message | CommandInteraction | GuildResolvable) {
-        if (typeof nameOrContext === "string") {
+    static async getLanguage(nameOrContext: string | Message | CommandInteraction | GuildResolvable | User): Promise<string> {
+        if (typeof nameOrContext === "string")
             return nameOrContext;
-        } else if (nameOrContext instanceof CommandInteraction && (nameOrContext.ephemeral ?? true)) {
-            return nameOrContext.locale;
+        
+        /*
+        if should use guild:
+            use guild's locale ?? owner's locale
+        if shoule use user:
+            if overridden:
+                use override
+            else:
+                if provided == default discord:
+                    use default bot // need of use provided == default solved by override
+                else:
+                    use provided ?? default bot
+        */
+        
+        let user: User | undefined;
+        let interactionLocale: LocaleString | undefined;
+        let guild: Guild | null | undefined;
+
+        if (nameOrContext instanceof CommandInteraction) {
+            if (!guild || (nameOrContext.ephemeral ?? true)) {
+                user = nameOrContext.user;
+                interactionLocale = nameOrContext.locale;
+            } else {
+                guild = nameOrContext.guild;
+            }
         } else if (nameOrContext instanceof Guild) {
-            return (await DbGuild.findByIdOrDefault(nameOrContext.id, { language: 1 })).language
-        } else if (nameOrContext.guild) {
-            return (await DbGuild.findByIdOrDefault(nameOrContext.guild.id, { language: 1 })).language;
+            guild = nameOrContext;
+        } else if (nameOrContext instanceof User) {
+            user = nameOrContext;
         } else if (nameOrContext instanceof Message) {
-            return (await DbGuild.findByIdOrDefault(nameOrContext.author.id, { language: 1 })).language;
-        } else if (nameOrContext instanceof CommandInteraction) {
-            return (await DbGuild.findByIdOrDefault(nameOrContext.user.id, { language: 1 })).language;
+            if (nameOrContext.channel.isDMBased())
+                user = nameOrContext.author;
+            else
+                guild = nameOrContext.guild;
+        } else if (nameOrContext.guild) {
+            guild = nameOrContext.guild as Guild;
+        }
+
+        if (user) {
+            return (await DbUser.findByIdOrDefault(user.id, { language: 1 })).language
+                ?? (interactionLocale !== defaultDiscordLocale ? interactionLocale : null)
+                ?? defaults.locale;
+        } else if (guild) {
+            return (await DbGuild.findByIdOrDefault(guild.id, { language: 1 })).language ?? Translator.getLanguage((await guild.fetchOwner()).user);
         } else {
             throw new Error("Invalid context.");
         }

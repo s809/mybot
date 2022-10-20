@@ -9,17 +9,18 @@ async function lang(msg: CommandMessage, {
 }: {
     language: string;
 }) {
-    if (msg.member && !msg.member.permissions.has("ManageGuild"))
-        return "cannot_manage_language";
-
     const localeString = [...Translator.translators.values()].find(x => x.setLanguageRegex.test(newLang))?.localeString;
     if (!localeString)
         return "invalid_language";
 
-    if (msg.guildId)
+    if (msg.inGuild() && !msg.interaction) {
+        if (!msg.member.permissions.has("ManageGuild"))
+            return "cannot_manage_language";
+
         await Guild.updateByIdWithUpsert(msg.guildId, { language: localeString });
-    else
+    } else {
         await User.updateByIdWithUpsert(msg.author.id, { language: localeString });
+    }
 }
 
 const command: CommandDefinition = {

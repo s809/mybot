@@ -4,7 +4,7 @@ import { Contents, DocumentOf } from './types';
 
 export const guildDefaults = (_id: string) => ({
     _id,
-    language: "en-US",
+    language: undefined,
     flags: [],
     prefix: defaults.prefix,
 
@@ -15,7 +15,7 @@ export const guildDefaults = (_id: string) => ({
 
 export const userDefaults = (_id: string) => ({
     _id,
-    language: "en-US",
+    language: undefined,
     flags: []
 });
 
