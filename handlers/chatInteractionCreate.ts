@@ -30,6 +30,7 @@ client.on('interactionCreate', async interaction => {
     const argToGetter = new Map<ApplicationCommandOptionType, (name: string, require?: boolean) => any>([
         [ApplicationCommandOptionType.String, interaction.options.getString],
         [ApplicationCommandOptionType.Number, interaction.options.getNumber],
+        [ApplicationCommandOptionType.Integer, interaction.options.getInteger],
         [ApplicationCommandOptionType.Boolean, interaction.options.getBoolean],
         [ApplicationCommandOptionType.Channel, interaction.options.getChannel],
         [ApplicationCommandOptionType.User, interaction.options.getUser],

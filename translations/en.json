@@ -304,6 +304,34 @@
         }
       }
     },
+    "pinbottom": {
+      "name": "pinbottom",
+      "description": "Commands for bottom pinning of messages."
+    },
+    "pinbottom_set": {
+      "name": "set",
+      "description": "Pin a message to bottom of the channel.",
+      "args": {
+        "messageInterval": {
+          "name": "message-interval",
+          "description": "Interval between messages."
+        },
+        "content": {
+          "name": "content",
+          "description": "Content of a pinned message."
+        }
+      },
+      "errors": {
+        "no_content": "No content is specified and the message is not pinned."
+      }
+    },
+    "pinbottom_remove": {
+      "name": "remove",
+      "description": "Unpin a message from the bottom of a channel.",
+      "errors": {
+        "not_pinned": "The message is not pinned."
+      }
+    },
     "prefix": {
       "name": "prefix",
       "description": "Change prefix.",

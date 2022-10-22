@@ -81,6 +81,4 @@ export async function syncGuild(guild: Guild) {
             });
         }
     }
-
-    await dbGuild.save();
 }

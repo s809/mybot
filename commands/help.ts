@@ -6,6 +6,7 @@ import { CommandMessage } from "../modules/commands/CommandMessage";
 import { Command, CommandDefinition } from "../modules/commands/definitions";
 import { getPrefix } from "../modules/data/getPrefix";
 import { isBotOwner } from "../env";
+import { defaults } from "../constants";
 
 async function help(msg: CommandMessage) {
     let translator = msg.translator;
@@ -66,7 +67,9 @@ async function help(msg: CommandMessage) {
             };
         } else {
             let codeBlock = `\`\`\`\n${await toUsageString(msg, command, translator.translator)}\`\`\`\n`;
-            let description = `${command.descriptionTranslations[translator.localeString] ?? translator.translate("embeds.no_description")}`;
+            let description = `${command.descriptionTranslations[translator.localeString]
+                ?? command.descriptionTranslations[defaults.locale]
+                ?? translator.translate("embeds.no_description")}`;
             let requiredPermissions = command.conditions.filter(x => !x.hideInDescription).map(x => x.name).join(", ");
             
             if (requiredPermissions)

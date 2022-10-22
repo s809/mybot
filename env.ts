@@ -2,7 +2,7 @@
  * @file Keeps global bot state.
  */
 
-import { Client, GatewayIntentBits, Guild, GuildResolvable, IntentsBitField, Partials, Snowflake, Team, User } from "discord.js";
+import { Client, GatewayIntentBits, Guild, GuildResolvable, IntentsBitField, Message, Partials, Snowflake, Team, User } from "discord.js";
 import { User as DatabaseUser } from "./database/models";
 import { MusicPlayer } from "./modules/music/MusicPlayer";
 import { debug, version } from "./constants";
@@ -38,6 +38,7 @@ const runtimeGuildData = new Map<Snowflake, {
 
     channels: Map<Snowflake, {
         textGenEnabled?: true,
+        pinnedMessageUpdater?: (msg: Message) => void,
 
         members: Map<Snowflake, {
             lastCommand?: {

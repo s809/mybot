@@ -1,46 +1,22 @@
 {
-	"simple command": {
+	"command": {
 		"scope": "typescript",
 		"prefix": "command",
 		"body": [
 			"const command: CommandDefinition = {",
-			"    name: \"$1\",",
-			"    func: $2",
+			"    key: \"$1\",",
+			"    args: [$2],",
+			"    handler: $3",
 			"};",
 			"export default command;"
 		]
 	},
-	"command with arguments": {
-		"scope": "typescript",
-		"prefix": "command",
-		"body": [
-			"const command: CommandDefinition = {",
-			"    name: \"$1\",",
-			"    args: [$2, $3, \"$4\"],",
-			"    func: $5",
-			"};",
-			"export default command;"
-		]
-	},
-	"simple category": {
+	"category": {
 		"scope": "typescript",
 		"prefix": "category",
 		"body": [
 			"const command: CommandDefinition = {",
 			"    name: \"$1\",",
-			"    subcommands: await importCommands(import.meta.url)",
-			"};",
-			"export default command;"
-		]
-	},
-	"command-containing category": {
-		"scope": "typescript",
-		"prefix": "category",
-		"body": [
-			"const command: CommandDefinition = {",
-			"    name: \"$1\",",
-			"    args: [$2, $3, \"$4\"],",
-			"    func: $5,",
 			"    subcommands: await importCommands(import.meta.url)",
 			"};",
 			"export default command;"

@@ -18,7 +18,15 @@ export const Guild = model("guilds", new Schema({
 
     roles: defaultValue(requiredMapOf({}), new Map()),
     members: defaultValue(requiredMapOf({}), new Map()),
-    channels: defaultValue(requiredMapOf(flagData), new Map())
+    channels: defaultValue(requiredMapOf({
+        ...flagData,
+
+        pinnedMessage: requiredAllExceptParent({
+            content: String,
+            interval: Number,
+            lastMessage: String
+        })
+    }), new Map())
 }, {
     strict: false,
     statics: {

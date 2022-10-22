@@ -7,10 +7,12 @@ import { Overwrite } from "../../util";
 
 type MessageSendOptions = Parameters<TextBasedChannel["send"]>[0];
 
+export type AlwaysLastMessage = Overwrite<Message, AlwaysLastMessageWrapper>;
+
 /**
  * Wrapper for resending edited message if it's not last in channel.
  */
-export class AlwaysLastMessage extends EventEmitter {
+class AlwaysLastMessageWrapper extends EventEmitter {
     message: Message;
     editing: boolean = false;
     lastOptions?: Parameters<Message["edit"]>[0];
@@ -27,6 +29,7 @@ export class AlwaysLastMessage extends EventEmitter {
 
     /**
      * Edits or resends message with new content.
+     * Do not await unless you want a moment when all edits are done.
      * 
      * @param options Content to fill new message with.
      */
@@ -37,7 +40,7 @@ export class AlwaysLastMessage extends EventEmitter {
         }
 
         this.lastOptions = options;
-        this.editInternal();
+        await this.editInternal();
         return this;
     }
 
@@ -45,20 +48,18 @@ export class AlwaysLastMessage extends EventEmitter {
         let options: this["lastOptions"] = undefined;
         this.editing = true;
 
-        let resendFunc = async () => {
-            this.message = await this.message.channel.send(options as MessageSendOptions);
-        };
-
         while (options !== this.lastOptions) {
             options = this.lastOptions!;
 
-            if (this.message.channel.lastMessageId !== this.message.id)
+            if (this.message.channel.lastMessageId !== this.message.id) {
                 await Promise.all([
                     this.message.delete().catch(() => { }),
-                    resendFunc()
+                    this.message.channel.send(options as MessageSendOptions)
+                        .then(message => this.message = message)
                 ]);
-            else
+            } else {
                 this.message = await this.message.edit(options);
+            }
         }
 
         delete this.lastOptions;
@@ -72,22 +73,30 @@ export class AlwaysLastMessage extends EventEmitter {
      */
     async editWithoutDeleting(options: this["lastOptions"]) {
         if (!this.editing)
-            this.message.edit(options!);
+            this.message = await this.message.edit(options!);
     }
 }
 
 /**
- * Sends and creates wrapper for resending a message when edited.
+ * Sends and creates a wrapper for resending a message when edited.
+ * 
+ * @param message Message to wrap.
+ * @returns Wrapped message.
+ */
+export function wrapAlwaysLastMessage(message: Message) {
+    let wrapped = new AlwaysLastMessageWrapper(message);
+    return new Proxy(wrapped, {
+        get: (target, name) => ((name in target ? target : wrapped.message as any)[name])
+    }) as AlwaysLastMessage;
+}
+
+/**
+ * Sends and creates a wrapper for resending a message when edited.
  * 
  * @param channel Channel in which to send message.
  * @param options Content to fill new message with.
  * @returns Wrapped message.
  */
 export async function sendAlwaysLastMessage(channel: TextBasedChannel, options: MessageSendOptions) {
-    let message = await channel.send(options);
-
-    let data = new AlwaysLastMessage(message);
-    return new Proxy(data, {
-        get: (target, name) => ((name in target ? target : data.message as any)[name])
-    }) as Overwrite<Message, AlwaysLastMessage>;
+    return wrapAlwaysLastMessage(await channel.send(options));
 }
