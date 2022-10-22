@@ -1,5 +1,6 @@
 import { BaseGuildTextChannel, Channel, Guild, GuildMember, Role, Snowflake } from "discord.js";
 import { Guild as DbGuild, TextGenData } from "../../database/models";
+import { client, getRuntimeGuildData, textGenEnabledChannels } from "../../env";
 
 // Do NOT add anything to database unless something is actually to be written
 // to avoid spamming it with tons of empty structures.
@@ -15,7 +16,18 @@ export async function onChannelRemove(channel: Channel | {
             [`channels.${channel.id}`]: 1
         }
     });
+
+    const channelData = getRuntimeGuildData(channel.guild).channels.get(channel.id);
+
+    // Text gen
     await TextGenData.deleteOne({ _id: channel.id });
+    textGenEnabledChannels.delete(channel.id);
+
+    // Pin bottom
+    if (channelData?.pinnedMessageUpdater)
+        client.off("messageCreate", channelData?.pinnedMessageUpdater);
+
+    getRuntimeGuildData(channel.guild).channels.delete(channel.id);
 }
 
 export async function onRoleRemove(role: Role | {

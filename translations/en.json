@@ -310,7 +310,7 @@
     },
     "pinbottom_set": {
       "name": "set",
-      "description": "Pin a message to bottom of the channel.",
+      "description": "Pin a message to the bottom of the channel.",
       "args": {
         "messageInterval": {
           "name": "message-interval",

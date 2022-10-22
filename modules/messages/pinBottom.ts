@@ -61,19 +61,6 @@ export async function doPinMessage(channel: GuildTextBasedChannel, {
     if (channelData.pinnedMessageUpdater)
         client.off("messageCreate", channelData.pinnedMessageUpdater);
     
-    /*
-    if new
-        send
-    else
-        load old message
-        fetch up to <interval> after
-        if >= <interval>
-            update immediately
-    
-    finish setting up
-    */
-
-    // Restore data from previous session
     const fetched = await channel.messages.fetch(lastMessage).catch(() => { });
     const pinnedMessage = fetched
         ? wrapAlwaysLastMessage(fetched)
