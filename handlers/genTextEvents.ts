@@ -18,11 +18,11 @@ client.on("messageCreate", async msg => {
     if (!result) return;
 
     if (!shouldGenerate(msg)) {
-        await TextGenData.updateOne({ _id: msg.channelId }, result);
+        await TextGenData.updateOne({ _id: msg.channelId }, result, { runValidators: true });
         return;
     }
     
-    const textGenData = await TextGenData.findByIdAndUpdate(msg.channelId, result, { new: true });
+    const textGenData = await TextGenData.findByIdAndUpdate(msg.channelId, result, { runValidators: true, new: true });
     if (!textGenData) return;
     
     // Message generation
