@@ -1,14 +1,14 @@
-import { musicPlayingGuilds } from "../../env";
 import { CommandMessage } from "../../modules/commands/CommandMessage";
 import { CommandDefinition } from "../../modules/commands/definitions";
 import { InVoiceWithBot } from "../../modules/commands/conditions";
+import { runtimeGuildData } from "../../env";
 
 async function skip(msg: CommandMessage<true>) {
-    let player = musicPlayingGuilds.get(msg.guild);
-    if (!player)
+    const { musicPlayer } = runtimeGuildData.getOrSetDefault(msg.guildId);
+    if (!musicPlayer)
         return "nothing_is_playing";
 
-    player.skip();
+    musicPlayer.skip();
 }
 
 const command: CommandDefinition = {

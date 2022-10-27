@@ -1,18 +1,18 @@
-import { client, musicPlayingGuilds } from "../env";
+import { client, runtimeGuildData } from "../env";
 
 client.on("voiceStateUpdate", (oldState, newState) => {
-    let voiceState = newState.guild.voiceStates.resolve(client.user!.id as any);
-    let player = musicPlayingGuilds.get(voiceState?.guild);
+    const voiceState = newState.guild.voiceStates.resolve(client.user!.id as any)!;
+    const { musicPlayer } = runtimeGuildData.getOrSetDefault(voiceState.guild.id);
+    if (!musicPlayer) return;
 
-    if (!player) return;
     if (newState.id === client.user!.id && !newState.channelId) {
-        player.resume();
+        musicPlayer.resume();
         return;
     }
 
-    let memberCount = voiceState.channel!.members.size;
+    const memberCount = voiceState.channel!.members.size;
     if (memberCount === 1)
-        player.pause();
+        musicPlayer.pause();
     else if (memberCount === 2 && (!oldState.channelId || newState.channelId === voiceState.channelId))
-        player.resume();
+        musicPlayer.resume();
 });

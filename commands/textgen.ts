@@ -1,6 +1,6 @@
 import { ApplicationCommandOptionType, PermissionFlagsBits } from "discord.js";
 import { TextGenData } from "../database/models";
-import { textGenEnabledChannels } from "../env";
+import { runtimeGuildData } from "../env";
 import { CommandMessage } from "../modules/commands/CommandMessage";
 import { CommandDefinition } from "../modules/commands/definitions";
 
@@ -9,18 +9,21 @@ async function manageTextGen(msg: CommandMessage<true>, {
 }: {
     action: "enable" | "disable"
 }) {
+    const channelData = runtimeGuildData.getOrSetDefault(msg.guildId)
+        .channels.getOrSetDefault(msg.channelId);
+
     if (action === "enable") {
         const result = await TextGenData.updateOne({ _id: msg.channelId }, {}, { upsert: true });
         if (!result.upsertedCount)
             return "already_enabled";
 
-        textGenEnabledChannels.add(msg.channelId);
+        channelData.textGenEnabled = true;
     } else {
         const result = await TextGenData.deleteOne({ _id: msg.channelId });
         if (!result.deletedCount)
             return "already_disabled";
 
-        textGenEnabledChannels.delete(msg.channelId);
+        channelData.textGenEnabled = false;
     }
 }
 

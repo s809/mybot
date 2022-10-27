@@ -3,7 +3,7 @@ import { ChannelData, Guild, MemberData, RoleData } from "../../database/models"
 import { DocumentOf } from "../../database/types";
 import { guildChannelDefaults, guildMemberDefaults, guildRoleDefaults } from "../../database/defaults";
 import { client } from "../../env";
-import { transformString } from "../../util";
+import { getOrSet, transformString } from "../../util";
 
 const transformationMap: [string, string][] = [
     ["\\", "\\bs"],
@@ -20,17 +20,17 @@ export async function getChannel(channel: ChannelResolvable, field?: string): Pr
     if (!resolved?.guild) return null;
 
     const dbGuild = await Guild.findByIdOrDefault(resolved.guildId, { [`channels.${resolved.id}${field ? `.${field}` : ""}`]: 1 });
-    return [dbGuild, dbGuild.channels.getOrSet(resolved.id, guildChannelDefaults(), true)];
+    return [dbGuild, getOrSet(dbGuild.channels, resolved.id, guildChannelDefaults(), true)];
 }
 
 export async function getMember(member: GuildMember, field?: string): Promise<[DocumentOf<typeof Guild>, MemberData]> {
     const dbGuild = await Guild.findByIdOrDefault(member.guild.id, { [`members.${member.id}${field ? `.${field}` : ""}`]: 1 });
-    return [dbGuild, dbGuild.members.getOrSet(member.id, guildMemberDefaults(), true)];
+    return [dbGuild, getOrSet(dbGuild.members, member.id, guildMemberDefaults(), true)];
 }
 
 export async function getRole(role: Role, field?: string): Promise<[DocumentOf<typeof Guild>, RoleData]> {
     const dbGuild = await Guild.findByIdOrDefault(role.guild.id, { [`roles.${role.id}${field ? `.${field}` : ""}`]: 1 });
-    return [dbGuild, dbGuild.roles.getOrSet(role.id, guildRoleDefaults(), true)];
+    return [dbGuild, getOrSet(dbGuild.roles, role.id, guildRoleDefaults(), true)];
 }
 
 export function escapeKey(key: string) {

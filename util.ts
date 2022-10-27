@@ -151,23 +151,8 @@ export function transformString(text: string, map: [string, string][]) {
     return text;
 }
 
-declare global {
-    interface Map<K, V> {
-        /**
-         * Gets an existing value or sets a new value to map and returns it. \
-         * Working with `null` or `undefined` in values is not supported.
-         * 
-         * @param key Key to use.
-         * @param defaultValue Default value if key does not exist in map. 
-         * @param slow Whether to set and get instead of setting and returning already given value when a key is missing.
-         * @returns Value, either got or set into map.
-         */
-        getOrSet(key: K, defaultValue: NonNullable<V>, slow?: boolean): V;
-    }
-    
-}
-Map.prototype.getOrSet = function (key: any, defaultValue: NonNullable<any>, slow = false) {
-    return this.get(key) ?? (this.set(key, defaultValue), slow ? this.get(key)! : defaultValue);
+export function getOrSet<K, V>(map: Map<K, V>, key: K, defaultValue: NonNullable<V>, slow = false) {
+    return map.get(key) ?? (map.set(key, defaultValue), slow ? map.get(key)! : defaultValue);
 }
 
 export type Overwrite<T, U> = Omit<T, keyof U> & U;

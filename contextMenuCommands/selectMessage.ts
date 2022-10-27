@@ -1,5 +1,5 @@
 import { ActionRowBuilder, ApplicationCommandType, ButtonBuilder, ButtonStyle, MessageContextMenuCommandInteraction, messageLink } from "discord.js";
-import { getRuntimeGuildData } from "../env";
+import { runtimeGuildData } from "../env";
 import { ContextMenuCommandDefinition } from "../modules/commands/contextMenuCommands";
 
 const command: ContextMenuCommandDefinition<MessageContextMenuCommandInteraction> = {
@@ -7,11 +7,10 @@ const command: ContextMenuCommandDefinition<MessageContextMenuCommandInteraction
     type: ApplicationCommandType.Message,
 
     handler: async (interaction, translator) => {
-        const range = getRuntimeGuildData(interaction.guild!)
-            .channels.getOrSet(interaction.channelId, {
-                members: new Map()
-            })
-            .members.getOrSet(interaction.user.id, {}).messageSelectionRange ??= {
+        const range = runtimeGuildData.getOrSetDefault(interaction.guildId!)
+            .channels.getOrSetDefault(interaction.channelId)
+            .members.getOrSetDefault(interaction.user.id)
+            .messageSelectionRange ??= {
                 begin: interaction.targetId,
                 end: interaction.targetId
             };

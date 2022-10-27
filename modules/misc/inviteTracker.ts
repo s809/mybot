@@ -1,6 +1,6 @@
-import { Guild, GuildTextBasedChannel, Snowflake } from "discord.js";
-import { storedInviteCounts } from "../../env";
+import { Guild, GuildTextBasedChannel, Invite, Snowflake } from "discord.js";
 import { Guild as DbGuild, InviteTrackerData } from "../../database/models";
+import { runtimeGuildData } from "../../env";
 import { Translator } from "./Translator";
 
 export async function getInviteTrackerData(guild: Guild): Promise<[InviteTrackerData, GuildTextBasedChannel] | []> {
@@ -23,7 +23,7 @@ export async function trackInvites(channel: GuildTextBasedChannel) {
 }
 
 export async function untrackInvites(guildId: Snowflake) {
-    storedInviteCounts.delete(guildId);
+    delete runtimeGuildData.getOrSetDefault(guildId).inviteTracker;
     await DbGuild.updateOne({ _id: guildId }, {
         $unset: {
             inviteTracker: 1
@@ -40,13 +40,14 @@ export async function tryStartTracking(guild: Guild) {
 }
 
 export async function startTracking(channel: GuildTextBasedChannel) {
-    const map = new Map();
-    storedInviteCounts.set(channel.guildId, map);
-
     try {
-        for (const [code, invite] of await channel.guild.invites.fetch())
-            map.set(code, invite.uses);
+        const { counts } = runtimeGuildData.getOrSetDefault(channel.guildId)
+            .inviteTracker = {
+                logChannel: channel,
+                counts: (await channel.guild.invites.fetch())
+                    .mapValues((invite: Invite) => invite.uses!)
+            };
 
-        await channel.send((await Translator.getOrDefault(channel.guild, "invitetracker")).translate("strings.tracking_started", map.size.toString()));
+        await channel.send((await Translator.getOrDefault(channel.guild, "invitetracker")).translate("strings.tracking_started", counts.size.toString()));
     } catch { }
 }

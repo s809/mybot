@@ -2,11 +2,12 @@
  * @file Keeps global bot state.
  */
 
-import { Client, GatewayIntentBits, Guild, GuildResolvable, IntentsBitField, Message, Partials, Snowflake, Team, User } from "discord.js";
+import { Client, GatewayIntentBits, GuildTextBasedChannel, IntentsBitField, Message, Partials, Snowflake, Team, User } from "discord.js";
 import { User as DatabaseUser } from "./database/models";
 import { MusicPlayer } from "./modules/music/MusicPlayer";
 import { debug, version } from "./constants";
 import { Command } from "./modules/commands/definitions";
+import { MapWithDefault } from "./modules/misc/MapWithDefault";
 
 export const client = new Client({
     intents: Object.values(IntentsBitField.Flags) as GatewayIntentBits[],
@@ -28,19 +29,18 @@ export async function isBotOwner(user: User) {
         || (await DatabaseUser.findByIdOrDefault(user.id, { flags: 1 }))!.flags.includes("owner");
 }
 
-export const musicPlayingGuilds = new Map<Guild, MusicPlayer>();
-export const storedInviteCounts = new Map<Snowflake, Map<string, number>>();
-export const textGenEnabledChannels = new Set<string>();
-
-const runtimeGuildData = new Map<Snowflake, {
+export const runtimeGuildData = new MapWithDefault<Snowflake, {
     musicPlayer?: MusicPlayer,
-    inviteCounts?: Map<string, number>,
+    inviteTracker?: {
+        logChannel: GuildTextBasedChannel,
+        counts: Map<string, number>,
+    },
 
-    channels: Map<Snowflake, {
-        textGenEnabled?: true,
+    channels: MapWithDefault<Snowflake, {
+        textGenEnabled?: boolean,
         pinnedMessageUpdater?: (msg: Message) => void,
 
-        members: Map<Snowflake, {
+        members: MapWithDefault<Snowflake, {
             lastCommand?: {
                 command: Command,
                 args: object
@@ -51,13 +51,11 @@ const runtimeGuildData = new Map<Snowflake, {
             }
         }>
     }>
-}>;
-export function getRuntimeGuildData(guild: GuildResolvable) {
-    const resolved = client.guilds.resolveId(guild);
-    if (!resolved)
-        throw new Error("Invalid guild");
-
-    return runtimeGuildData.getOrSet(resolved, {
-        channels: new Map()
-    });
-}
+}>()
+    .setDefault(() => ({
+        channels: new MapWithDefault()
+            .setDefault(() => ({
+                members: new MapWithDefault()
+                    .setDefault(() => ({}))
+            }))
+    }));

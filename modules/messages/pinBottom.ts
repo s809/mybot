@@ -1,6 +1,6 @@
 import { GuildTextBasedChannel } from "discord.js";
 import { ChannelData, Guild } from "../../database/models";
-import { client, getRuntimeGuildData } from "../../env";
+import { client, runtimeGuildData } from "../../env";
 import { getChannel } from "../data/databaseUtil";
 import { sendAlwaysLastMessage, wrapAlwaysLastMessage } from "./AlwaysLastMessage";
 
@@ -53,10 +53,8 @@ export async function doPinMessage(channel: GuildTextBasedChannel, {
     interval: messageInterval,
     lastMessage
 }: NonNullable<ChannelData["pinnedMessage"]>) {
-    const channelData = getRuntimeGuildData(channel.guild!)
-        .channels.getOrSet(channel.id, {
-            members: new Map()
-        });
+    const channelData = runtimeGuildData.getOrSetDefault(channel.guildId!)
+        .channels.getOrSetDefault(channel.id);
 
     if (channelData.pinnedMessageUpdater)
         client.off("messageCreate", channelData.pinnedMessageUpdater);
@@ -101,10 +99,8 @@ export async function doPinMessage(channel: GuildTextBasedChannel, {
 }
 
 export async function unpinMessage(channel: GuildTextBasedChannel) {
-    const channelData = getRuntimeGuildData(channel.guild!)
-        .channels.getOrSet(channel.id, {
-            members: new Map()
-        });
+    const channelData = runtimeGuildData.getOrSetDefault(channel.guildId!)
+        .channels.getOrSetDefault(channel.id);
     
     if (channelData.pinnedMessageUpdater) {
         client.off("messageCreate", channelData.pinnedMessageUpdater);

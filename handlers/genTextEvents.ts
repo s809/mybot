@@ -1,5 +1,5 @@
-import { Guild, TextGenData } from "../database/models";
-import { client, textGenEnabledChannels } from "../env";
+import { TextGenData } from "../database/models";
+import { client, runtimeGuildData } from "../env";
 import { shouldGenerate, makeTextGenUpdateQuery, generate } from "../modules/messages/genText";
 
 client.on("messageCreate", async msg => {
@@ -7,9 +7,11 @@ client.on("messageCreate", async msg => {
     if (msg.author.bot || msg.webhookId) return;
     
     // Fetch if result is not cached
-    if (!textGenEnabledChannels.has(msg.channelId)) {
+    const channelData = runtimeGuildData.getOrSetDefault(msg.guildId)
+        .channels.getOrSetDefault(msg.channelId);
+    if (!channelData.textGenEnabled) {
         if (!await TextGenData.findById(msg.channelId)) return;
-        textGenEnabledChannels.add(msg.channelId);
+        channelData.textGenEnabled = true;
     }
 
     // Collect words from messages

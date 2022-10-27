@@ -1,16 +1,15 @@
 /**
  * @file Command for starting playback.
  */
-import { musicPlayingGuilds } from "../../env";
 import { fetchVideoOrPlaylist } from "../../modules/music/youtubeDl";
-import { Translator } from "../../modules/misc/Translator";
 import { MusicPlayer } from "../../modules/music/MusicPlayer";
-import { ApplicationCommandOptionType, GuildTextBasedChannel } from "discord.js";
+import { ApplicationCommandOptionType } from "discord.js";
 import { CommandDefinition } from "../../modules/commands/definitions";
 import { MusicPlayerQueueEntry } from "../../modules/music/MusicPlayerQueue";
 import { CommandMessage } from "../../modules/commands/CommandMessage";
+import { runtimeGuildData } from "../../env";
 
-async function play(msg: CommandMessage, {
+async function play(msg: CommandMessage<true>, {
     urlOrQuery,
     playlistStartPosition = 0
 }: {
@@ -22,10 +21,10 @@ async function play(msg: CommandMessage, {
     if (urlOrQuery?.match(/(\\|'|")/))
         return "invalid_url";
 
-    let player = musicPlayingGuilds.get(voiceChannel.guild);
+    const { musicPlayer } = runtimeGuildData.getOrSetDefault(voiceChannel.guildId);
     
     if (!urlOrQuery) {
-        if (player?.resume())
+        if (musicPlayer?.resume())
             return;
         else
             return "no_url_or_query";
@@ -35,14 +34,14 @@ async function play(msg: CommandMessage, {
     if (!videos.length)
         return "no_videos_added";
 
-    if (player) {
-        player.queue.push(...videos);
-        player.updateStatus(null);
+    if (musicPlayer) {
+        musicPlayer.queue.push(...videos);
+        musicPlayer.updateStatus(null);
         return;
     }
 
-    player = new MusicPlayer(voiceChannel, videos, msg.translator.translator);
-    player.runPlayer(msg.channel as GuildTextBasedChannel);
+    new MusicPlayer(voiceChannel, videos, msg.translator.translator)
+        .runPlayer(msg.channel);
 }
 
 const command: CommandDefinition = {

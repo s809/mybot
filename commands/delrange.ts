@@ -2,7 +2,7 @@ import { ApplicationCommandOptionType, GuildTextBasedChannel, PermissionFlagsBit
 import { CommandDefinition } from "../modules/commands/definitions";
 import { iterateMessagesChunked } from "../modules/messages/iterateMessages";
 import { CommandMessage } from "../modules/commands/CommandMessage";
-import { getRuntimeGuildData } from "../env";
+import { runtimeGuildData } from "../env";
 
 async function deleteRange(msg: CommandMessage<true>, {
     startId,
@@ -27,11 +27,9 @@ async function deleteRange(msg: CommandMessage<true>, {
             return "invalid_message_range";
         }
     } else {
-        const runtimeData = getRuntimeGuildData(msg.guildId)
-            .channels.getOrSet(msg.channelId, {
-                members: new Map()
-            })
-            .members.getOrSet(msg.author.id, {});
+        const runtimeData = runtimeGuildData.getOrSetDefault(msg.guildId)
+            .channels.getOrSetDefault(msg.channelId)
+            .members.getOrSetDefault(msg.author.id);
         
         const range = runtimeData.messageSelectionRange;
         if (!range)

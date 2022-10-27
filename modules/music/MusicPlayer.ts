@@ -6,12 +6,12 @@ import { PrefixedTranslator, Translator } from "../../modules/misc/Translator";
 import { MessageEditOptions, GuildTextBasedChannel, VoiceBasedChannel, ChannelType, LocaleString } from "discord.js";
 import { MusicPlayerQueue, MusicPlayerQueueEntry } from "./MusicPlayerQueue";
 import { createDiscordJSAdapter } from "../../modules/music/voiceAdapter";
-import { musicPlayingGuilds } from "../../env";
 import { voice } from "../../constants";
 import { setTimeout } from "timers/promises";
 import { getDownloadStream } from "../../modules/music/youtubeDl";
 import { makeOpusStream } from "../../modules/music/ffmpeg";
 import { once } from "events";
+import { runtimeGuildData } from "../../env";
 
 export class MusicPlayer {
     /** Current voice connection. */
@@ -139,10 +139,11 @@ export class MusicPlayer {
 
     /** Stops player. */
     stop() {
-        if (!musicPlayingGuilds.has(this.voiceChannel.guild)) return;
+        const guildData = runtimeGuildData.getOrSetDefault(this.voiceChannel.guildId);
+        if (!guildData.musicPlayer) return;
 
         this.queue.splice(0, this.queue.entries.length);
-        musicPlayingGuilds.delete(this.voiceChannel.guild);
+        delete guildData.musicPlayer;
         this.currentVideo = null;
         this.player?.stop();
         this.connection.destroy();
@@ -165,7 +166,7 @@ export class MusicPlayer {
             adapterCreator: createDiscordJSAdapter(this.voiceChannel)
         });;
 
-        musicPlayingGuilds.set(this.voiceChannel.guild, this);
+        runtimeGuildData.getOrSetDefault(this.voiceChannel.guildId).musicPlayer = this;
 
         try {
             await entersState(this.connection, VoiceConnectionStatus.Ready, voice.readyWaitTimeout);
