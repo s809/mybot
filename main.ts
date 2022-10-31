@@ -7,7 +7,10 @@ import { token } from "./constants";
 import { logDebug, logError } from "./log";
 import { loadCommands } from "./modules/commands";
 import { refreshCommands } from "./modules/commands/appCommands";
+import { install } from "source-map-support";
 import "./database";
+
+install();
 
 (async () => {
     logDebug("Running in debug mode.");
