@@ -15,7 +15,7 @@ import { Guild, User } from "../database/models";
 client.on("messageCreate", async msg => {
     if (msg.author.bot || msg.webhookId) return;
 
-    if (!isBotOwner(msg.author)) {
+    if (!await isBotOwner(msg.author)) {
         // User ban
         const user = await User.findByIdOrDefault(msg.author.id, { flags: 1 });
         if (user.flags.includes("banned")) return;
@@ -87,7 +87,7 @@ client.on("messageCreate", async msg => {
             allowed &&= allowedInChannel;
         }
 
-        if (!allowed && !isBotOwner(msg.author)) return;
+        if (!allowed && !await isBotOwner(msg.author)) return;
     } else {
         if (command.allowDMs === false)
             return;
@@ -96,6 +96,8 @@ client.on("messageCreate", async msg => {
     const commandMessage = new CommandMessage(command, await Translator.getOrDefault(msg, command.translationPath), msg);
 
     // Check conditions
+    if (command.ownerOnly && !await isBotOwner(msg.author))
+        return;
     const checkResult = checkConditions(commandMessage, command);
     if (checkResult) {
         await msg.channel.send(checkResult);
