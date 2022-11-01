@@ -1,5 +1,5 @@
 import { ButtonBuilder, SelectMenuBuilder, TextInputBuilder } from "@discordjs/builders";
-import { ActionRowBuilder, ButtonInteraction, ButtonStyle, codeBlock, Message, ModalSubmitInteraction, SelectMenuInteraction, TextInputStyle } from "discord.js";
+import { ActionRowBuilder, ButtonInteraction, ButtonStyle, codeBlock, ComponentType, Message, ModalSubmitInteraction, SelectMenuInteraction, TextInputStyle } from "discord.js";
 import { ScriptList } from "../../database/models";
 import { client } from "../../env";
 import { log } from "../../log";
@@ -149,8 +149,9 @@ async function scriptEditor(msg: CommandMessage) {
         });
     }
 
-    const collector = message.createMessageComponentCollector({
+    const buttonCollector = message.createMessageComponentCollector({
         idle: 2147483647,
+        componentType: ComponentType.Button
     })
         .on("collect", async interaction => {
             if (interaction.user !== msg.author) {
@@ -161,85 +162,98 @@ async function scriptEditor(msg: CommandMessage) {
                 return;
             }
 
-            if (interaction instanceof SelectMenuInteraction) {
-                if (interaction.values[0] === "_create_new") {
-                    // duct tape on shitty android discord version
-                    await message.edit(getOptions());
-
-                    createNew = true;
+            switch (interaction.customId) {
+                case "edit":
+                    createNew = false;
                     await createModal(interaction);
 
                     await interaction.awaitModalSubmit({
                         time: 600000
-                    }).then(onModalSubmit);
-                } else {
-                    switch (interaction.customId) {
-                        case "type":
-                            list = categories.find(x => x.id === interaction.values[0])!;
-                            name = ""; // will be reset in getOptions
-                            break;
-                        case "name":
-                            name = interaction.values[0];
-                            break;
+                    }).then(onModalSubmit).catch(() => { });
+                    break;
+                case "reload":
+                    context?.destroy();
+
+                    const result = await botEval(value!, null, `${list._id}/${name}`);
+                    log(`Executed ${name}:\n${result}`);
+
+                    if (result === "undefined") {
+                        await interaction.update(getOptions());
+                    } else {
+                        await message.edit(getOptions());
+                        await interaction.reply({
+                            embeds: [{
+                                description: codeBlock("js", result)
+                            }],
+                            ephemeral: true
+                        });
                     }
+                    break;
+                case "stop":
+                    context!.destroy();
 
                     await interaction.update(getOptions());
-                }
+                    break;
+                case "delete":
+                    context?.destroy();
+                    list.items.delete(name!);
+
+                    [list] = await Promise.all([
+                        list.save(),
+                        interaction.update(getOptions())
+                    ]);
+                    categories[categories.findIndex(l => l.id === list.id)] = list;
+                    break;
+                case "restart":
+                    await interaction.deferReply({ ephemeral: true });
+                    await doRestart(async () => {
+                        await interaction.followUp({
+                            content: "Bot is restarting.",
+                            ephemeral: true
+                        })
+                    });
+                    break;
+            }
+        })
+        .on("end", () => {
+            client.off("messageCreate", event);
+        });
+
+    const menuCollector = message.createMessageComponentCollector({
+        idle: 2147483647,
+        componentType: ComponentType.StringSelect
+    })
+        .on("collect", async interaction => {
+            if (interaction.user !== msg.author) {
+                await interaction.reply({
+                    content: "Nothing for you here.",
+                    ephemeral: true
+                });
+                return;
             }
 
-            if (interaction instanceof ButtonInteraction) {
+            if (interaction.values[0] === "_create_new") {
+                // duct tape on shitty android discord version
+                await message.edit(getOptions());
+
+                createNew = true;
+                await createModal(interaction);
+
+                await interaction.awaitModalSubmit({
+                    time: 600000
+                }).then(onModalSubmit);
+            } else {
                 switch (interaction.customId) {
-                    case "edit":
-                        createNew = false;
-                        await createModal(interaction);
-
-                        await interaction.awaitModalSubmit({
-                            time: 600000
-                        }).then(onModalSubmit).catch(() => { });
+                    case "type":
+                        list = categories.find(x => x.id === interaction.values[0])!;
+                        name = ""; // will be reset in getOptions
                         break;
-                    case "reload":
-                        context?.destroy();
-
-                        const result = await botEval(value!, null, `${list._id}/${name}`);
-                        log(`Executed ${name}:\n${result}`);
-
-                        if (result === "undefined") {
-                            await interaction.update(getOptions());
-                        } else {
-                            await message.edit(getOptions());
-                            await interaction.reply({
-                                embeds: [{
-                                    description: codeBlock("js", result)
-                                }],
-                                ephemeral: true
-                            });
-                        }
-                        break;
-                    case "stop":
-                        context!.destroy();
-
-                        await interaction.update(getOptions());
-                        break;
-                    case "delete":
-                        context?.destroy();
-                        list.items.delete(name!);
-
-                        [list] = await Promise.all([
-                            list.save(),
-                            interaction.update(getOptions())
-                        ]);
-                        categories[categories.findIndex(l => l.id === list.id)] = list;
-                        break;
-                    case "restart":
-                        await interaction.deferReply({ ephemeral: true });
-                        await doRestart(async () => {
-                            await interaction.followUp({
-                                content: "Bot is restarting.",
-                                ephemeral: true
-                            })
-                        });
+                    case "name":
+                        name = interaction.values[0];
                         break;
                 }
+
+                await interaction.update(getOptions());
             }
         })
         .on("end", () => {
@@ -247,12 +261,12 @@ async function scriptEditor(msg: CommandMessage) {
         });
 
     const event = (message: Message) => {
-        if (message.channelId === msg.channelId) {
-            collector.resetTimer({
-                idle: 600000
-            });
-            client.off("messageCreate", event);
-        }
+        if (message.channelId !== msg.channelId) return;
+        
+        for (const collector of [buttonCollector, menuCollector])
+            collector.resetTimer({ idle: 600000 });
+
+        client.off("messageCreate", event);
     };
     client.on("messageCreate", event);
 }

@@ -2,7 +2,7 @@
  * @file Provides utility functions for sending messages.
  */
 import { EmbedBuilder } from "@discordjs/builders";
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, InteractionReplyOptions, Message, MessageCreateOptions, MessagePayload, MessageReplyOptions, TextBasedChannel } from "discord.js";
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType, InteractionReplyOptions, Message, MessageCreateOptions, MessagePayload, MessageReplyOptions, TextBasedChannel } from "discord.js";
 import { CommandMessage, CommandResponse } from "../commands/CommandMessage";
 
 const title = "Page %page% of %pagecount%";
@@ -157,7 +157,8 @@ async function sendPagedTextWithButtons(sendFunction: ((options: InteractionRepl
 
     let collector = msg.createMessageComponentCollector({
         idle: 60000,
-        dispose: true
+        dispose: true,
+        componentType: ComponentType.Button
     }).on("collect", async interaction => {
         await interaction.deferUpdate();
 
