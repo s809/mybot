@@ -1,0 +1,9 @@
+{
+	"image": "mcr.microsoft.com/vscode/devcontainers/typescript-node:18",
+	"features": {
+		"ghcr.io/devcontainers-contrib/features/ffmpeg-apt-get:1": {},
+		"ghcr.io/devcontainers-contrib/features/youtube-dl:2": {}
+	},
+	"onCreateCommand": "bash ./.devcontainer/onCreateCommand.sh",
+	"postStartCommand": "sudo mongod -f /etc/mongod.conf &"
+}
