@@ -5,5 +5,5 @@
 		"ghcr.io/devcontainers-contrib/features/youtube-dl:2": {}
 	},
 	"onCreateCommand": "bash ./.devcontainer/onCreateCommand.sh",
-	"postStartCommand": "sudo mongod -f /etc/mongod.conf &"
+	"postStartCommand": "nohup bash -c 'sudo mongod -f /etc/mongod.conf &'"
 }
