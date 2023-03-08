@@ -1,12 +1,8 @@
-import { importModules } from "../../modules/commands/importHelper";
-import { CommandDefinition } from "../../modules/commands/definitions";
-import { InVoiceChannel } from "../../modules/commands/conditions";
+import { defineCommand, InVoiceChannel } from "@s809/noisecord";
 
-const command: CommandDefinition = {
+export default defineCommand({
     key: "music",
     conditions: [InVoiceChannel],
-    subcommands: await importModules(import.meta.url),
     ownerOnly: true,
     allowDMs: false
-};
-export default command;
+});

@@ -1,11 +1,8 @@
 import { PermissionFlagsBits } from "discord.js";
-import { CommandDefinition } from "../../modules/commands/definitions";
-import { importModules } from "../../modules/commands/importHelper";
+import { defineCommand } from "@s809/noisecord";
 
-const command: CommandDefinition = {
+export default defineCommand({
     key: "bot",
-    subcommands: await importModules(import.meta.url),
-    usableAsAppCommand: true,
+    interactionCommand: true,
     defaultMemberPermissions: PermissionFlagsBits.UseApplicationCommands
-};
-export default command;
+});

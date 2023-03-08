@@ -1,10 +1,8 @@
 import os from "os";
 import { client } from "../../env";
-import { CommandMessage } from "../../modules/commands/CommandMessage";
-import { CommandDefinition } from "../../modules/commands/definitions";
-import { PrefixedTranslator } from "../../modules/misc/Translator";
+import { CommandRequest, defineCommand, Translator } from "@s809/noisecord";
 
-function getUptimeStr(diff: number, translator: PrefixedTranslator) {
+function getUptimeStr(diff: number, translator: Translator) {
     var days = Math.floor(diff / (1000 * 60 * 60 * 24));
     diff -= days * (1000 * 60 * 60 * 24);
 
@@ -17,29 +15,30 @@ function getUptimeStr(diff: number, translator: PrefixedTranslator) {
     var seconds = Math.floor(diff / (1000));
     diff -= seconds * (1000);
 
-    return translator.translate("embeds.time_format",
-        days.toString(),
-        hours.toString(),
-        mins.toString(),
-        seconds.toString());
+    return translator.translate("embeds.time_format", {
+        days,
+        hours,
+        mins,
+        seconds
+    });
 }
 
-async function uptime(msg: CommandMessage) {
+async function uptime(msg: CommandRequest) {
     let bot = new Date(client.uptime!);
     let host = new Date(os.uptime() * 1000);
 
     await msg.reply({
         embeds: [{
             title: msg.translator.translate("embeds.title"),
-            description: msg.translator.translate("embeds.text",
-                getUptimeStr(bot.getTime(), msg.translator),
-                getUptimeStr(host.getTime(), msg.translator))
+            description: msg.translator.translate("embeds.text", {
+                botUptime: getUptimeStr(bot.getTime(), msg.translator),
+                hostUptime: getUptimeStr(host.getTime(), msg.translator)
+            })
         }]
     });
 }
 
-const command: CommandDefinition = {
+export default defineCommand({
     key: "uptime",
     handler: uptime,
-};
-export default command;
+});

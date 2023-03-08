@@ -1,10 +1,8 @@
-import { defaults } from "../constants";
-
 export function mapOf<T>(of: T) {
     return {
         type: Map,
         of
-    };
+    } as const;
 }
 
 function modifyType<T, U>(type: T, join: U): (T extends object
@@ -22,21 +20,21 @@ function modifyType<T, U>(type: T, join: U): (T extends object
     } as any;
 }
 
-export function required<T>(type: T): ReturnType<typeof modifyType<T, { required: true }>> {
-    return modifyType(type, { required: true });
+export function required<T>(type: T) {
+    return modifyType(type, { required: true } as const);
 }
 
 export function requiredAll<T extends object>(type: T): {
     [K in keyof T]: ReturnType<typeof required<T[K]>>
 } {
-    return Object.fromEntries(Object.entries(type).map(([k, v]) => [k, required(v)])) as any;
+    return Object.fromEntries(Object.entries(type).map(([k, v]) => [k, required(v)] as const)) as any;
 }
 
 export function requiredAllExceptParent<T extends object>(type: T) {
     return {
         type: requiredAll(type),
         required: false
-    };
+    } as const;
 }
 
 export function requiredMapOf<T>(of: T) {

@@ -1,13 +1,12 @@
-import { CommandMessage } from "../../modules/commands/CommandMessage";
-import { CommandDefinition } from "../../modules/commands/definitions";
+import { CommandRequest, defineCommand } from "@s809/noisecord";
+import { CommandDefinition } from "@s809/noisecord";
 
-async function deleteServer(msg: CommandMessage<true>) {
+async function deleteServer(msg: CommandRequest<true>) {
     await msg.guild.delete();
 }
 
-const command: CommandDefinition = {
+export default defineCommand({
     key: "delete",
     handler: deleteServer,
     alwaysReactOnSuccess: true
-};
-export default command;
+});

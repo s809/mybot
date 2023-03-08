@@ -1,9 +1,9 @@
 import { Message } from "discord.js";
-import { CommandMessage } from "../../modules/commands/CommandMessage";
-import { CommandDefinition } from "../../modules/commands/definitions";
+import { CommandRequest, defineCommand } from "@s809/noisecord";
+import { CommandDefinition } from "@s809/noisecord";
 import { iterateMessages } from "../../modules/messages/iterateMessages";
 
-async function test(msg: CommandMessage<true>) {
+async function test(msg: CommandRequest<true>) {
     const response = await msg.deferReply();
 
     const channel = await msg.guild.channels.create({
@@ -35,8 +35,7 @@ async function test(msg: CommandMessage<true>) {
     await channel.delete();
 }
 
-const command: CommandDefinition = {
+export default defineCommand({
     key: "iteratemessages",
     handler: test
-};
-export default command;
+});

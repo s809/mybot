@@ -3,10 +3,10 @@ import { ApplicationCommandOptionType, Client, GatewayIntentBits } from "discord
 import sendLongText from "../../modules/messages/sendLongText";
 import { sendAlwaysLastMessage } from "../../modules/messages/AlwaysLastMessage";
 import { once } from "events";
-import { CommandDefinition } from "../../modules/commands/definitions";
-import { CommandMessage } from "../../modules/commands/CommandMessage";
+import { defineCommand } from "@s809/noisecord";
+import { CommandRequest } from "@s809/noisecord";
 
-async function testTokens(msg: CommandMessage, { 
+async function testTokens(msg: CommandRequest, { 
     tokens
 }: {
     tokens: string[]
@@ -88,13 +88,12 @@ async function testTokens(msg: CommandMessage, {
     }
 }
 
-const command: CommandDefinition = {
+export default defineCommand({
     key: "testtokens",
     args: [{
-        translationKey: "tokens",
+        key: "tokens",
         type: ApplicationCommandOptionType.String,
         isExtras: true,
     }],
     handler: testTokens
-};
-export default command;
+});

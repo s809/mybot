@@ -2,8 +2,5 @@ import "./ready";
 import "./dataSyncEvents";
 import "./voiceStateUpdate";
 import "./inviteTrackerEvents";
-import "./messageCreate";
-import "./chatInteractionCreate";
-import "./contextMenuInteractionCreate";
 import "./genTextEvents";
 import "./invalidated";

@@ -1,13 +1,13 @@
-import { APIEmbed, ApplicationCommandOptionType, EmbedBuilder, GuildTextBasedChannel, Message, TextChannel, User } from "discord.js";
+import { APIEmbed, ApplicationCommandOptionType, ChannelType, EmbedBuilder, GuildTextBasedChannel, Message, TextChannel, User } from "discord.js";
 import { client } from "../../env";
 import { iterateMessages } from "../../modules/messages/iterateMessages";
 import { sendAlwaysLastMessage } from "../../modules/messages/AlwaysLastMessage";
 import sendLongText from "../../modules/messages/sendLongText";
 import { once } from "events";
-import { CommandDefinition, textChannels as guildTextChannels } from "../../modules/commands/definitions";
-import { CommandMessage } from "../../modules/commands/CommandMessage";
+import { CommandDefinition, defineCommand, textChannels as guildTextChannels } from "@s809/noisecord";
+import { CommandRequest } from "@s809/noisecord";
 
-async function scanChannel(msg: CommandMessage<true>, {
+async function scanChannel(msg: CommandRequest<true>, {
     mode,
     channel
 }: {
@@ -85,7 +85,7 @@ async function scanChannel(msg: CommandMessage<true>, {
                     title: translator.translate("embeds.title"),
                     description: translator.translate("embeds.progress.fetching_messages"),
                     footer: {
-                        text: translator.translate("embeds.progress.fetch_progress", totalLength.toString())
+                        text: translator.translate("embeds.progress.fetch_progress", { count: totalLength })
                     }
                 }]
             });
@@ -97,7 +97,7 @@ async function scanChannel(msg: CommandMessage<true>, {
             title: translator.translate("embeds.title"),
             description: translator.translate("embeds.progress.fetching_invites"),
             footer: {
-                text: translator.translate("embeds.progress.fetch_progress", totalLength.toString())
+                text: translator.translate("embeds.progress.fetch_progress", { count: totalLength })
             }
         }]
     });
@@ -116,7 +116,10 @@ async function scanChannel(msg: CommandMessage<true>, {
             }
             catch (e) { /* Skip */ }
         }
-        result = translator.translate("embeds.finished.invites_summary", invites.size.toString(), aliveInviteCount.toString()) + "\n" + result;
+        result = translator.translate("embeds.finished.invites_summary", {
+            invites: invites.size,
+            aliveInvites: aliveInviteCount
+        }) + "\n" + result;
         await sendLongText(msg.channel, result, {
             code: null,
             multipleMessages: true,
@@ -158,7 +161,7 @@ async function scanChannel(msg: CommandMessage<true>, {
             let unsanitizedResult = statTitle + "\n```\n" + result + "```";
             if (unsanitizedResult.length > 4096) {
                 files.push(statTitle.replace(":", ` for ${authorStr}:`) + result);
-                result = statTitle + translator.translate("embeds.finished.see_attachment", files.length.toString());
+                result = statTitle + translator.translate("embeds.finished.see_attachment", { name: files.length });
             }
             else {
                 result = unsanitizedResult;
@@ -187,28 +190,27 @@ async function scanChannel(msg: CommandMessage<true>, {
     }
 }
 
-const command: CommandDefinition = {
+export default defineCommand({
     key: "scan",
-    args: /* [1, 2, "<mode{daily,weekly,monthly}> [channel]"] */[{
-        translationKey: "mode",
+    args: [{
+        key: "mode",
         type: ApplicationCommandOptionType.String,
         choices: [{
-            translationKey: "daily",
+            key: "daily",
             value: "daily"
         }, {
-            translationKey: "weekly",
+            key: "weekly",
             value: "weekly"
         }, {
-            translationKey: "monthly",
+            key: "monthly",
             value: "monthly"
         }]
     }, {
-        translationKey: "channel",
+        key: "channel",
         type: ApplicationCommandOptionType.Channel,
-        channelTypes: guildTextChannels,
+        channelTypes: guildTextChannels as unknown as ChannelType[]
     }],
     handler: scanChannel,
-    usableAsAppCommand: false,
+    interactionCommand: false,
     ownerOnly: true
-};
-export default command;
+});

@@ -1,15 +1,14 @@
-import { CommandMessage } from "../../modules/commands/CommandMessage";
-import { CommandDefinition } from "../../modules/commands/definitions";
+import { CommandRequest, defineCommand } from "@s809/noisecord";
+import { CommandDefinition } from "@s809/noisecord";
 
-async function test(msg: CommandMessage) {
+async function test(msg: CommandRequest) {
     await msg.deferReply();
     
     for (let i = 0; i < 10; i++)
         await msg.sendSeparate(`${i + 1}`);
 }
 
-const command: CommandDefinition = {
+export default defineCommand({
     key: "sendmessages",
     handler: test
-};
-export default command;
+});

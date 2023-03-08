@@ -1,6 +1,6 @@
 import { inspect } from "util";
 import { ScriptContext } from "./ScriptContext";
-import { CommandMessage } from "../commands/CommandMessage";
+import { CommandRequest } from "@s809/noisecord";
 
 /**
  * Evaluate code from text.
@@ -11,7 +11,7 @@ import { CommandMessage } from "../commands/CommandMessage";
  * @param scriptName Name of the script, if present.
  * @returns
  */
-export async function botEval(code: string, msg: CommandMessage | null, scriptName: string | null = null) {
+export async function botEval(code: string, msg: CommandRequest | null, scriptName: string | null = null) {
     const { client: _client } = await import("../../env");
     const { Guild: DbGuild, User: DbUser } = await import("../../database/models");
 

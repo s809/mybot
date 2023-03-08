@@ -1,37 +1,34 @@
 import { ApplicationCommandOptionType, PermissionFlagsBits } from "discord.js";
 import { Guild, User } from "../database/models";
-import { CommandMessage } from "../modules/commands/CommandMessage";
-import { CommandDefinition } from "../modules/commands/definitions";
-import { Translator } from "../modules/misc/Translator";
+import { CommandRequest } from "@s809/noisecord";
+import { defineCommand } from "@s809/noisecord";
+import { commandFramework } from "../env";
 
-async function lang(msg: CommandMessage, {
+async function lang(msg: CommandRequest, {
     language: newLang
 }: {
     language: string;
 }) {
-    const localeString = [...Translator.translators.values()].find(x => x.setLanguageRegex.test(newLang))?.localeString;
+    const localeString = Object.entries(commandFramework.translatorManager!.setLocaleRegexes).find(([, regexp]) => regexp.test(newLang))?.[0];
     if (!localeString)
         return "invalid_language";
 
-    if (msg.inGuild() && !msg.interaction) {
-        if (!msg.member.permissions.has("ManageGuild"))
-            return "cannot_manage_language";
-
+    if (msg.inGuild()) {
         await Guild.updateByIdWithUpsert(msg.guildId, { language: localeString });
     } else {
-        await User.updateByIdWithUpsert(msg.author.id, { language: localeString });
+        await User.updateByIdWithUpsert((msg as CommandRequest<false>).author.id, { language: localeString });
     }
 }
 
-const command: CommandDefinition = {
+export default defineCommand({
     key: "lang",
     args: [{
-        translationKey: "language",
+        key: "language",
         type: ApplicationCommandOptionType.String,
     }],
     defaultMemberPermissions: PermissionFlagsBits.ManageGuild,
-    usableAsAppCommand: true,
+    interactionCommand: true,
     handler: lang,
+    allowDMs: true,
     alwaysReactOnSuccess: true,
-}
-export default command;
+});

@@ -1,8 +1,8 @@
 import { ApplicationCommandOptionType } from "discord.js";
-import { CommandMessage } from "../../modules/commands/CommandMessage";
-import { CommandDefinition } from "../../modules/commands/definitions";
+import { CommandRequest } from "@s809/noisecord";
+import { defineCommand } from "@s809/noisecord";
 
-async function test(msg: CommandMessage, {
+async function test(msg: CommandRequest, {
     sendError
 }: {
     sendError?: "raw" | "translate"
@@ -25,20 +25,19 @@ async function test(msg: CommandMessage, {
     }
 }
 
-const command: CommandDefinition = {
+export default defineCommand({
     key: "translations",
     args: [{
-        translationKey: "sendError",
+        key: "sendError",
         type: ApplicationCommandOptionType.String,
         choices: [{
-            translationKey: "raw",
+            key: "raw",
             value: "raw"
         }, {
-            translationKey: "translate",
-            value: "translate" 
+            key: "translate",
+            value: "translate"
         }],
         required: false
     }],
     handler: test
-};
-export default command;
+});

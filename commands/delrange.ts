@@ -1,10 +1,10 @@
 import { ApplicationCommandOptionType, GuildTextBasedChannel, PermissionFlagsBits } from "discord.js";
-import { CommandDefinition } from "../modules/commands/definitions";
+import { CommandDefinition } from "@s809/noisecord";
 import { iterateMessagesChunked } from "../modules/messages/iterateMessages";
-import { CommandMessage } from "../modules/commands/CommandMessage";
+import { CommandRequest } from "@s809/noisecord";
 import { runtimeGuildData } from "../env";
 
-async function deleteRange(msg: CommandMessage<true>, {
+async function deleteRange(msg: CommandRequest<true>, {
     startId,
     endId
 }: {
@@ -55,17 +55,17 @@ async function deleteRange(msg: CommandMessage<true>, {
 const command: CommandDefinition = {
     key: "delrange",
     args: [{
-        translationKey: "startId",
+        key: "startId",
         type: ApplicationCommandOptionType.String,
         required: false
     }, {
-        translationKey: "endId",
+        key: "endId",
         type: ApplicationCommandOptionType.String,
         required: false
     }],
     defaultMemberPermissions: PermissionFlagsBits.ManageMessages,
     allowDMs: false,
-    usableAsAppCommand: true,
+    interactionCommand: true,
     handler: deleteRange
 }
 export default command;

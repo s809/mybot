@@ -1,9 +1,6 @@
-import { CommandDefinition } from "../../modules/commands/definitions";
-import { importModules } from "../../modules/commands/importHelper";
+import { CommandDefinition, defineCommand } from "@s809/noisecord";
 
-const command: CommandDefinition = {
+export default defineCommand({
     key: "script",
-    ownerOnly: true,
-    subcommands: await importModules(import.meta.url)
-};
-export default command;
+    ownerOnly: true
+});

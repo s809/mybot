@@ -1,6 +1,6 @@
 import { ActionRowBuilder, ApplicationCommandType, ButtonBuilder, ButtonStyle, MessageContextMenuCommandInteraction, messageLink } from "discord.js";
 import { runtimeGuildData } from "../env";
-import { ContextMenuCommandDefinition } from "../modules/commands/contextMenuCommands";
+import { ContextMenuCommandDefinition } from "@s809/noisecord";
 
 const command: ContextMenuCommandDefinition<MessageContextMenuCommandInteraction> = {
     key: "selectMessage",
@@ -22,8 +22,11 @@ const command: ContextMenuCommandDefinition<MessageContextMenuCommandInteraction
         
         await interaction.reply({
             content: translator.translate("strings.selected") + "\n" + (range.begin !== range.end
-                ? translator.translate("strings.message_id_range", range.begin, range.end)
-                : translator.translate("strings.message_id", range.begin)),
+                ? translator.translate("strings.message_id_range", {
+                    startId: range.begin,
+                    endId: range.end
+                })
+                : translator.translate("strings.message_id", { id: range.begin })),
             components: [
                 new ActionRowBuilder<ButtonBuilder>()
                     .addComponents(range.begin !== range.end

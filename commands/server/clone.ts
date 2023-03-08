@@ -1,9 +1,9 @@
 import { ApplicationCommandOptionType, CategoryChannel, GuildChannel, GuildTextBasedChannel, NonThreadGuildBasedChannel, OverwriteType, Role, Snowflake, TextChannel, ThreadChannel, VoiceBasedChannel } from "discord.js";
 import { client } from "../../env";
-import { CommandMessage } from "../../modules/commands/CommandMessage";
-import { CommandDefinition } from "../../modules/commands/definitions";
+import { CommandRequest, defineCommand } from "@s809/noisecord";
+import { CommandDefinition } from "@s809/noisecord";
 
-async function cloneServer(msg: CommandMessage<true>, {
+async function cloneServer(msg: CommandRequest<true>, {
     id: guildId,
     mode,
     cleanBeforeStarting
@@ -150,28 +150,27 @@ async function cloneServer(msg: CommandMessage<true>, {
     }
 }
 
-const command: CommandDefinition = {
+export default defineCommand({
     key: "clone",
     args: [{
-        translationKey: "id",
+        key: "id",
         type: ApplicationCommandOptionType.String,
     }, {
-        translationKey: "mode",
+        key: "mode",
         type: ApplicationCommandOptionType.String,
         choices: [{
-            translationKey: "channels",
+            key: "channels",
             value: "channels"
         }, {
-            translationKey: "roles",
+            key: "roles",
             value: "roles"
         }, {
-            translationKey: "both",
+            key: "both",
             value: "both"
         }]
     }, {
-        translationKey: "cleanBeforeStarting",
+        key: "cleanBeforeStarting",
         type: ApplicationCommandOptionType.Boolean
     }],
     handler: cloneServer
-};
-export default command;
+});

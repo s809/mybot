@@ -4,18 +4,18 @@ import { ChannelData, Guild as DbGuild, User as DbUser } from "../../database/mo
 import { DocumentOf } from "../../database/types";
 import { client } from "../../env";
 import { ArrayElement } from "../../util";
-import { CommandDefinition } from "../commands/definitions";
+import { CommandDefinition } from "@s809/noisecord";
 import { getChannel } from "./databaseUtil";
 
 export type FlaggableType = "user" | "guild" | "channel";
 export const flaggableTypeChoices: ArrayElement<NonNullable<CommandDefinition["args"]>>["choices"] = [{
-    translationKey: "user",
+    key: "user",
     value: "user"
 }, {
-    translationKey: "guild",
+    key: "guild",
     value: "guild"
 }, {
-    translationKey: "channel",
+    key: "channel",
     value: "channel"
 }];
 

@@ -5,10 +5,10 @@ import { skipStringAfter } from "../../util";
 import sendLongText from "../../modules/messages/sendLongText";
 import { ApplicationCommandOptionType, Message } from "discord.js";
 import { getPrefix } from "../../modules/data/getPrefix";
-import { CommandDefinition } from "../../modules/commands/definitions";
-import { CommandMessage } from "../../modules/commands/CommandMessage";
+import { defineCommand, MessageCommandRequest } from "@s809/noisecord";
+import { CommandRequest } from "@s809/noisecord";
 
-async function shell(msg: CommandMessage) {
+async function shell(msg: MessageCommandRequest) {
     let command = skipStringAfter(msg.content,
         await getPrefix(msg.guildId),
         shell.name
@@ -19,21 +19,14 @@ async function shell(msg: CommandMessage) {
         await sendLongText(msg.channel, "--- stdout ---\n" + stdout);
     if (stderr.length)
         await sendLongText(msg.channel, "--- stderr ---\n" + stderr);
-    if (!stdout.length && !stderr.length) {
-        if (msg.interaction)
-            await msg.completeSilently();
-        else
-            await msg.message!.react("✅").catch(() => { });
-    }
 }
 
-const command: CommandDefinition = {
+export default defineCommand({
     key: "shell",
     args: [{
-        translationKey: "command",
+        key: "command",
         type: ApplicationCommandOptionType.String,
         isExtras: true
     }],
     handler: shell
-};
-export default command;
+});

@@ -5,9 +5,9 @@ import { execSync } from "child_process";
 import sendLongText from "../../modules/messages/sendLongText";
 import { EmbedBuilder } from "discord.js";
 import { version as currentVersion, debug } from "../../constants";
-import { CommandDefinition } from "../../modules/commands/definitions";
+import { defineCommand } from "@s809/noisecord";
 import { log } from "../../log";
-import { CommandMessage } from "../../modules/commands/CommandMessage";
+import { CommandRequest } from "@s809/noisecord";
 
 /**
  * Prepares bot changelog based on Git commits.
@@ -69,7 +69,7 @@ const logstr = prepareChangelog();
  * 
  * @param msg Message a command was sent from.
  */
-async function changelog(msg: CommandMessage) {
+async function changelog(msg: CommandRequest) {
     await sendLongText(msg, logstr, {
         code: null,
         embed: new EmbedBuilder({
@@ -77,11 +77,10 @@ async function changelog(msg: CommandMessage) {
         })
     });
 }
-
-const command: CommandDefinition = {
+;
+export default defineCommand({
     key: "changelog",
     handler: changelog,
-    usableAsAppCommand: false,
+    interactionCommand: false,
     ownerOnly: true
-};
-export default command;
+});

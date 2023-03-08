@@ -1,9 +1,8 @@
 import { ApplicationCommandOptionType } from "discord.js";
-import { CommandMessage } from "../../modules/commands/CommandMessage";
-import { CommandDefinition } from "../../modules/commands/definitions";
+import { CommandRequest, defineCommand } from "@s809/noisecord";
 import { pinMessage } from "../../modules/messages/pinBottom";
 
-async function setPinnedMessage(msg: CommandMessage<true>, {
+async function setPinnedMessage(msg: CommandRequest<true>, {
     messageInterval,
     content
 }: {
@@ -14,18 +13,17 @@ async function setPinnedMessage(msg: CommandMessage<true>, {
         return "no_content";
 }
 
-const command: CommandDefinition = {
+export default defineCommand({
     key: "set",
     args: [{
-        translationKey: "messageInterval",
+        key: "messageInterval",
         type: ApplicationCommandOptionType.Integer,
         minValue: 10,
         maxValue: 100
     }, {
-        translationKey: "content",
+        key: "content",
         type: ApplicationCommandOptionType.String,
         required: false
     }],
     handler: setPinnedMessage
-};
-export default command;
+});

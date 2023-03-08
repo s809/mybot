@@ -2,12 +2,9 @@
  * @file Owner commands.
  */
 
-import { CommandDefinition } from "../../modules/commands/definitions";
-import { importModules } from "../../modules/commands/importHelper";
+import { defineCommand } from "@s809/noisecord";
 
-const command: CommandDefinition = {
+export default defineCommand({
     key: "owner",
-    ownerOnly: true,
-    subcommands: await importModules(import.meta.url)
-};
-export default command;
+    ownerOnly: true
+});

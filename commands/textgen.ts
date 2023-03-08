@@ -1,10 +1,10 @@
 import { ApplicationCommandOptionType, PermissionFlagsBits } from "discord.js";
 import { TextGenData } from "../database/models";
 import { runtimeGuildData } from "../env";
-import { CommandMessage } from "../modules/commands/CommandMessage";
-import { CommandDefinition } from "../modules/commands/definitions";
+import { CommandRequest, defineCommand } from "@s809/noisecord";
+import { CommandDefinition } from "@s809/noisecord";
 
-async function manageTextGen(msg: CommandMessage<true>, {
+async function manageTextGen(msg: CommandRequest<true>, {
     action
 }: {
     action: "enable" | "disable"
@@ -27,23 +27,22 @@ async function manageTextGen(msg: CommandMessage<true>, {
     }
 }
 
-const command: CommandDefinition = {
+export default defineCommand({
     key: "textgen",
     args: [{
-        translationKey: "action",
+        key: "action",
         type: ApplicationCommandOptionType.String,
         choices: [{
-            translationKey: "enable",
+            key: "enable",
             value: "enable"
         }, {
-            translationKey: "disable",
+            key: "disable",
             value: "disable"
         }]
     }],
     handler: manageTextGen,
     alwaysReactOnSuccess: true,
-    usableAsAppCommand: true,
+    interactionCommand: true,
     defaultMemberPermissions: PermissionFlagsBits.ManageChannels,
     allowDMs: false
-};
-export default command;
+});

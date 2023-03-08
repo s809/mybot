@@ -3,7 +3,7 @@
  */
 import { EmbedBuilder } from "@discordjs/builders";
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType, InteractionReplyOptions, Message, MessageCreateOptions, MessagePayload, MessageReplyOptions, TextBasedChannel } from "discord.js";
-import { CommandMessage, CommandResponse } from "../commands/CommandMessage";
+import { CommandRequest, CommandResponse } from "@s809/noisecord";
 
 const title = "Page %page% of %pagecount%";
 const titleAlt = " (%page%/%pagecount%)";
@@ -187,7 +187,7 @@ async function sendPagedTextWithButtons(sendFunction: ((options: InteractionRepl
  * @param commandOrChannel Channel to send a message.
  * @param text Text to send.
  */
-export default async function sendLongText(commandOrChannel: TextBasedChannel | CommandMessage, text: string, {
+export default async function sendLongText(commandOrChannel: TextBasedChannel | CommandRequest, text: string, {
     code = "js",
     embed = new EmbedBuilder(),
     delimiter = "\n",
@@ -218,7 +218,7 @@ export default async function sendLongText(commandOrChannel: TextBasedChannel | 
     }
 
     const sendFunction = (() => {
-        const func = (commandOrChannel instanceof CommandMessage
+        const func = (commandOrChannel instanceof CommandRequest
             ? commandOrChannel.replyOrSendSeparate
             : commandOrChannel.send)
         return func.bind(commandOrChannel) as typeof func;

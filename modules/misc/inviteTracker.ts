@@ -1,7 +1,7 @@
 import { Guild, GuildTextBasedChannel, Invite, Snowflake } from "discord.js";
 import { Guild as DbGuild, InviteTrackerData } from "../../database/models";
-import { runtimeGuildData } from "../../env";
-import { Translator } from "./Translator";
+import { commandFramework, runtimeGuildData } from "../../env";
+import { Translator } from "@s809/noisecord";
 
 export async function getInviteTrackerData(guild: Guild): Promise<[InviteTrackerData, GuildTextBasedChannel] | []> {
     const { inviteTracker } = await DbGuild.findByIdOrDefault(guild.id, { inviteTracker: 1 });
@@ -48,6 +48,6 @@ export async function startTracking(channel: GuildTextBasedChannel) {
                     .mapValues((invite: Invite) => invite.uses!)
             };
 
-        await channel.send((await Translator.getOrDefault(channel.guild, "invitetracker")).translate("strings.tracking_started", counts.size.toString()));
+        await channel.send((await commandFramework.translatorManager!.getTranslator(channel.guild, "invitetracker")).translate("strings.tracking_started", { count: counts.size }));
     } catch { }
 }

@@ -1,14 +1,12 @@
-import { CommandMessage } from "../../modules/commands/CommandMessage";
-import { CommandDefinition } from "../../modules/commands/definitions";
+import { CommandRequest, defineCommand } from "@s809/noisecord";
 import { unpinMessage } from "../../modules/messages/pinBottom";
 
-async function removePinnedMessage(msg: CommandMessage<true>) {
+async function removePinnedMessage(msg: CommandRequest<true>) {
     if (!await unpinMessage(msg.channel))
         return "not_pinned";
 }
 
-const command: CommandDefinition = {
+export default defineCommand({
     key: "remove",
     handler: removePinnedMessage
-};
-export default command;
+});
