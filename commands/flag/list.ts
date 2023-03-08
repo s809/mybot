@@ -1,9 +1,9 @@
 import { ApplicationCommandOptionType, User } from "discord.js";
-import { CommandMessage } from "../../modules/commands/CommandMessage";
-import { CommandDefinition } from "../../modules/commands/definitions";
+import { CommandRequest } from "@s809/noisecord";
+import { CommandDefinition } from "@s809/noisecord";
 import { FlaggableType, resolveFlaggableItem, flaggableTypeChoices } from "../../modules/data/flags";
 
-async function flagList(msg: CommandMessage, {
+async function flagList(msg: CommandRequest, {
     type,
     id
 }: {
@@ -26,11 +26,11 @@ async function flagList(msg: CommandMessage, {
 const command: CommandDefinition = {
     key: "list",
     args: [{
-        translationKey: "type",
+        key: "type",
         type: ApplicationCommandOptionType.String,
         choices: flaggableTypeChoices
     }, {
-        translationKey: "id",
+        key: "id",
         type: ApplicationCommandOptionType.String,
     }],
     handler: flagList

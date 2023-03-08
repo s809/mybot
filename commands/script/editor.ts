@@ -1,17 +1,17 @@
 import { ButtonBuilder, SelectMenuBuilder, TextInputBuilder } from "@discordjs/builders";
-import { ActionRowBuilder, ButtonInteraction, ButtonStyle, codeBlock, ComponentType, Message, ModalSubmitInteraction, SelectMenuInteraction, TextInputStyle } from "discord.js";
+import { ActionRowBuilder, ButtonInteraction, ButtonStyle, codeBlock, ComponentType, Message, MessageComponentType, ModalSubmitInteraction, SelectMenuInteraction, StringSelectMenuInteraction, TextInputStyle } from "discord.js";
 import { ScriptList } from "../../database/models";
 import { client } from "../../env";
 import { log } from "../../log";
-import { CommandMessage } from "../../modules/commands/CommandMessage";
-import { CommandDefinition } from "../../modules/commands/definitions";
+import { CommandRequest, defineCommand } from "@s809/noisecord";
+import { CommandDefinition } from "@s809/noisecord";
 import { botEval } from "../../modules/misc/eval";
 import { doRestart } from "../../modules/misc/restart";
 import { ScriptContext } from "../../modules/misc/ScriptContext";
 
 const startupListName = "startup";
 
-async function scriptEditor(msg: CommandMessage) {
+async function scriptEditor(msg: CommandRequest) {
     const categories = await ScriptList.find();
     let list = categories[0];
     let name: string | undefined;
@@ -153,7 +153,7 @@ async function scriptEditor(msg: CommandMessage) {
         idle: 2147483647,
         componentType: ComponentType.Button
     })
-        .on("collect", async interaction => {
+        .on("collect", async (interaction: ButtonInteraction) => {
             if (interaction.user !== msg.author) {
                 await interaction.reply({
                     content: "Nothing for you here.",
@@ -223,7 +223,7 @@ async function scriptEditor(msg: CommandMessage) {
         idle: 2147483647,
         componentType: ComponentType.StringSelect
     })
-        .on("collect", async interaction => {
+        .on("collect", async (interaction: StringSelectMenuInteraction) => {
             if (interaction.user !== msg.author) {
                 await interaction.reply({
                     content: "Nothing for you here.",
@@ -271,8 +271,7 @@ async function scriptEditor(msg: CommandMessage) {
     client.on("messageCreate", event);
 }
 
-const command: CommandDefinition = {
+export default defineCommand({
     key: "editor",
     handler: scriptEditor
-};
-export default command;
+});

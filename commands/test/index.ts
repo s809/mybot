@@ -1,11 +1,8 @@
 import { debug } from "../../constants";
-import { CommandDefinition } from "../../modules/commands/definitions";
-import { importModules } from "../../modules/commands/importHelper";
+import { CommandDefinition, defineCommand } from "@s809/noisecord";
 
-const command: CommandDefinition = {
+export default defineCommand({
     key: "test",
     ownerOnly: !debug,
-    subcommands: await importModules(import.meta.url),
-    usableAsAppCommand: debug
-};
-export default command;
+    interactionCommand: debug
+});

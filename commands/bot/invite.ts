@@ -1,9 +1,9 @@
 import { OAuth2Scopes, PermissionFlagsBits } from "discord.js";
 import { client } from "../../env";
-import { CommandMessage } from "../../modules/commands/CommandMessage";
-import { CommandDefinition } from "../../modules/commands/definitions";
+import { CommandRequest, defineCommand } from "@s809/noisecord";
+import { CommandDefinition } from "@s809/noisecord";
 
-async function botInvite(msg: CommandMessage) {
+async function botInvite(msg: CommandRequest) {
     await msg.reply({
         embeds: [{
             title: msg.translator.translate("embeds.title"),
@@ -18,8 +18,7 @@ async function botInvite(msg: CommandMessage) {
     });
 }
 
-const command: CommandDefinition = {
+export default defineCommand({
     key: "invite",
     handler: botInvite,
-};
-export default command;
+});

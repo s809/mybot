@@ -1,5 +1,5 @@
 import { formatDuration } from "../../util";
-import { PrefixedTranslator, Translator } from "../misc/Translator";
+import { Translator } from "@s809/noisecord";
 import EventEmitter from "events";
 import { fetchVideoByUrl } from "./youtubeDl";
 
@@ -53,7 +53,7 @@ export class MusicPlayerQueue extends EventEmitter {
         return this._entries.splice(start, deleteCount!, ...items);
     }
 
-    getQueueData(translator: PrefixedTranslator) {
+    getQueueData(translator: Translator) {
         let result = "";
         let duration = 0;
         let tooLongFlag = false;

@@ -1,10 +1,10 @@
 import { ApplicationCommandOptionType, PermissionFlagsBits } from "discord.js";
 import { Guild } from "../database/models";
-import { CommandMessage } from "../modules/commands/CommandMessage";
-import { CommandDefinition } from "../modules/commands/definitions";
+import { CommandRequest } from "@s809/noisecord";
+import { CommandDefinition } from "@s809/noisecord";
 import { trackInvites, untrackInvites } from "../modules/misc/inviteTracker";
 
-async function manageInviteTracker(msg: CommandMessage<true>, {
+async function manageInviteTracker(msg: CommandRequest<true>, {
     action
 }: {
     action: "enable" | "disable"
@@ -26,13 +26,13 @@ async function manageInviteTracker(msg: CommandMessage<true>, {
 const command: CommandDefinition = {
     key: "invitetracker",
     args: [{
-        translationKey: "action",
+        key: "action",
         type: ApplicationCommandOptionType.String,
         choices: [{
-            translationKey: "enable",
+            key: "enable",
             value: "enable"
         }, {
-            translationKey: "disable",
+            key: "disable",
             value: "disable"
         }]
     }],
@@ -40,6 +40,6 @@ const command: CommandDefinition = {
     alwaysReactOnSuccess: true,
     defaultMemberPermissions: PermissionFlagsBits.ManageGuild | PermissionFlagsBits.CreateInstantInvite,
     allowDMs: false,
-    usableAsAppCommand: true,
+    interactionCommand: true,
 };
 export default command;

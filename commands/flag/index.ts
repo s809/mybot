@@ -1,11 +1,10 @@
 import { ApplicationCommandOptionType, GuildChannel } from "discord.js";
 import { Guild, User } from "../../database/models";
-import { CommandMessage } from "../../modules/commands/CommandMessage";
-import { CommandDefinition } from "../../modules/commands/definitions";
-import { importModules } from "../../modules/commands/importHelper";
+import { CommandRequest, defineCommand } from "@s809/noisecord";
+import { CommandDefinition } from "@s809/noisecord";
 import { FlaggableType, resolveFlaggableItem, flaggableTypeChoices } from "../../modules/data/flags";
 
-async function flag(msg: CommandMessage, {
+async function flag(msg: CommandRequest, {
     type,
     id,
     flag
@@ -71,22 +70,20 @@ async function flag(msg: CommandMessage, {
     }])
 }
 
-const command: CommandDefinition = {
+export default defineCommand({
     key: "flag",
     args: [{
-        translationKey: "type",
+        key: "type",
         type: ApplicationCommandOptionType.String,
         choices: flaggableTypeChoices
     }, {
-        translationKey: "id",
+        key: "id",
         type: ApplicationCommandOptionType.String,
     }, {
-        translationKey: "flag",
+        key: "flag",
         type: ApplicationCommandOptionType.String,
     }],
     ownerOnly: true,
     alwaysReactOnSuccess: true,
-    handler: flag,
-    subcommands: await importModules(import.meta.url)
-};
-export default command;
+    handler: flag
+});

@@ -1,9 +1,9 @@
 import { Message, TextChannel } from "discord.js";
 import { client } from "../../env";
-import { CommandMessage } from "../../modules/commands/CommandMessage";
-import { CommandDefinition } from "../../modules/commands/definitions";
+import { CommandRequest, defineCommand } from "@s809/noisecord";
+import { CommandDefinition } from "@s809/noisecord";
 
-async function getOwnedServers(msg: CommandMessage) {
+async function getOwnedServers(msg: CommandRequest) {
     let result = "";
 
     for (let guild of client.guilds.cache.values()) {
@@ -18,9 +18,8 @@ async function getOwnedServers(msg: CommandMessage) {
         await msg.reply(result);
 }
 
-const command: CommandDefinition = {
+export default defineCommand({
     key: "list",
     handler: getOwnedServers,
     alwaysReactOnSuccess: true
-};
-export default command;
+});

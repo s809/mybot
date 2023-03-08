@@ -1,7 +1,7 @@
-import { CommandMessage } from "../../modules/commands/CommandMessage";
-import { CommandDefinition } from "../../modules/commands/definitions";
+import { CommandRequest, defineCommand } from "@s809/noisecord";
+import { CommandDefinition } from "@s809/noisecord";
 
-async function resetChannel(msg: CommandMessage<true>) {
+async function resetChannel(msg: CommandRequest<true>) {
     if (msg.channel.isThread())
         return "thread_channel";
 
@@ -14,8 +14,7 @@ async function resetChannel(msg: CommandMessage<true>) {
     ]);
 }
 
-const command: CommandDefinition = {
+export default defineCommand({
     key: "reset",
     handler: resetChannel
-};
-export default command;
+});

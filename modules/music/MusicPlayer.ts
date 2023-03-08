@@ -2,7 +2,7 @@ import { Readable } from "stream";
 import { AudioPlayer, AudioPlayerStatus, AudioResource, createAudioPlayer, createAudioResource, entersState, joinVoiceChannel, VoiceConnection, VoiceConnectionStatus } from "@discordjs/voice";
 import { formatDuration } from "../../util";
 import { AlwaysLastMessage, sendAlwaysLastMessage } from "../../modules/messages/AlwaysLastMessage";
-import { PrefixedTranslator, Translator } from "../../modules/misc/Translator";
+import { Translator } from "@s809/noisecord";
 import { MessageEditOptions, GuildTextBasedChannel, VoiceBasedChannel, ChannelType, LocaleString } from "discord.js";
 import { MusicPlayerQueue, MusicPlayerQueueEntry } from "./MusicPlayerQueue";
 import { createDiscordJSAdapter } from "../../modules/music/voiceAdapter";
@@ -11,7 +11,7 @@ import { setTimeout } from "timers/promises";
 import { getDownloadStream } from "../../modules/music/youtubeDl";
 import { makeOpusStream } from "../../modules/music/ffmpeg";
 import { once } from "events";
-import { runtimeGuildData } from "../../env";
+import { commandFramework, runtimeGuildData } from "../../env";
 
 export class MusicPlayer {
     /** Current voice connection. */
@@ -39,7 +39,7 @@ export class MusicPlayer {
             throw new Error("Translator is not initialized.");
         return this._translator;
     }
-    private _translator: PrefixedTranslator | null = null;
+    private _translator: Translator | null = null;
     private localeString: LocaleString;
     /** Custom text. */
     private text: string | null = null;
@@ -80,16 +80,20 @@ export class MusicPlayer {
             embeds: [{
                 title: this.text ?? this.translator.translate("embeds.title_player"),
                 description: (this.currentVideo
-                    ? this.translator.translate("embeds.now_playing", currentTitleStr, currentDurationStr) + "\n"
+                    ? this.translator.translate("embeds.now_playing", {
+                        title: currentTitleStr,
+                        duration: currentDurationStr
+                    }) + "\n"
                     : "")
                     + queueData.text || undefined,
                 footer: this.queue.entries.length
                     ? {
-                        text: this.translator.translate("embeds.queue_summary",
-                                this.queue.entries.length.toString(),
-                                queueData.formattedDuration) + "\n"
+                        text: this.translator.translate("embeds.queue_summary", {
+                            length: this.queue.entries.length.toString(),
+                            duration: queueData.formattedDuration
+                        }) + "\n"
                             + (remainingToLoad
-                                ? this.translator.translate("embeds.load_remaining", remainingToLoad.toString()) + "\n"
+                                ? this.translator.translate("embeds.load_remaining", { count: remainingToLoad }) + "\n"
                                 : "")
                             + (this.queue.hadErrors
                                 ? this.translator.translate("embeds.some_removed") + "\n"
@@ -150,7 +154,7 @@ export class MusicPlayer {
     }
 
     async runPlayer(statusChannel: GuildTextBasedChannel) {
-        this._translator = await Translator.getOrDefault(this.localeString, "music_player");
+        this._translator = await commandFramework.translatorManager!.getTranslator(this.localeString, "music_player");
 
         this.statusMessage = await sendAlwaysLastMessage(statusChannel, {
             embeds: [{

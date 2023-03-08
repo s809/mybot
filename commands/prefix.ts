@@ -1,9 +1,9 @@
 import { ApplicationCommandOptionType, PermissionFlagsBits } from "discord.js";
 import { Guild } from "../database/models";
-import { CommandMessage } from "../modules/commands/CommandMessage";
-import { CommandDefinition } from "../modules/commands/definitions";
+import { CommandRequest, defineCommand } from "@s809/noisecord";
+import { CommandDefinition } from "@s809/noisecord";
 
-async function prefix(msg: CommandMessage<true>, {
+async function prefix(msg: CommandRequest<true>, {
     newPrefix
 }: {
     newPrefix: string;
@@ -11,16 +11,15 @@ async function prefix(msg: CommandMessage<true>, {
     await Guild.updateByIdWithUpsert(msg.guildId, { prefix: newPrefix });
 }
 
-const command: CommandDefinition = {
+export default defineCommand({
     key: "prefix",
     args: [{
-        translationKey: "newPrefix",
+        key: "newPrefix",
         type: ApplicationCommandOptionType.String,
     }],
     handler: prefix,
     alwaysReactOnSuccess: true,
-    usableAsAppCommand: true,
+    interactionCommand: true,
     defaultMemberPermissions: PermissionFlagsBits.ManageGuild,
     allowDMs: false
-}
-export default command;
+});

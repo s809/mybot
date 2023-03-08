@@ -4,12 +4,12 @@
 import { fetchVideoOrPlaylist } from "../../modules/music/youtubeDl";
 import { MusicPlayer } from "../../modules/music/MusicPlayer";
 import { ApplicationCommandOptionType } from "discord.js";
-import { CommandDefinition } from "../../modules/commands/definitions";
+import { CommandDefinition, defineCommand } from "@s809/noisecord";
 import { MusicPlayerQueueEntry } from "../../modules/music/MusicPlayerQueue";
-import { CommandMessage } from "../../modules/commands/CommandMessage";
+import { CommandRequest } from "@s809/noisecord";
 import { runtimeGuildData } from "../../env";
 
-async function play(msg: CommandMessage<true>, {
+async function play(msg: CommandRequest<true>, {
     urlOrQuery,
     playlistStartPosition = 0
 }: {
@@ -40,22 +40,20 @@ async function play(msg: CommandMessage<true>, {
         return;
     }
 
-    new MusicPlayer(voiceChannel, videos, msg.translator.translator)
-        .runPlayer(msg.channel);
+    new MusicPlayer(voiceChannel, videos, msg.translator.root!).runPlayer(msg.channel);
 }
 
-const command: CommandDefinition = {
+export default defineCommand({
     key: "play",
     args: [{
-        translationKey: "urlOrQuery",
+        key: "urlOrQuery",
         type: ApplicationCommandOptionType.String,
     }, {
-        translationKey: "playlistStartPosition",
+        key: "playlistStartPosition",
         type: ApplicationCommandOptionType.Integer,
         minValue: 1,
         maxValue: 99,
         required: false,
     }],
     handler: play
-};
-export default command;
+});

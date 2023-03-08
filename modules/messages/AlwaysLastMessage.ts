@@ -5,7 +5,7 @@ import { Message, TextBasedChannel } from "discord.js";
 import EventEmitter from "events";
 import { Overwrite } from "../../util";
 
-type MessageSendOptions = Parameters<TextBasedChannel["send"]>[0];
+type MessageSendOptions = Parameters<Extract<TextBasedChannel, { send: any }>["send"]>[0];
 
 export type AlwaysLastMessage = Overwrite<Message, AlwaysLastMessageWrapper>;
 

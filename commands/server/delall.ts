@@ -1,5 +1,5 @@
 import { client } from "../../env";
-import { CommandDefinition } from "../../modules/commands/definitions";
+import { CommandDefinition, defineCommand } from "@s809/noisecord";
 
 async function delAllServers() {
     for (let guild of client.guilds.cache.values()) {
@@ -9,8 +9,7 @@ async function delAllServers() {
     }
 }
 
-const command: CommandDefinition = {
+export default defineCommand({
     key: "delall",
     handler: delAllServers
-};
-export default command;
+});

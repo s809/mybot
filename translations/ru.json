@@ -1,6 +1,6 @@
 {
   "locale_string": "ru",
-  "set_language_regex": "(ru(s(sian)?)?|ру(с(ский)?)?)",
+  "set_locale_regex": "(ru(s(sian)?)?|ру(с(ский)?)?)",
   "boolean_values": [
     ["нет", "н", "ложь"],
     ["да", "д", "правда"]
@@ -29,8 +29,8 @@
       "description": "Получить время работы бота.",
       "embeds": {
         "title": "Время работы",
-        "text": "Время работы бота: $1\nВремя работы хоста: $2",
-        "time_format": "$1 дней, $2 часов, $3 минут, $4 секунд"
+        "text": "Время работы бота: {botUptime}\nВремя работы хоста: {hostUptime}",
+        "time_format": "{days} дней, {hours} часов, {mins} минут, {seconds} секунд"
       }
     },
     "channel": {
@@ -75,13 +75,13 @@
         "title": "Сканирование канала",
         "progress": {
           "fetching_messages": "Загрузка сообщений...",
-          "fetch_progress": "Просмотрено $1 сообщений",
+          "fetch_progress": "Просмотрено {count} сообщений",
           "fetching_invites": "Проверка ссылок-приглашений..."
         },
         "finished": {
-          "invites_summary": "Найдено $1 ссылок-приглашений, работают: $2",
+          "invites_summary": "Найдено {invites} ссылок-приглашений, работают: {aliveInvites}",
           "message_statistics": "Статистика сообщений:",
-          "see_attachment": "*Смотрите вложение ($1)*",
+          "see_attachment": "*Смотрите вложение ({name})*",
           "first_message": "Первое сообщение",
           "last_message": "Последнее сообщение"
         }
@@ -116,11 +116,11 @@
         "select_command": "Выберите команду, чтобы просмотреть информацию о ней.",
         "select_command_in_category": "Выберите команду в категории, чтобы просмотреть информацию о ней.",
         "select_command_menu": "Выберите команду...",
-        "required_permissions": "Необходимые права: $1",
+        "required_permissions": "Необходимые права: {requiredPermissions}",
         "slash_commands_suggestion": "Эта команда также может быть использована как слеш-команда (\"/\")."
       },
       "errors": {
-        "send_your_own_command": "Вы не можете взаимодействовать с этим сообщением; отправьте новую команду (`$1$2`), чтобы взаимодействовать с новым сообщением."
+        "send_your_own_command": "Вы не можете взаимодействовать с этим сообщением; отправьте новую команду (`{prefix}{name}`), чтобы взаимодействовать с новым сообщением."
       }
     },
     "invitetracker": {
@@ -269,13 +269,13 @@
       }
     }
   },
-  "contextMenuCommands": {
+  "context_menu_commands": {
     "selectMessage": {
       "name": "Выбрать сообщение",
       "strings": {
         "selected": "Выбрано!",
-        "message_id": "ID сообщения: $1",
-        "message_id_range": "ID диапазона сообщений: $1 - $2",
+        "message_id": "ID сообщения: {id}",
+        "message_id_range": "ID диапазона сообщений: {startId} - {endId}",
         "message": "Сообщение",
         "begin_message": "Первое сообщение",
         "end_message": "Последнее сообщение"
@@ -284,33 +284,33 @@
   },
   "command_processor": {
     "strings": {
-      "command_usage": "Использование команды: `$1`",
-      "argument_name": "аргумент: \"$1\"",
+      "command_usage": "Использование команды: `{usage}`",
+      "argument_name": "аргумент: \"{name}\"",
       "done": "Выполнено!"
     },
     "errors": {
       "unknown_command": "Неизвестная команда.",
       "too_few_arguments": "Слишком мало аргументов.",
       "too_many_arguments": "Слишком много аргументов.",
-      "value_not_allowed": "$1 не является допустимым значением. (Допустимые значения: $2)",
-      "invalid_numeric": "$1 не является верным числом.",
-      "value_too_small": "Значение $1 слишком маленькое. (Мин: $2)",
-      "value_too_large": "Значение $1 слишком большое. (Макс: $2)",
-      "invalid_channel": "$1 недействительный канал.",
-      "value_too_short": "Значение $1 слишком короткое. (Мин: $2)",
-      "value_too_long": "Значение $1 слишком длинное. (Макс $2)",
-      "invalid_boolean": "$1 не является допустимым логическим параметром.",
-      "channel_constraints_not_met": "$1 не соответствует ограничению типа канала.",
-      "unsupported_argument_type": "Неизвестная ошибка. (Код: 42)"
+      "value_not_allowed": "{arg} не является допустимым значением. (Допустимые значения: {allowedValues})",
+      "invalid_numeric": "{arg} не является верным числом.",
+      "value_too_small": "Значение {arg} слишком маленькое. (Мин: {minValue})",
+      "value_too_large": "Значение {arg} слишком большое. (Макс: {maxValue})",
+      "invalid_channel": "{arg} недействительный канал.",
+      "value_too_short": "Значение {arg} слишком короткое. (Мин: {minLength})",
+      "value_too_long": "Значение {arg} слишком длинное. (Макс {maxLength})",
+      "invalid_boolean": "{arg} не является допустимым логическим параметром.",
+      "channel_constraints_not_met": "{arg} не соответствует ограничению типа канала.",
+      "unsupported_argument_type": "{arg} не является допустимым типом аргумента. Эта ошибка не должна происходить."
     }
   },
   "invitetracker": {
     "strings": {
-      "invite_created": "Создано новое приглашение: $1 от $2",
-      "invite_deleted": "Приглашение удалено: $1",
-      "invite_used": "Использовано приглашение: $1 от $2",
-      "member_joined": "$1 присоединился",
-      "tracking_started": "Отслеживается $1 приглашений."
+      "invite_created": "Создано новое приглашение: {code} от {user}",
+      "invite_deleted": "Приглашение удалено: {code}",
+      "invite_used": "Использовано приглашение: code от {user}",
+      "member_joined": "{user} присоединился",
+      "tracking_started": "Отслеживается {count} приглашений."
     }
   },
   "music_player": {
@@ -319,10 +319,10 @@
       "title_paused": "Проигрыватель - приостановлен",
       "title_buffering": "Проигрыватель - буферизация...",
       "initializing": "Инициализация...",
-      "now_playing": "Сейчас играет: $1 ($2)",
+      "now_playing": "Сейчас играет: {title} ({duration})",
       "playback_finished": "Проигрывание завершено!",
-      "queue_summary": "Длина очереди: $1 ($2)",
-      "load_remaining": "Осталось загрузить: $1",
+      "queue_summary": "Длина очереди: {length} ({duration})",
+      "load_remaining": "Осталось загрузить: {count}",
       "some_removed": "Некоторые видео не удалось загрузить и они были удалены."
     },
     "strings": {
@@ -334,8 +334,5 @@
     }
   },
   "common": {
-    "strings": {
-      "test": "Тестовое сообщение"
-    }
   }
 }

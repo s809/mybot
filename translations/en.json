@@ -1,6 +1,6 @@
 {
   "locale_string": "en-US",
-  "set_language_regex": "en(g(lish)?)?",
+  "set_locale_regex": "en(g(lish)?)?",
   "boolean_values": [
     ["no", "n", "false"],
     ["yes", "y", "true"]
@@ -29,8 +29,8 @@
       "description": "Get bot uptime.",
       "embeds": {
         "title": "Uptime",
-        "text": "Bot uptime: $1\nHost uptime: $2",
-        "time_format": "$1 days, $2 hours, $3 minutes, $4 seconds"
+        "text": "Bot uptime: {botUptime}\nHost uptime: {hostUptime}",
+        "time_format": "{days} days, {hours} hours, {mins} minutes, {seconds} seconds"
       }
     },
     "channel": {
@@ -75,13 +75,13 @@
         "title": "Channel scan",
         "progress": {
           "fetching_messages": "Fetching messages...",
-          "fetch_progress": "$1 messages fetched",
+          "fetch_progress": "{count} messages fetched",
           "fetching_invites": "Fetching invites..."
         },
         "finished": {
-          "invites_summary": "Found $1 invites, alive: $2",
+          "invites_summary": "Found {invites} invites, alive: {aliveInvites}",
           "message_statistics": "Message statistics:",
-          "see_attachment": "*See attachment ($1)*",
+          "see_attachment": "*See attachment ({name})*",
           "first_message": "First message",
           "last_message": "Last message"
         }
@@ -186,11 +186,11 @@
         "select_command": "Select a command to view information about it.",
         "select_command_in_category": "Select a command in this category to view information about it.",
         "select_command_menu": "Select a command...",
-        "required_permissions": "Required permissions: $1",
+        "required_permissions": "Required permissions: {requiredPermissions}",
         "slash_commands_suggestion": "This command can also be used as a slash (\"/\") command."
       },
       "errors": {
-        "send_your_own_command": "You cannot interact with this message; send a new command (`$1$2`) to interact with a new message."
+        "send_your_own_command": "You cannot interact with this message; send a new command (`{prefix}{name}`) to interact with a new message."
       }
     },
     "invitetracker": {
@@ -487,13 +487,13 @@
       }
     }
   },
-  "contextMenuCommands": {
+  "context_menu_commands": {
     "selectMessage": {
       "name": "Select Message",
       "strings": {
         "selected": "Selected!",
-        "message_id": "Message ID: $1",
-        "message_id_range": "Message ID range: $1 - $2",
+        "message_id": "Message ID: {id}",
+        "message_id_range": "Message ID range: {startId} - {endId}",
         "message": "Message",
         "begin_message": "Begin Message",
         "end_message": "End Message"
@@ -502,33 +502,33 @@
   },
   "command_processor": {
     "strings": {
-      "command_usage": "Command usage: `$1`",
-      "argument_name": "argument: \"$1\"",
+      "command_usage": "Command usage: `{usage}`",
+      "argument_name": "argument: \"{name}\"",
       "done": "Done!"
     },
     "errors": {
       "unknown_command": "Unknown command.",
       "too_few_arguments": "Too few arguments.",
       "too_many_arguments": "Too many arguments.",
-      "value_not_allowed": "$1 is not any of allowed values. (Allowed values: $2)",
-      "invalid_numeric": "$1 is not a valid number.",
-      "value_too_small": "Value of $1 is too small. (Min: $2)",
-      "value_too_large": "Value of $1 is too large. (Max: $2)",
-      "invalid_channel": "$1 is not a valid channel.",
-      "value_too_short": "Value of $1 is too short. (Min: $2)",
-      "value_too_long": "Value of $1 is too long. (Max: $2)",
-      "invalid_boolean": "$1 is not a valid boolean parameter.",
-      "channel_constraints_not_met": "$1 does not meet channel type constraint.",
-      "unsupported_argument_type": "Unknown error. (Code: 42)"
+      "value_not_allowed": "{arg} is not any of allowed values. (Allowed values: {allowedValues})",
+      "invalid_numeric": "{arg} is not a valid number.",
+      "value_too_small": "Value of {arg} is too small. (Min: {minValue})",
+      "value_too_large": "Value of {arg} is too large. (Max: {maxValue})",
+      "invalid_channel": "{arg} is not a valid channel.",
+      "value_too_short": "Value of {arg} is too short. (Min: {minLength})",
+      "value_too_long": "Value of {arg} is too long. (Max: {maxLength})",
+      "invalid_boolean": "{arg} is not a valid boolean parameter.",
+      "channel_constraints_not_met": "{arg} does not meet channel type constraint.",
+      "unsupported_argument_type": "{arg} has unsupported argument type. This error must never happen."
     }
   },
   "invitetracker": {
     "strings": {
-      "invite_created": "Tracking new invite: $1 by $2",
-      "invite_deleted": "Invite deleted: $1",
-      "invite_used": "Used invite: $1 by $2",
-      "member_joined": "$1 joined",
-      "tracking_started": "Tracking $1 invites."
+      "invite_created": "Tracking new invite: {code} by {user}",
+      "invite_deleted": "Invite deleted: {code}",
+      "invite_used": "Used invite: {code} by {user}",
+      "member_joined": "{user} joined",
+      "tracking_started": "Tracking {count} invites."
     }
   },
   "music_player": {
@@ -537,11 +537,11 @@
       "title_paused": "Player - paused",
       "title_buffering": "Player - buffering...",
       "initializing": "Initializing...",
-      "now_playing": "Now playing: $1 ($2)",
+      "now_playing": "Now playing: {title} ({duration})",
       "playback_finished": "Playback has finished!",
       
-      "queue_summary": "Queue length: $1 ($2)",
-      "load_remaining": "Remaining to load: $1",
+      "queue_summary": "Queue length: {length} ({duration})",
+      "load_remaining": "Remaining to load: {count}",
       "some_removed": "Some videos failed to load and were removed."
     },
     "strings": {
