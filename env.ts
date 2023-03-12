@@ -38,7 +38,8 @@ export const commandFramework = new CommandFramework({
         registerApplicationCommands: true
     },
     messageCommands: {
-        prefix: msg => getPrefix(msg.guildId)
+        prefix: msg => getPrefix(msg.guildId),
+        ignorePermissionsFor: msg => isBotOwner(msg.author)
     }
 });
 
