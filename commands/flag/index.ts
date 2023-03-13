@@ -1,38 +1,8 @@
-import { ApplicationCommandOptionType } from "discord.js";
-import { CommandRequest, defineCommand } from "@s809/noisecord";
-import { FlaggableType, getItemForFlags, flaggableTypeChoices, toggleFlag } from "../../modules/data/flags";
-
-async function flag(msg: CommandRequest, {
-    type,
-    id,
-    flag
-}: {
-    type: FlaggableType;
-    id: string;
-    flag: string;
-}) {
-    const resolvedItem = await getItemForFlags(type, id);
-    if (!resolvedItem)
-        return "Unknown item.";
-
-    await toggleFlag(resolvedItem.item, flag);
-}
+import { defineCommand } from "@s809/noisecord";
 
 export default defineCommand({
     key: "flag",
-    args: [{
-        key: "type",
-        type: ApplicationCommandOptionType.String,
-        choices: flaggableTypeChoices
-    }, {
-        key: "id",
-        type: ApplicationCommandOptionType.String,
-    }, {
-        key: "flag",
-        type: ApplicationCommandOptionType.String,
-    }],
     ownerOnly: true,
-    alwaysReactOnSuccess: true,
-    handler: flag
+    alwaysReactOnSuccess: true
 });
 

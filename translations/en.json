@@ -119,6 +119,10 @@
     },
     "flag": {
       "name": "flag",
+      "description": "Flag management commands."
+    },
+    "flag_toggle": {
+      "name": "toggle",
       "description": "Toggle flags of the item.",
       "args": {
         "type": {
