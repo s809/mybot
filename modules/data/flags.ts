@@ -34,16 +34,41 @@ export function getItemForFlags(type: FlaggableType, id: Snowflake): Promise<{
     item: User | Guild | GuildChannel,
     data: DocumentOf<typeof DbUser> | DocumentOf<typeof DbGuild> | ChannelData
 } | null>;
-export async function getItemForFlags(type: FlaggableType, id: Snowflake): Promise<any> {
+export async function getItemForFlags(type: FlaggableType, id: Snowflake): Promise<{
+    item: User | Guild | GuildChannel,
+    data: DocumentOf<typeof DbUser> | DocumentOf<typeof DbGuild> | ChannelData
+} | null> {
     switch (type) {
-        case "user":
-            return [await client.users.fetch(id).catch(() => null), await DbUser.findByIdOrDefault(id, { flags: 1 })];
-        case "guild":
-            return [client.guilds.resolve(id), await DbGuild.findByIdOrDefault(id, { flags: 1 })];
-        case "channel":
-            return [client.channels.resolve(id), (await getChannel(id, "flags"))?.data ?? null];
-        default:
-            return [null, null];
+        case "user": {
+            const item = await client.users.fetch(id).catch(() => null);
+            return item
+                ? {
+                    item,
+                    data: await DbUser.findByIdOrDefault(id, { flags: 1 })
+                }
+                : null;
+        }
+        case "guild": {
+            const item = client.guilds.resolve(id);
+            return item
+                ? {
+                    item,
+                    data: await DbGuild.findByIdOrDefault(id, { flags: 1 })
+                }
+                : null;
+        }
+        case "channel": {
+            const item = client.channels.resolve(id);
+            return item instanceof GuildChannel
+                ? {
+                    item,
+                    data: (await getChannel(id, "flags"))!.data
+                }
+                : null;
+        }
+        default: {
+            return null;
+        }
     }
 }
 
