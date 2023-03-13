@@ -193,6 +193,26 @@
         "send_your_own_command": "You cannot interact with this message; send a new command (`{prefix}{name}`) to interact with a new message."
       }
     },
+    "invitechannel": {
+      "name": "invitechannel",
+      "description": "Manage channel's \"Invite channel\" status.",
+      "args": {
+        "action": {
+          "name": "action",
+          "description": "Action to do.",
+          "choices": {
+            "enable": {
+              "name": "enable",
+              "description": "Enable the channel to be the invite channel."
+            },
+            "disable": {
+              "name": "disable",
+              "description": "Disable the channel from being the invite channel."
+            }
+          }
+        }
+      }
+    },
     "invitetracker": {
       "name": "invitetracker",
       "description": "Manage invite tracking.",
@@ -520,6 +540,11 @@
       "invalid_boolean": "{arg} is not a valid boolean parameter.",
       "channel_constraints_not_met": "{arg} does not meet channel type constraint.",
       "unsupported_argument_type": "{arg} has unsupported argument type. This error must never happen."
+    }
+  },
+  "invitechannel": {
+    "strings": {
+      "expires_in": "Expires: {timestamp}"
     }
   },
   "invitetracker": {

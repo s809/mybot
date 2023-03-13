@@ -3,7 +3,7 @@ import { Guild as DbGuild, TextGenData } from "../../database/models";
 import { client, runtimeGuildData } from "../../env";
 
 // Do NOT add anything to database unless something is actually to be written
-// to avoid spamming it with tons of empty structures.
+// to avoid spamming it with tons of placeholder structures.
 
 export async function onChannelRemove(channel: Channel | {
     id: Snowflake;

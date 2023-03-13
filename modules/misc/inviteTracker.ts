@@ -1,7 +1,6 @@
 import { Guild, GuildTextBasedChannel, Invite, Snowflake } from "discord.js";
 import { Guild as DbGuild, InviteTrackerData } from "../../database/models";
 import { commandFramework, runtimeGuildData } from "../../env";
-import { Translator } from "@s809/noisecord";
 
 export async function getInviteTrackerData(guild: Guild): Promise<[InviteTrackerData, GuildTextBasedChannel] | []> {
     const { inviteTracker } = await DbGuild.findByIdOrDefault(guild.id, { inviteTracker: 1 });

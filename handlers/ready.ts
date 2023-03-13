@@ -21,7 +21,7 @@ client.on("ready", async () => {
     }
 
     for (const [, channel] of client.channels.cache.filter(x => (x as GuildChannel).guild && x.isTextBased())) {
-        const { pinnedMessage } = (await getChannel(channel, "pinnedMessage"))![1];
+        const { pinnedMessage } = (await getChannel(channel, "pinnedMessage"))!.data;
         if (pinnedMessage)
             doPinMessage(channel as GuildTextBasedChannel, pinnedMessage);
     }

@@ -3,7 +3,7 @@ import { client, commandFramework, runtimeGuildData } from "../env";
 import { untrackInvites, tryStartTracking } from "../modules/misc/inviteTracker";
 
 function getTranslator(context: Message<boolean> | CommandInteraction<CacheType> | GuildResolvable) {
-    return commandFramework.translatorManager!.getTranslator(context, "invitetracker");
+    return commandFramework.translatorManager.getTranslator(context, "invitetracker");
 }
 
 client.on("ready", async () => {

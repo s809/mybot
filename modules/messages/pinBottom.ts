@@ -8,7 +8,7 @@ export async function pinMessage(channel: GuildTextBasedChannel, messageInterval
     const path = `channels.${channel.id}.pinnedMessage`;
     
     if (!content) {
-        let { pinnedMessage } = (await getChannel(channel, "pinnedMessage"))![1];
+        let { pinnedMessage } = (await getChannel(channel, "pinnedMessage"))!.data;
         if (!pinnedMessage)
             return false;
         
