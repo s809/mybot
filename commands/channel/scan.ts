@@ -1,10 +1,10 @@
-import { APIEmbed, ApplicationCommandOptionType, ChannelType, EmbedBuilder, GuildTextBasedChannel, Message, TextChannel, User } from "discord.js";
+import { APIEmbed, ApplicationCommandOptionAllowedChannelTypes, ApplicationCommandOptionType, ChannelType, EmbedBuilder, GuildTextBasedChannel, Message, TextChannel, User } from "discord.js";
 import { client } from "../../env";
 import { iterateMessages } from "../../modules/messages/iterateMessages";
 import { sendAlwaysLastMessage } from "../../modules/messages/AlwaysLastMessage";
 import sendLongText from "../../modules/messages/sendLongText";
 import { once } from "events";
-import { CommandDefinition, defineCommand, textChannels as guildTextChannels } from "@s809/noisecord";
+import { defineCommand, textChannels as guildTextChannels } from "@s809/noisecord";
 import { CommandRequest } from "@s809/noisecord";
 
 async function scanChannel(msg: CommandRequest<true>, {
@@ -208,7 +208,7 @@ export default defineCommand({
     }, {
         key: "channel",
         type: ApplicationCommandOptionType.Channel,
-        channelTypes: guildTextChannels as unknown as ChannelType[]
+        channelTypes: guildTextChannels as unknown as ApplicationCommandOptionAllowedChannelTypes[]
     }],
     handler: scanChannel,
     interactionCommand: false,
