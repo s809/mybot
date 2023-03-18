@@ -4,6 +4,10 @@ import { CommandRequest } from "@s809/noisecord";
 import { defineCommand } from "@s809/noisecord";
 import { commandFramework } from "../env";
 
+const errorLoc = commandFramework.translationChecker.checkTranslations({
+    invalid_language: true,
+}, `${commandFramework.commandRegistry.getCommandTranslationPath("lang")}.errors`);
+
 async function lang(msg: CommandRequest, {
     language: newLang
 }: {
@@ -11,7 +15,7 @@ async function lang(msg: CommandRequest, {
 }) {
     const localeString = Object.entries(commandFramework.translatorManager!.setLocaleRegexes).find(([, regexp]) => regexp.test(newLang))?.[0];
     if (!localeString)
-        return "invalid_language";
+        return errorLoc.invalid_language.path;
 
     if (msg.inGuild()) {
         await Guild.updateByIdWithUpsert(msg.guildId, { language: localeString });

@@ -7,6 +7,20 @@ import { getPrefix } from "../modules/data/getPrefix";
 import { commandFramework, isBotOwner } from "../env";
 import { defaults } from "../constants";
 
+const embedLoc = commandFramework.translationChecker.checkTranslations({
+    select_command_menu: true,
+    title: true,
+    select_command: true,
+    no_description: true,
+    select_command_in_category: true,
+    slash_commands_suggestion: true,
+    required_permissions: true
+}, `${commandFramework.commandRegistry.getCommandTranslationPath("help")}.embeds`);
+
+const errorLoc = commandFramework.translationChecker.checkTranslations({
+    send_your_own_command: true
+}, `${commandFramework.commandRegistry.getCommandTranslationPath("help")}.errors`);
+
 async function help(msg: CommandRequest) {
     let translator = msg.translator;
     const isBotOwnerResult = await isBotOwner(msg.author);
@@ -33,7 +47,7 @@ async function help(msg: CommandRequest) {
 
         let selectMenu = new SelectMenuBuilder()
             .setCustomId(levelName)
-            .setPlaceholder(translator.translate("embeds.select_command_menu"))
+            .setPlaceholder(embedLoc.select_command_menu.getTranslation(msg))
             .setOptions(selectOptions);
 
         let row = new ActionRowBuilder<SelectMenuBuilder>()
@@ -61,30 +75,30 @@ async function help(msg: CommandRequest) {
 
         if (!command) {
             embed = {
-                title: translator.translate("embeds.title"),
-                description: translator.translate("embeds.select_command")
+                title: embedLoc.title.getTranslation(msg),
+                description: embedLoc.select_command.getTranslation(msg)
             };
         } else {
             let codeBlock = `\`\`\`\n${commandFramework.commandRegistry?.getCommandUsageString(command, await getPrefix(msg.guildId), translator.root!)}\`\`\`\n`;
             let description = `${command.descriptionTranslations[translator.localeString]
                 ?? command.descriptionTranslations[defaults.locale]
-                ?? translator.translate("embeds.no_description")}`;
+                ?? embedLoc.no_description.getTranslation(msg)}`;
             let requiredPermissions = command.conditions.filter(x => !x.hideInDescription).map(x => x.name).join(", ");
             
             if (requiredPermissions)
-                requiredPermissions = `\n${translator.translate("embeds.required_permissions", { requiredPermissions })}`;
+                requiredPermissions = `\n${embedLoc.required_permissions.getTranslation(msg, { requiredPermissions })}`;
             else
                 requiredPermissions = "";
 
             embed = {
-                title: translator.translate("embeds.title"),
+                title: embedLoc.title.getTranslation(msg),
                 description: (command.handler
                     ? codeBlock + description
-                    : translator.translate("embeds.select_command_in_category"))
+                    : embedLoc.select_command_in_category.getTranslation(msg))
                     + requiredPermissions,
                 footer: command.handler && command.interactionCommand
                     ? {
-                        text: translator.translate("embeds.slash_commands_suggestion")
+                        text: embedLoc.slash_commands_suggestion.getTranslation(msg)
                     }
                     : undefined
             };
@@ -106,7 +120,7 @@ async function help(msg: CommandRequest) {
     }).on("collect", async (interaction: StringSelectMenuInteraction) => {
         if (interaction.user != msg.author) {
             interaction.reply({
-                content: translator.translate("errors.send_your_own_command", {
+                content: errorLoc.send_your_own_command.getTranslation(msg, {
                     prefix: await getPrefix(msg.guildId),
                     name: "help"
                 }),

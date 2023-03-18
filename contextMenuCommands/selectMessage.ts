@@ -1,6 +1,15 @@
 import { ActionRowBuilder, ApplicationCommandType, ButtonBuilder, ButtonStyle, MessageContextMenuCommandInteraction, messageLink } from "discord.js";
-import { runtimeGuildData } from "../env";
+import { commandFramework, runtimeGuildData } from "../env";
 import { ContextMenuCommandDefinition } from "@s809/noisecord";
+
+const strings = commandFramework.translationChecker.checkTranslations({
+    selected: true,
+    message_id_range: true,
+    message_id: true,
+    begin_message: true,
+    end_message: true,
+    message: true
+}, `${commandFramework.commandRegistry.getCommandTranslationPath("selectMessage", true)}.strings`);
 
 const command: ContextMenuCommandDefinition<MessageContextMenuCommandInteraction> = {
     key: "selectMessage",
@@ -21,28 +30,28 @@ const command: ContextMenuCommandDefinition<MessageContextMenuCommandInteraction
             range.begin = interaction.targetId;
         
         await interaction.reply({
-            content: translator.translate("strings.selected") + "\n" + (range.begin !== range.end
-                ? translator.translate("strings.message_id_range", {
+            content: strings.selected.getTranslation(translator) + "\n" + (range.begin !== range.end
+                ? strings.message_id_range.getTranslation(translator, {
                     startId: range.begin,
                     endId: range.end
                 })
-                : translator.translate("strings.message_id", { id: range.begin })),
+                : strings.message_id.getTranslation(translator, { id: range.begin })),
             components: [
                 new ActionRowBuilder<ButtonBuilder>()
                     .addComponents(range.begin !== range.end
                         ? [
                             new ButtonBuilder()
-                                .setLabel(translator.translate("strings.begin_message"))
+                                .setLabel(strings.begin_message.getTranslation(translator))
                                 .setStyle(ButtonStyle.Link)
                                 .setURL(messageLink(interaction.channelId, range.begin)),
                             new ButtonBuilder()
-                                .setLabel(translator.translate("strings.end_message"))
+                                .setLabel(strings.end_message.getTranslation(translator))
                                 .setStyle(ButtonStyle.Link)
                                 .setURL(messageLink(interaction.channelId, range.end))
                         ]
                         : [
                             new ButtonBuilder()
-                                .setLabel(translator.translate("strings.message"))
+                                .setLabel(strings.message.getTranslation(translator))
                                 .setStyle(ButtonStyle.Link)
                                 .setURL(messageLink(interaction.channelId, range.begin)),
                         ]

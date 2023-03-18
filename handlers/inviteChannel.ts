@@ -5,6 +5,10 @@ import { Invite } from "discord.js";
 
 const invitesPattern = new RegExp(Invite.InvitesPattern, "gi");
 
+const strings = commandFramework.translationChecker.checkTranslations({
+    expires_in: true
+}, "invitechannel.strings");
+
 client.on(Events.MessageCreate, async msg => {
     if (msg.author.bot || msg.webhookId) return;
     if (!msg.guild) return;
@@ -22,11 +26,9 @@ client.on(Events.MessageCreate, async msg => {
                 // friend invites are unsupported
                 if (!invite || !invite.guild) continue;
 
-                const translator = await commandFramework.translatorManager.getTranslator(msg, "invitechannel");
-
                 await msg.channel.send(`${invite.guild!.name}\n` +
                     (invite.expiresTimestamp
-                        ? translator.translate("strings.expires_in", { timestamp: `<t:${invite.expiresTimestamp / 1000}:R>` }) + "\n"
+                        ? await strings.expires_in.getTranslation(msg, { timestamp: `<t:${invite.expiresTimestamp / 1000}:R>` }) + "\n"
                         : "") +
                     `${invite}`);
             }

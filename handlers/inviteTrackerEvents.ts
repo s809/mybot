@@ -6,6 +6,13 @@ function getTranslator(context: Message<boolean> | CommandInteraction<CacheType>
     return commandFramework.translatorManager.getTranslator(context, "invitetracker");
 }
 
+const strings = commandFramework.translationChecker.checkTranslations({
+    invite_created: true,
+    invite_deleted: true,
+    member_joined: true,
+    invite_used: true
+}, "invitetracker.strings");
+
 client.on("ready", async () => {
     for (let guild of client.guilds.cache.values())
         tryStartTracking(guild);
@@ -16,7 +23,7 @@ client.on("inviteCreate", async invite => {
     if (!inviteTracker) return;
 
     inviteTracker.counts.set(invite.code, invite.uses!);
-    await inviteTracker.logChannel.send((await getTranslator(invite)).translate("strings.invite_created", {
+    await inviteTracker.logChannel.send(await strings.invite_created.getTranslation(invite, {
         code: invite.code,
         user: invite.inviter?.tag ?? "Discord"
     }))
@@ -27,7 +34,7 @@ client.on("inviteDelete", async invite => {
     if (!inviteTracker) return;
 
     inviteTracker.counts.delete(invite.code);
-    await inviteTracker.logChannel.send((await getTranslator(invite)).translate("strings.invite_deleted", { code: invite.code }))
+    await inviteTracker.logChannel.send(await strings.invite_deleted.getTranslation(invite, { code: invite.code }))
 });
 
 client.on("guildMemberAdd", async member => {
@@ -37,7 +44,7 @@ client.on("guildMemberAdd", async member => {
 
     const translator = await getTranslator(member);
     try {
-        await logChannel.send(translator.translate("strings.member_joined", {
+        await logChannel.send(strings.member_joined.getTranslation(translator, {
             user: member.user.tag
         }));
     
@@ -45,7 +52,7 @@ client.on("guildMemberAdd", async member => {
             let entry = counts.get(code);
 
             if (entry !== undefined && entry !== invite.uses) {
-                await logChannel.send(translator.translate("strings.invite_used", {
+                await logChannel.send(strings.invite_used.getTranslation(translator, {
                     code: invite.code,
                     user: invite.inviter!.tag
                 }));

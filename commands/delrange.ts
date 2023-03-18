@@ -2,7 +2,14 @@ import { ApplicationCommandOptionType, GuildTextBasedChannel, PermissionFlagsBit
 import { CommandDefinition } from "@s809/noisecord";
 import { iterateMessagesChunked } from "../modules/messages/iterateMessages";
 import { CommandRequest } from "@s809/noisecord";
-import { runtimeGuildData } from "../env";
+import { commandFramework, runtimeGuildData } from "../env";
+
+const errorLoc = commandFramework.translationChecker.checkTranslations({
+    cannot_manage_messages: true,
+    invalid_message_range: true,
+    nothing_is_selected: true,
+    delete_failed: true
+}, `${commandFramework.commandRegistry.getCommandTranslationPath("delrange")}.errors`);
 
 async function deleteRange(msg: CommandRequest<true>, {
     startId,
@@ -12,19 +19,19 @@ async function deleteRange(msg: CommandRequest<true>, {
     endId?: string;
 }) {
     if (!(msg.channel as GuildTextBasedChannel).permissionsFor(msg.guild.members.me!).has(PermissionFlagsBits.ManageMessages))
-        return "cannot_manage_messages";
+        return errorLoc.cannot_manage_messages.path;
 
     if (startId || endId) {
         try {
             if (!startId)
-                return "invalid_message_range";
+                return errorLoc.invalid_message_range.path;
             if (!endId)
                 endId = startId;
         
             if (BigInt(startId) < BigInt(endId))
                 [startId, endId] = [endId, startId];
         } catch (e) {
-            return "invalid_message_range";
+            return errorLoc.invalid_message_range.path;
         }
     } else {
         const runtimeData = runtimeGuildData.getOrSetDefault(msg.guildId)
@@ -33,7 +40,7 @@ async function deleteRange(msg: CommandRequest<true>, {
         
         const range = runtimeData.messageSelectionRange;
         if (!range)
-            return "nothing_is_selected";
+            return errorLoc.nothing_is_selected.path;
         
         startId = range.begin;
         endId = range.end;
@@ -48,7 +55,7 @@ async function deleteRange(msg: CommandRequest<true>, {
                 await message.delete();
         }
     } catch (e) {
-        return "delete_failed";
+        return errorLoc.delete_failed.path;
     }
 }
 

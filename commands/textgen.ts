@@ -1,8 +1,12 @@
 import { ApplicationCommandOptionType, PermissionFlagsBits } from "discord.js";
 import { TextGenData } from "../database/models";
-import { runtimeGuildData } from "../env";
+import { commandFramework, runtimeGuildData } from "../env";
 import { CommandRequest, defineCommand } from "@s809/noisecord";
-import { CommandDefinition } from "@s809/noisecord";
+
+const errorLoc = commandFramework.translationChecker.checkTranslations({
+    already_enabled: true,
+    already_disabled: true,
+}, `${commandFramework.commandRegistry.getCommandTranslationPath("textgen")}.errors`);
 
 async function manageTextGen(msg: CommandRequest<true>, {
     action
@@ -15,13 +19,13 @@ async function manageTextGen(msg: CommandRequest<true>, {
     if (action === "enable") {
         const result = await TextGenData.updateOne({ _id: msg.channelId }, {}, { upsert: true });
         if (!result.upsertedCount)
-            return "already_enabled";
+            return errorLoc.already_enabled.path;
 
         channelData.textGenEnabled = true;
     } else {
         const result = await TextGenData.deleteOne({ _id: msg.channelId });
         if (!result.deletedCount)
-            return "already_disabled";
+            return errorLoc.already_disabled.path;
 
         channelData.textGenEnabled = false;
     }

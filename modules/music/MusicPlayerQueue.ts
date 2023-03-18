@@ -2,6 +2,12 @@ import { formatDuration } from "../../util";
 import { Translator } from "@s809/noisecord";
 import EventEmitter from "events";
 import { fetchVideoByUrl } from "./youtubeDl";
+import { commandFramework } from "../../env";
+
+const strings = commandFramework.translationChecker.checkTranslations({
+    loading: true,
+    unknown: true
+}, "music_player.strings");
 
 export interface MusicPlayerQueueEntry {
     url: string;
@@ -63,8 +69,8 @@ export class MusicPlayerQueue extends EventEmitter {
             duration += entry.duration ?? 0;
 
             if (result.length < 500) {
-                let durationStr = entry.duration ? formatDuration(entry.duration) : translator.translate("strings.unknown");
-                result += `${pos + 1}) ${entry.title ?? translator.translate("strings.loading")} (${durationStr})\n`;
+                let durationStr = entry.duration ? formatDuration(entry.duration) : strings.unknown.getTranslation(translator);
+                result += `${pos + 1}) ${entry.title ?? strings.loading.getTranslation(translator)} (${durationStr})\n`;
             } else if (!tooLongFlag) {
                 result += "...";
                 tooLongFlag = true;

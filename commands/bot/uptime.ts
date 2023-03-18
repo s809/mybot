@@ -1,6 +1,12 @@
 import os from "os";
-import { client } from "../../env";
+import { client, commandFramework } from "../../env";
 import { CommandRequest, defineCommand, Translator } from "@s809/noisecord";
+
+const embedLoc = commandFramework.translationChecker.checkTranslations({
+    title: true,
+    text: true,
+    time_format: true
+}, `${commandFramework.commandRegistry.getCommandTranslationPath("bot/uptime")}.embeds`);
 
 function getUptimeStr(diff: number, translator: Translator) {
     var days = Math.floor(diff / (1000 * 60 * 60 * 24));
@@ -15,7 +21,7 @@ function getUptimeStr(diff: number, translator: Translator) {
     var seconds = Math.floor(diff / (1000));
     diff -= seconds * (1000);
 
-    return translator.translate("embeds.time_format", {
+    return embedLoc.time_format.getTranslation(translator, {
         days,
         hours,
         mins,
@@ -29,8 +35,8 @@ async function uptime(msg: CommandRequest) {
 
     await msg.reply({
         embeds: [{
-            title: msg.translator.translate("embeds.title"),
-            description: msg.translator.translate("embeds.text", {
+            title: embedLoc.title.getTranslation(msg),
+            description: embedLoc.text.getTranslation(msg, {
                 botUptime: getUptimeStr(bot.getTime(), msg.translator),
                 hostUptime: getUptimeStr(host.getTime(), msg.translator)
             })

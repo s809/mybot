@@ -13,6 +13,27 @@ import { makeOpusStream } from "../../modules/music/ffmpeg";
 import { once } from "events";
 import { commandFramework, runtimeGuildData } from "../../env";
 
+const stringLoc = commandFramework.translationChecker.checkTranslations({
+    loading: true,
+    unknown: true
+}, "music_player.strings");
+
+const embedLoc = commandFramework.translationChecker.checkTranslations({
+    title_player: true,
+    now_playing: true,
+    queue_summary: true,
+    load_remaining: true,
+    some_removed: true,
+    title_paused: true,
+    initializing: true,
+    title_buffering: true,
+    playback_finished: true
+}, "music_player.embeds");
+
+const errorLoc = commandFramework.translationChecker.checkTranslations({
+    cannot_become_speaker: true
+}, "music_player.errors");
+
 export class MusicPlayer {
     /** Current voice connection. */
     private connection!: VoiceConnection;
@@ -68,19 +89,19 @@ export class MusicPlayer {
         }
 
         let currentTitleStr = this.currentVideo?.title ??
-            this.translator.translate("strings.loading");
+            stringLoc.loading.getTranslation(this.translator);
         let currentDurationStr = this.currentVideo?.duration
             ? formatDuration(this.currentVideo.duration)
-            : this.translator.translate("strings.unknown");
+            : stringLoc.unknown.getTranslation(this.translator);
 
         let queueData = this.queue.getQueueData(this.translator);
         let remainingToLoad = this.queue.entries.filter(entry => !entry.title).length;
 
         let options: MessageEditOptions = {
             embeds: [{
-                title: this.text ?? this.translator.translate("embeds.title_player"),
+                title: this.text ?? embedLoc.title_player.getTranslation(this.translator),
                 description: (this.currentVideo
-                    ? this.translator.translate("embeds.now_playing", {
+                    ? embedLoc.now_playing.getTranslation(this.translator, {
                         title: currentTitleStr,
                         duration: currentDurationStr
                     }) + "\n"
@@ -88,15 +109,15 @@ export class MusicPlayer {
                     + queueData.text || undefined,
                 footer: this.queue.entries.length
                     ? {
-                        text: this.translator.translate("embeds.queue_summary", {
+                        text: embedLoc.queue_summary.getTranslation(this.translator, {
                             length: this.queue.entries.length.toString(),
                             duration: queueData.formattedDuration
                         }) + "\n"
                             + (remainingToLoad
-                                ? this.translator.translate("embeds.load_remaining", { count: remainingToLoad }) + "\n"
+                                ? embedLoc.load_remaining.getTranslation(this.translator, { count: remainingToLoad }) + "\n"
                                 : "")
                             + (this.queue.hadErrors
-                                ? this.translator.translate("embeds.some_removed") + "\n"
+                                ? embedLoc.some_removed.getTranslation(this.translator) + "\n"
                                 : "")
                     }
                     : undefined
@@ -128,7 +149,7 @@ export class MusicPlayer {
     async pause() {
         let paused = this.player?.pause() ?? false;
         if (paused) {
-            await this.updateStatus(this.translator.translate("embeds.title_paused"));
+            await this.updateStatus(embedLoc.title_paused.getTranslation(this.translator));
         }
         return paused;
     }
@@ -158,8 +179,8 @@ export class MusicPlayer {
 
         this.statusMessage = await sendAlwaysLastMessage(statusChannel, {
             embeds: [{
-                title: this.translator.translate("embeds.title_player"),
-                description: this.translator.translate("embeds.initializing")
+                title: embedLoc.title_player.getTranslation(this.translator),
+                description: embedLoc.initializing.getTranslation(this.translator)
             }]
         });
 
@@ -190,9 +211,9 @@ export class MusicPlayer {
                         await this.voiceChannel.guild.members.me!.voice.setSuppressed(false);
                 }
                 catch (e) {
-                    return this.translator.translate("errors.cannot_become_speaker");
+                    return errorLoc.cannot_become_speaker.getTranslation(this.translator);
                 }
-                await this.updateStatus(this.translator.translate("embeds.title_buffering"));
+                await this.updateStatus(embedLoc.title_buffering.getTranslation(this.translator));
 
                 let video = await getDownloadStream(this.currentVideo.url);
                 let ffmpeg = await makeOpusStream(video);
@@ -236,8 +257,8 @@ export class MusicPlayer {
             this.stop();
             await this.statusMessage.edit({
                 embeds: [{
-                    title: this.translator.translate("embeds.title_player"),
-                    description: this.translator.translate("embeds.playback_finished")
+                    title: embedLoc.title_player.getTranslation(this.translator),
+                    description: embedLoc.playback_finished.getTranslation(this.translator)
                 }]
             });
         }

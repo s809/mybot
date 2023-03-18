@@ -4,10 +4,16 @@
 import { fetchVideoOrPlaylist } from "../../modules/music/youtubeDl";
 import { MusicPlayer } from "../../modules/music/MusicPlayer";
 import { ApplicationCommandOptionType } from "discord.js";
-import { CommandDefinition, defineCommand } from "@s809/noisecord";
+import { defineCommand } from "@s809/noisecord";
 import { MusicPlayerQueueEntry } from "../../modules/music/MusicPlayerQueue";
 import { CommandRequest } from "@s809/noisecord";
-import { runtimeGuildData } from "../../env";
+import { commandFramework, runtimeGuildData } from "../../env";
+
+const errorLoc = commandFramework.translationChecker.checkTranslations({
+    invalid_url: true,
+    no_url_or_query: true,
+    no_videos_added: true
+}, `${commandFramework.commandRegistry.getCommandTranslationPath("music/play")}.errors`);
 
 async function play(msg: CommandRequest<true>, {
     urlOrQuery,
@@ -19,7 +25,7 @@ async function play(msg: CommandRequest<true>, {
     let voiceChannel = msg.member!.voice.channel!;
 
     if (urlOrQuery?.match(/(\\|'|")/))
-        return "invalid_url";
+        return errorLoc.invalid_url.path;
 
     const { musicPlayer } = runtimeGuildData.getOrSetDefault(voiceChannel.guildId);
     
@@ -27,12 +33,12 @@ async function play(msg: CommandRequest<true>, {
         if (musicPlayer?.resume())
             return;
         else
-            return "no_url_or_query";
+            return errorLoc.no_url_or_query.path;
     }
 
     let videos: MusicPlayerQueueEntry[] = (await fetchVideoOrPlaylist(urlOrQuery)).slice(playlistStartPosition);
     if (!videos.length)
-        return "no_videos_added";
+        return errorLoc.no_videos_added.path;
 
     if (musicPlayer) {
         musicPlayer.queue.push(...videos);
