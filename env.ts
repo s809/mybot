@@ -23,7 +23,7 @@ export const client = new Client({
     }
 });
 
-export const commandFramework = new CommandFramework({
+export const commandFramework: CommandFramework = new CommandFramework({
     commandRegistryOptions: {
         commandModuleDirectory: "./build/commands",
         contextMenuModuleDirectory: "./build/contextMenuCommands"
@@ -39,7 +39,16 @@ export const commandFramework = new CommandFramework({
     },
     messageCommands: {
         prefix: msg => getPrefix(msg.guildId),
-        ignorePermissionsFor: msg => isBotOwner(msg.author)
+        ignoreAllPermissionsFor: msg => isBotOwner(msg.author),
+        ignoreOwnerOnlyFor: async (msg, command) => {
+            const dbUser = await DbUser.findByIdOrDefault(msg.author.id, { flags: 1 })!;
+            
+            for (const splitPath = command.path.split("/"); splitPath.length; splitPath.pop()) {
+                if (dbUser.flags.includes(`allow_${commandFramework.commandRegistry.getCommandTranslationPath(splitPath.join("/"))}`))
+                    return true;
+            }
+            return false;
+        }
     }
 });
 
