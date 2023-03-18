@@ -19,6 +19,7 @@ pids
 *.pid.lock
 pid.txt
 /data/
+--Frag1
 
 # Dependency directories
 node_modules/

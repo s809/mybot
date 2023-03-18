@@ -2,7 +2,7 @@
 	"image": "mcr.microsoft.com/vscode/devcontainers/typescript-node:18",
 	"features": {
 		"ghcr.io/devcontainers-contrib/features/ffmpeg-apt-get:1": {},
-		"ghcr.io/devcontainers-contrib/features/youtube-dl:2": {}
+		"ghcr.io/devcontainers-contrib/features/yt-dlp:2": {}
 	},
 	"onCreateCommand": "bash ./.devcontainer/onCreateCommand.sh",
 	"postStartCommand": "nohup bash -c 'sudo mongod -f /etc/mongod.conf &' >/dev/null 2>&1"

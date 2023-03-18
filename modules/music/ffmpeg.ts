@@ -7,6 +7,7 @@ import { logDebug } from "../../log";
 async function detectOpusStream(readable: Readable) {
     let ffprobe = spawn("ffprobe", [
         "-hide_banner",
+        "-re",
         "-i", "-"
     ]);
     if (debug)
@@ -39,6 +40,7 @@ export async function makeOpusStream(readable: Readable) {
 
     let ffmpeg = spawn("ffmpeg", [
         "-hide_banner",
+        "-re",
         "-i", "-",
         "-vn",
         "-f", "opus",

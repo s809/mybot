@@ -5,7 +5,6 @@ import { AlwaysLastMessage, sendAlwaysLastMessage } from "../../modules/messages
 import { Translator } from "@s809/noisecord";
 import { MessageEditOptions, GuildTextBasedChannel, VoiceBasedChannel, ChannelType, LocaleString } from "discord.js";
 import { MusicPlayerQueue, MusicPlayerQueueEntry } from "./MusicPlayerQueue";
-import { createDiscordJSAdapter } from "../../modules/music/voiceAdapter";
 import { voice } from "../../constants";
 import { setTimeout } from "timers/promises";
 import { getDownloadStream } from "../../modules/music/youtubeDl";
@@ -188,7 +187,7 @@ export class MusicPlayer {
             channelId: this.voiceChannel.id,
             guildId: this.voiceChannel.guildId,
             selfMute: false,
-            adapterCreator: createDiscordJSAdapter(this.voiceChannel)
+            adapterCreator: this.voiceChannel.guild.voiceAdapterCreator
         });;
 
         runtimeGuildData.getOrSetDefault(this.voiceChannel.guildId).musicPlayer = this;

@@ -2,11 +2,13 @@ import { execFile, spawn } from "child_process";
 import { promisify } from "util";
 import { debug } from "../../constants";
 
+const downloader = "yt-dlp";
+
 /**
  * Fetches video or playlist.
  */
 export async function fetchVideoOrPlaylist(urlOrQuery: string) {
-    let { stdout } = await promisify(execFile)("youtube-dl", [
+    let { stdout } = await promisify(execFile)(downloader, [
         "--dump-json",
         "--no-playlist",
         "--flat-playlist",
@@ -37,7 +39,7 @@ export async function fetchVideoOrPlaylist(urlOrQuery: string) {
  * @returns Object with loaded metadata.
  */
 export async function fetchVideoByUrl(url: string) {
-    let { stdout } = await promisify(execFile)("youtube-dl", [
+    let { stdout } = await promisify(execFile)(downloader, [
         "--dump-json",
         "--no-playlist",
         url
@@ -59,7 +61,7 @@ export async function fetchVideoByUrl(url: string) {
 }
 
 export async function getDownloadStream(url: string) {
-    let video = spawn("youtube-dl", [
+    let video = spawn(downloader, [
         "--no-playlist",
         "-f", "bestaudio/best",
         "-o", "-",
