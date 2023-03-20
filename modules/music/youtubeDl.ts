@@ -1,8 +1,17 @@
 import { execFile, spawn } from "child_process";
+import { randomUUID } from "crypto";
+import { mkdir, rm } from "fs/promises";
+import path from "path";
 import { promisify } from "util";
 import { debug } from "../../constants";
 
 const downloader = "yt-dlp";
+
+const tempBasePath = `${downloader}-temp/`;
+await rm(tempBasePath, {
+    recursive: true,
+    force: true
+});
 
 /**
  * Fetches video or playlist.
@@ -61,13 +70,27 @@ export async function fetchVideoByUrl(url: string) {
 }
 
 export async function getDownloadStream(url: string) {
+    const tempPath = path.resolve(tempBasePath, randomUUID());
+
+    await mkdir(tempPath, {
+        recursive: true
+    });
+
     let video = spawn(downloader, [
         "--no-playlist",
-        "-f", "bestaudio/best",
+        "-f", "bestaudio[acodec=opus]/best*[acodec=opus]/bestaudio/best",
         "-o", "-",
         url
-    ]);
+    ], {
+        cwd: tempPath
+    });
     if (debug)
         video.stderr.pipe(process.stderr);
+    
+    video.once("close", () => rm(tempPath, {
+        recursive: true,
+        force: true
+    }));
+
     return video.stdout;
 }

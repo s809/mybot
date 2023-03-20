@@ -8,7 +8,6 @@ import { MusicPlayerQueue, MusicPlayerQueueEntry } from "./MusicPlayerQueue";
 import { voice } from "../../constants";
 import { setTimeout } from "timers/promises";
 import { getDownloadStream } from "../../modules/music/youtubeDl";
-import { makeOpusStream } from "../../modules/music/ffmpeg";
 import { once } from "events";
 import { commandFramework, runtimeGuildData } from "../../env";
 
@@ -135,9 +134,8 @@ export class MusicPlayer {
      */
     async resume() {
         let resumed = this.player?.unpause() ?? false;
-        if (resumed) {
+        if (resumed)
             await this.updateStatus(null);
-        }
         return resumed;
     }
 
@@ -147,9 +145,8 @@ export class MusicPlayer {
      */
     async pause() {
         let paused = this.player?.pause() ?? false;
-        if (paused) {
+        if (paused)
             await this.updateStatus(embedLoc.title_paused.getTranslation(this.translator));
-        }
         return paused;
     }
 
@@ -196,7 +193,10 @@ export class MusicPlayer {
             await entersState(this.connection, VoiceConnectionStatus.Ready, voice.readyWaitTimeout);
 
             this.player = createAudioPlayer();
-            this.player.on("error", () => { /* Ignored */ });
+            this.player.on("error", e => { 
+                if (e.message !== "Premature close")
+                    throw e;
+            });
             this.connection.subscribe(this.player);
 
             while (this.queue.entries.length) {
@@ -214,11 +214,7 @@ export class MusicPlayer {
                 }
                 await this.updateStatus(embedLoc.title_buffering.getTranslation(this.translator));
 
-                let video = await getDownloadStream(this.currentVideo.url);
-                let ffmpeg = await makeOpusStream(video);
-                ffmpeg.on("close", () => video.destroy());
-
-                this.readable = ffmpeg;
+                this.readable = await getDownloadStream(this.currentVideo.url);
                 this.resource = createAudioResource(this.readable);
 
                 this.player.play(this.resource);
@@ -239,8 +235,7 @@ export class MusicPlayer {
                 }
                 while (![AudioPlayerStatus.Idle, AudioPlayerStatus.AutoPaused].includes(this.player.state.status));
 
-                video.destroy();
-                ffmpeg.destroy();
+                this.readable.destroy();
 
                 switch (this.player.state.status) {
                     case AudioPlayerStatus.Idle:

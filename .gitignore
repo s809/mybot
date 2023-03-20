@@ -19,7 +19,7 @@ pids
 *.pid.lock
 pid.txt
 /data/
---Frag1
+yt-dlp-temp/
 
 # Dependency directories
 node_modules/

@@ -1,30 +1,26 @@
 import { client, runtimeGuildData } from "../env";
 
 client.on("voiceStateUpdate", (oldState, newState) => {
-    const botVoiceState = newState.guild.members.me?.voice!;
-    if (![oldState.channelId, newState.channelId].includes(botVoiceState.channelId))
-        return;
+    const botVoiceState = newState.guild.members.me!.voice;
 
-    const { musicPlayer } = runtimeGuildData.getOrSetDefault(newState.guild.id);
+    const { musicPlayer } = runtimeGuildData.getOrSetDefault(botVoiceState.guild.id);
     if (!musicPlayer) return;
 
-    // Muted/unmuted
-    if (newState.channelId === oldState.channelId) {
-        // Don't care about other users (un)muting each other
-        if (newState.id !== client.user!.id) return;
+    const countMembers = () => botVoiceState.channel!.members.filter(member => !member.user.bot && !member.voice.deaf).size;
 
-        if (newState.channel?.members.size! > 1 && !newState.mute)
+    if (newState.id === client.user!.id) {
+        if (!botVoiceState.channelId) {
+            // Kicked
             musicPlayer.resume();
-        else
-            musicPlayer.pause();
-        
-        return;
-    } else if (!botVoiceState.mute) { // Moved/kicked
-        // Behavior is exactly same for both bot and other users
-
-        if (newState.channel?.members.size! > 1 || (!newState.channel && newState.id === client.user!.id))
-            musicPlayer.resume();
-        else
-            musicPlayer.pause();
+            return;
+        }
+    } else {
+        // Check if update is related to bot's channels
+        if (![oldState.channelId, newState.channelId].includes(botVoiceState.channelId))
+            return;
     }
+
+    // Check if muted/everyone left
+    if (botVoiceState.mute || !countMembers())
+        musicPlayer.pause();
 });

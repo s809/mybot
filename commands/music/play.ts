@@ -54,6 +54,7 @@ export default defineCommand({
     args: [{
         key: "urlOrQuery",
         type: ApplicationCommandOptionType.String,
+        required: false
     }, {
         key: "playlistStartPosition",
         type: ApplicationCommandOptionType.Integer,
