@@ -6,6 +6,21 @@
     ["yes", "y", "true"]
   ],
   "commands": {
+    "bestfork": {
+      "name": "best-fork",
+      "description": "Find the most starred fork of a GitHub repository.",
+      "args": {
+        "url": {
+          "name": "url",
+          "description": "URL of a repository."
+        }
+      },
+      "strings": {
+        "invalid_repo": "Invalid URL.",
+        "no_forks": "This repository has no forks.",
+        "repo_information": "{url} - {stars} stars"
+      }
+    },
     "bot": {
       "name": "bot",
       "description": "Bot commands"

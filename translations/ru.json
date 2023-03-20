@@ -6,6 +6,21 @@
     ["да", "д", "правда"]
   ],
   "commands": {
+    "bestfork": {
+      "name": "лучший-форк",
+      "description": "Найти форк GitHub-репозитория с наибольшим количеством звезд.",
+      "args": {
+        "url": {
+          "name": "url",
+          "description": "URL репозитория."
+        }
+      },
+      "strings": {
+        "invalid_repo": "Неверный URL.",
+        "no_forks": "У этого репозиторя нет форков.",
+        "repo_information": "{url} - {stars} звезд"
+      }
+    },
     "bot": {
       "name": "бот",
       "description": "Команды бота"
