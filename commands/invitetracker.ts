@@ -43,9 +43,7 @@ const command: CommandDefinition = {
         }]
     }],
     handler: manageInviteTracker,
-    alwaysReactOnSuccess: true,
-    defaultMemberPermissions: PermissionFlagsBits.ManageGuild | PermissionFlagsBits.CreateInstantInvite,
+        defaultMemberPermissions: PermissionFlagsBits.ManageGuild | PermissionFlagsBits.CreateInstantInvite,
     allowDMs: false,
-    interactionCommand: true,
 };
 export default command;

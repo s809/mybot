@@ -375,7 +375,7 @@
       "name": "prefix",
       "description": "Change prefix.",
       "args": {
-        "newPrefix": {
+        "prefix": {
           "name": "new-prefix",
           "description": "New prefix to use."
         }

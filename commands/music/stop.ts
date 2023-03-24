@@ -17,6 +17,5 @@ async function stop(msg: CommandRequest<true>) {
 export default defineCommand({
     key: "stop",
     handler: stop,
-    alwaysReactOnSuccess: true,
-    conditions: InVoiceWithBot
+        conditions: InVoiceWithBot
 });

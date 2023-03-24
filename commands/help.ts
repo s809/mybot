@@ -156,7 +156,6 @@ async function help(msg: CommandRequest) {
 const command: CommandDefinition = {
     key: "help",
     handler: help,
-    defaultMemberPermissions: PermissionFlagsBits.UseApplicationCommands,
-    interactionCommand: true
+    defaultMemberPermissions: PermissionFlagsBits.UseApplicationCommands
 }
 export default command;

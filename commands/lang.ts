@@ -31,8 +31,6 @@ export default defineCommand({
         type: ApplicationCommandOptionType.String,
     }],
     defaultMemberPermissions: PermissionFlagsBits.ManageGuild,
-    interactionCommand: true,
     handler: lang,
     allowDMs: true,
-    alwaysReactOnSuccess: true,
-});
+    });

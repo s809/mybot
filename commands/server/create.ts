@@ -27,5 +27,4 @@ async function createServer(msg: CommandRequest) {
 export default defineCommand({
     key: "create",
     handler: createServer,
-    alwaysReactOnSuccess: true
 });

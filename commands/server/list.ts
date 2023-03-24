@@ -21,5 +21,4 @@ async function getOwnedServers(msg: CommandRequest) {
 export default defineCommand({
     key: "list",
     handler: getOwnedServers,
-    alwaysReactOnSuccess: true
 });

@@ -1,5 +1,5 @@
 import { ApplicationCommandOptionType, GuildTextBasedChannel, PermissionFlagsBits } from "discord.js";
-import { CommandDefinition } from "@s809/noisecord";
+import { CommandDefinition, defineCommand, MessageCommandRequest } from "@s809/noisecord";
 import { iterateMessagesChunked } from "../modules/messages/iterateMessages";
 import { CommandRequest } from "@s809/noisecord";
 import { commandFramework, runtimeGuildData } from "../env";
@@ -59,7 +59,7 @@ async function deleteRange(msg: CommandRequest<true>, {
     }
 }
 
-const command: CommandDefinition = {
+export default defineCommand({
     key: "delrange",
     args: [{
         key: "startId",
@@ -69,10 +69,49 @@ const command: CommandDefinition = {
         key: "endId",
         type: ApplicationCommandOptionType.String,
         required: false
-    }],
+    }] as const,
     defaultMemberPermissions: PermissionFlagsBits.ManageMessages,
     allowDMs: false,
-    interactionCommand: true,
-    handler: deleteRange
-}
-export default command;
+
+    handler: async (req, { startId, endId }) => {
+        if (!(req.channel as GuildTextBasedChannel).permissionsFor(req.guild.members.me!).has(PermissionFlagsBits.ManageMessages))
+            return errorLoc.cannot_manage_messages.path;
+
+        if (startId || endId) {
+            try {
+                if (!startId)
+                    return errorLoc.invalid_message_range.path;
+                if (!endId)
+                    endId = startId;
+
+                if (BigInt(startId) < BigInt(endId))
+                    [startId, endId] = [endId, startId];
+            } catch (e) {
+                return errorLoc.invalid_message_range.path;
+            }
+        } else {
+            const runtimeData = runtimeGuildData.getOrSetDefault(req.guildId)
+                .channels.getOrSetDefault(req.channelId)
+                .members.getOrSetDefault(req.author.id);
+
+            const range = runtimeData.messageSelectionRange;
+            if (!range)
+                return errorLoc.nothing_is_selected.path;
+
+            startId = range.begin;
+            endId = range.end;
+            delete runtimeData.messageSelectionRange;
+        }
+
+        try {
+            for await (let chunk of iterateMessagesChunked(req.channel, endId, startId)) {
+                const bulkDeleted = await req.channel.bulkDelete(chunk, true);
+
+                for (let message of chunk.filter(message => !bulkDeleted.has(message.id)))
+                    await message.delete();
+            }
+        } catch (e) {
+            return errorLoc.delete_failed.path;
+        }
+    }
+});

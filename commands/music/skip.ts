@@ -17,6 +17,5 @@ async function skip(msg: CommandRequest<true>) {
 export default defineCommand({
     key: "skip",
     handler: skip,
-    alwaysReactOnSuccess: true,
-    conditions: InVoiceWithBot
+        conditions: InVoiceWithBot
 });

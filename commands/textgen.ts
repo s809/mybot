@@ -45,8 +45,6 @@ export default defineCommand({
         }]
     }],
     handler: manageTextGen,
-    alwaysReactOnSuccess: true,
-    interactionCommand: true,
-    defaultMemberPermissions: PermissionFlagsBits.ManageChannels,
+        defaultMemberPermissions: PermissionFlagsBits.ManageChannels,
     allowDMs: false
 });

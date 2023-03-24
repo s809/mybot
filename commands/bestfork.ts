@@ -13,8 +13,9 @@ export default defineCommand({
     args: [{
         key: "url",
         type: ApplicationCommandOptionType.String
-    }],
-    handler: async (req, { url }: { url: string }) => {
+    }] as const,
+    
+    handler: async (req, { url }) => {
         if (!url.match(/^https:\/\/github\.com\/[a-z0-9-_]+\/[a-z0-9-_]+$/i))
             return translations.invalid_repo.getTranslation(req);
 
@@ -29,6 +30,5 @@ export default defineCommand({
                 stars: data[0].stargazers_count
             })
             : translations.no_forks.getTranslation(req));
-    },
-    interactionCommand: true
+    }
 })

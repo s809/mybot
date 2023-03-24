@@ -17,6 +17,5 @@ async function pause(msg: CommandRequest<true>) {
 export default defineCommand({
     key: "pause",
     handler: pause,
-    alwaysReactOnSuccess: true,
-    conditions: InVoiceWithBot
+        conditions: InVoiceWithBot
 });

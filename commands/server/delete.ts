@@ -8,5 +8,4 @@ async function deleteServer(msg: CommandRequest<true>) {
 export default defineCommand({
     key: "delete",
     handler: deleteServer,
-    alwaysReactOnSuccess: true
 });

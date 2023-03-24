@@ -28,7 +28,6 @@ export default defineCommand({
         }]
     }],
     defaultMemberPermissions: PermissionFlagsBits.ManageChannels | PermissionFlagsBits.CreateInstantInvite,
-    interactionCommand: true,
     allowDMs: false,
     handler: toggleInviteChannel
 });

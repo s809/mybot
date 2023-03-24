@@ -1,25 +1,17 @@
 import { ApplicationCommandOptionType, PermissionFlagsBits } from "discord.js";
 import { Guild } from "../database/models";
-import { CommandRequest, defineCommand } from "@s809/noisecord";
-import { CommandDefinition } from "@s809/noisecord";
-
-async function prefix(msg: CommandRequest<true>, {
-    newPrefix
-}: {
-    newPrefix: string;
-}) {
-    await Guild.updateByIdWithUpsert(msg.guildId, { prefix: newPrefix });
-}
+import { defineCommand } from "@s809/noisecord";
 
 export default defineCommand({
     key: "prefix",
     args: [{
-        key: "newPrefix",
+        key: "prefix",
         type: ApplicationCommandOptionType.String,
-    }],
-    handler: prefix,
-    alwaysReactOnSuccess: true,
-    interactionCommand: true,
+    }] as const,
     defaultMemberPermissions: PermissionFlagsBits.ManageGuild,
-    allowDMs: false
+    allowDMs: false,
+
+    handler: async (req, { prefix }) => {
+        await Guild.updateByIdWithUpsert(req.guildId, { prefix });
+    }
 });
