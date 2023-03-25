@@ -271,6 +271,14 @@
         "invalid_language": "Invalid language."
       }
     },
+    "linkedroles": {
+      "name": "linked-roles",
+      "description": "Authorize to claim linked roles",
+      "strings": {
+        "use_link": "Use this link to connect a bot to your account: {link}",
+        "oauth2_not_enabled": "OAuth2 is not enabled."
+      }
+    },
     "music": {
       "name": "music",
       "description": "Music commands"

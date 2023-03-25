@@ -15,7 +15,8 @@ export const {
     token,
     logChannel,
     defaults,
-    voice
+    voice,
+    oauth2
 }: {
     debug: boolean;
     token: string;
@@ -30,4 +31,10 @@ export const {
         nextTrackDelay: number;
         pauseResumeTimeout: number;
     }>;
+    oauth2: Readonly<{
+        port: number;
+        clientSecret: string;
+        cookieSecret: string;
+        urlBase: string;
+    }> | null
 } = JSON.parse(readFileSync("./config.json", "utf8"));

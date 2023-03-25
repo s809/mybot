@@ -33,4 +33,4 @@ export default defineCommand({
     defaultMemberPermissions: PermissionFlagsBits.ManageGuild,
     handler: lang,
     allowDMs: true,
-    });
+});

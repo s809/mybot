@@ -46,7 +46,13 @@ export type InviteTrackerData = NonNullable<DocumentOf<typeof Guild>["inviteTrac
 export const User = model("users", new Schema({
     ...stringId,
     ...languageData,
-    ...flagData
+    ...flagData,
+
+    oauth2: requiredAllExceptParent({
+        accessToken: String,
+        refreshToken: String,
+        expiresAt: Number
+    })
 }, {
     strict: false,
     statics: {
@@ -72,4 +78,4 @@ export const TextGenData = model("textGenData", new Schema({
         nextWords: mapOf(Number),
         wasLast: Boolean
     })), new Map())
-}))
+}));

@@ -3,9 +3,11 @@ import { botEval } from "../modules/misc/eval";
 import { log } from "../log";
 import { ScriptList } from "../database/models";
 import { syncGuild } from "../modules/data/dataSync";
-import { Guild, GuildChannel, GuildTextBasedChannel } from "discord.js";
+import { GuildChannel, GuildTextBasedChannel } from "discord.js";
 import { getChannel } from "../modules/data/databaseUtil";
 import { doPinMessage } from "../modules/messages/pinBottom";
+import { oauth2 } from "../constants";
+import { startOAuth2Server } from "../modules/misc/oauth2";
 
 client.on("ready", async () => {
     log(`Logged in as ${client.user!.tag}.`);
@@ -25,4 +27,7 @@ client.on("ready", async () => {
         if (pinnedMessage)
             doPinMessage(channel as GuildTextBasedChannel, pinnedMessage);
     }
+
+    if (oauth2)
+        await startOAuth2Server();
 });

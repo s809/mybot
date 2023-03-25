@@ -11,5 +11,6 @@
     "playingWaitTimeout": 30000,
     "nextTrackDelay": 3000,
     "pauseResumeTimeout": 120000
-  }
+  },
+  "oauth2": null
 }

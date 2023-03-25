@@ -10,5 +10,11 @@
     "playingWaitTimeout": 10000,
     "nextTrackDelay": 3000,
     "pauseResumeTimeout": 120000
+  },
+  "oauth2": {
+    "port": 3000,
+    "clientSecret": "Insert your secret here",
+    "cookieSecret": "Insert your cookie secret here",
+    "urlBase": "URL base"
   }
 }
