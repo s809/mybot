@@ -2,7 +2,7 @@
  * @file Keeps global bot state.
  */
 
-import { Client, GatewayIntentBits, GuildTextBasedChannel, IntentsBitField, LocaleString, Message, Partials, Snowflake, Team, User } from "discord.js";
+import { Client, GatewayIntentBits, GuildTextBasedChannel, IntentsBitField, InteractionResponse, LocaleString, Message, MessageContextMenuCommandInteraction, Partials, Snowflake, Team, User } from "discord.js";
 import { User as DbUser, Guild as DbGuild } from "./database/models";
 import { MusicPlayer } from "./modules/music/MusicPlayer";
 import { debug, version } from "./constants";
@@ -79,14 +79,12 @@ export const runtimeGuildData = new MapWithDefault<Snowflake, {
             messageSelectionRange?: {
                 begin: Snowflake,
                 end: Snowflake,
+                lastInteraction?: MessageContextMenuCommandInteraction
             }
         }>
     }>
-}>()
-    .setDefault(() => ({
-        channels: new MapWithDefault()
-            .setDefault(() => ({
-                members: new MapWithDefault()
-                    .setDefault(() => ({}))
-            }))
-    }));
+}>(() => ({
+    channels: new MapWithDefault(() => ({
+        members: new MapWithDefault(() => ({}))
+    }))
+}));

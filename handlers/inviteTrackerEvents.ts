@@ -19,7 +19,7 @@ client.on("ready", async () => {
 });
 
 client.on("inviteCreate", async invite => {
-    const { inviteTracker } = runtimeGuildData.getOrSetDefault(invite.guild!.id);
+    const { inviteTracker } = runtimeGuildData.get(invite.guild!.id);
     if (!inviteTracker) return;
 
     inviteTracker.counts.set(invite.code, invite.uses!);
@@ -30,7 +30,7 @@ client.on("inviteCreate", async invite => {
 });
 
 client.on("inviteDelete", async invite => {
-    const { inviteTracker } = runtimeGuildData.getOrSetDefault(invite.guild!.id);
+    const { inviteTracker } = runtimeGuildData.get(invite.guild!.id);
     if (!inviteTracker) return;
 
     inviteTracker.counts.delete(invite.code);
@@ -38,7 +38,7 @@ client.on("inviteDelete", async invite => {
 });
 
 client.on("guildMemberAdd", async member => {
-    const { inviteTracker } = runtimeGuildData.getOrSetDefault(member.guild.id);
+    const { inviteTracker } = runtimeGuildData.get(member.guild.id);
     if (!inviteTracker) return;
     const { logChannel, counts } = inviteTracker;
 

@@ -320,8 +320,9 @@
         "message_id": "ID сообщения: {id}",
         "message_id_range": "ID диапазона сообщений: {startId} - {endId}",
         "message": "Сообщение",
-        "begin_message": "Первое сообщение",
-        "end_message": "Последнее сообщение"
+        "begin_message": "Начало",
+        "end_message": "Конец",
+        "remove_selection": "Отмена"
       }
     }
   },

@@ -7,8 +7,8 @@ client.on("messageCreate", async msg => {
     if (msg.author.bot || msg.webhookId) return;
     
     // Fetch if result is not cached
-    const channelData = runtimeGuildData.getOrSetDefault(msg.guildId)
-        .channels.getOrSetDefault(msg.channelId);
+    const channelData = runtimeGuildData.get(msg.guildId)
+        .channels.get(msg.channelId);
     if (!channelData.textGenEnabled) {
         if (!await TextGenData.findById(msg.channelId)) return;
         channelData.textGenEnabled = true;

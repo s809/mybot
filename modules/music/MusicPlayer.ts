@@ -160,7 +160,7 @@ export class MusicPlayer {
 
     /** Stops player. */
     stop() {
-        const guildData = runtimeGuildData.getOrSetDefault(this.voiceChannel.guildId);
+        const guildData = runtimeGuildData.get(this.voiceChannel.guildId);
         if (!guildData.musicPlayer) return;
 
         this.queue.splice(0, this.queue.entries.length);
@@ -187,7 +187,7 @@ export class MusicPlayer {
             adapterCreator: this.voiceChannel.guild.voiceAdapterCreator
         });;
 
-        runtimeGuildData.getOrSetDefault(this.voiceChannel.guildId).musicPlayer = this;
+        runtimeGuildData.get(this.voiceChannel.guildId).musicPlayer = this;
 
         try {
             await entersState(this.connection, VoiceConnectionStatus.Ready, voice.readyWaitTimeout);

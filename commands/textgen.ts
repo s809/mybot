@@ -13,8 +13,8 @@ async function manageTextGen(msg: CommandRequest<true>, {
 }: {
     action: "enable" | "disable"
 }) {
-    const channelData = runtimeGuildData.getOrSetDefault(msg.guildId)
-        .channels.getOrSetDefault(msg.channelId);
+    const channelData = runtimeGuildData.get(msg.guildId)
+        .channels.get(msg.channelId);
 
     if (action === "enable") {
         const result = await TextGenData.updateOne({ _id: msg.channelId }, {}, { upsert: true });

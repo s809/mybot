@@ -18,7 +18,7 @@ export async function onChannelRemove(channel: Channel | {
     });
 
     // Remove channel state data from other sources
-    const guildData = runtimeGuildData.getOrSetDefault(channel.guildId);
+    const guildData = runtimeGuildData.get(channel.guildId);
     const channelData = guildData.channels.get(channel.id);
 
     // Text gen

@@ -27,7 +27,7 @@ async function play(msg: CommandRequest<true>, {
     if (urlOrQuery?.match(/(\\|'|")/))
         return errorLoc.invalid_url.path;
 
-    const { musicPlayer } = runtimeGuildData.getOrSetDefault(voiceChannel.guildId);
+    const { musicPlayer } = runtimeGuildData.get(voiceChannel.guildId);
     
     if (!urlOrQuery) {
         if (musicPlayer?.resume())

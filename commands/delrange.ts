@@ -34,9 +34,9 @@ async function deleteRange(msg: CommandRequest<true>, {
             return errorLoc.invalid_message_range.path;
         }
     } else {
-        const runtimeData = runtimeGuildData.getOrSetDefault(msg.guildId)
-            .channels.getOrSetDefault(msg.channelId)
-            .members.getOrSetDefault(msg.author.id);
+        const runtimeData = runtimeGuildData.get(msg.guildId)
+            .channels.get(msg.channelId)
+            .members.get(msg.author.id);
         
         const range = runtimeData.messageSelectionRange;
         if (!range)
@@ -90,9 +90,9 @@ export default defineCommand({
                 return errorLoc.invalid_message_range.path;
             }
         } else {
-            const runtimeData = runtimeGuildData.getOrSetDefault(req.guildId)
-                .channels.getOrSetDefault(req.channelId)
-                .members.getOrSetDefault(req.author.id);
+            const runtimeData = runtimeGuildData.get(req.guildId)
+                .channels.get(req.channelId)
+                .members.get(req.author.id);
 
             const range = runtimeData.messageSelectionRange;
             if (!range)
@@ -100,6 +100,8 @@ export default defineCommand({
 
             startId = range.begin;
             endId = range.end;
+
+            range.lastInteraction?.deleteReply().catch(() => { });
             delete runtimeData.messageSelectionRange;
         }
 

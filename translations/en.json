@@ -542,8 +542,9 @@
         "message_id": "Message ID: {id}",
         "message_id_range": "Message ID range: {startId} - {endId}",
         "message": "Message",
-        "begin_message": "Begin Message",
-        "end_message": "End Message"
+        "begin_message": "Begin",
+        "end_message": "End",
+        "remove_selection": "Cancel"
       }
     }
   },

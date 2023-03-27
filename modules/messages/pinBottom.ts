@@ -53,8 +53,8 @@ export async function doPinMessage(channel: GuildTextBasedChannel, {
     interval: messageInterval,
     lastMessage
 }: NonNullable<ChannelData["pinnedMessage"]>) {
-    const channelData = runtimeGuildData.getOrSetDefault(channel.guildId!)
-        .channels.getOrSetDefault(channel.id);
+    const channelData = runtimeGuildData.get(channel.guildId!)
+        .channels.get(channel.id);
 
     if (channelData.pinnedMessageUpdater)
         client.off("messageCreate", channelData.pinnedMessageUpdater);
@@ -99,8 +99,8 @@ export async function doPinMessage(channel: GuildTextBasedChannel, {
 }
 
 export async function unpinMessage(channel: GuildTextBasedChannel) {
-    const channelData = runtimeGuildData.getOrSetDefault(channel.guildId!)
-        .channels.getOrSetDefault(channel.id);
+    const channelData = runtimeGuildData.get(channel.guildId!)
+        .channels.get(channel.id);
     
     if (channelData.pinnedMessageUpdater) {
         client.off("messageCreate", channelData.pinnedMessageUpdater);

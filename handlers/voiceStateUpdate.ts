@@ -3,7 +3,7 @@ import { client, runtimeGuildData } from "../env";
 client.on("voiceStateUpdate", (oldState, newState) => {
     const botVoiceState = newState.guild.members.me!.voice;
 
-    const { musicPlayer } = runtimeGuildData.getOrSetDefault(botVoiceState.guild.id);
+    const { musicPlayer } = runtimeGuildData.get(botVoiceState.guild.id);
     if (!musicPlayer) return;
 
     const countMembers = () => botVoiceState.channel!.members.filter(member => !member.user.bot && !member.voice.deaf).size;

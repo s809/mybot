@@ -26,7 +26,7 @@ export async function trackInvites(channel: GuildTextBasedChannel) {
 }
 
 export async function untrackInvites(guildId: Snowflake) {
-    delete runtimeGuildData.getOrSetDefault(guildId).inviteTracker;
+    delete runtimeGuildData.get(guildId).inviteTracker;
     await DbGuild.updateOne({ _id: guildId }, {
         $unset: {
             inviteTracker: 1
@@ -44,7 +44,7 @@ export async function tryStartTracking(guild: Guild) {
 
 export async function startTracking(channel: GuildTextBasedChannel) {
     try {
-        const { counts } = runtimeGuildData.getOrSetDefault(channel.guildId)
+        const { counts } = runtimeGuildData.get(channel.guildId)
             .inviteTracker = {
                 logChannel: channel,
                 counts: (await channel.guild.invites.fetch())
