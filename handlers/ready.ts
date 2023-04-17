@@ -28,6 +28,5 @@ client.on("ready", async () => {
             doPinMessage(channel as GuildTextBasedChannel, pinnedMessage);
     }
 
-    if (oauth2)
-        await startOAuth2Server();
+    await startOAuth2Server();
 });

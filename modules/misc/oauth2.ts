@@ -8,7 +8,8 @@ import { User as DbUser } from "../../database/models";
 import { client } from "../../env";
 
 export const app = express();
-app.use(cookieParser(oauth2!.cookieSecret))
+if (oauth2)
+    app.use(cookieParser(oauth2!.cookieSecret))
 
 app.get("/", (req, res) => {
     res.send("Nothing is here, yet.");
@@ -75,6 +76,8 @@ app.get("/oauth2/callback", async (req, res) => {
 });
 
 export async function startOAuth2Server() {
+    if (!oauth2) return;
+
     await client.application!.editRoleConnectionMetadataRecords([{
         name: "cool role link",
         description: ":wtf2:",

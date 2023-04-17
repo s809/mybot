@@ -4,51 +4,6 @@
 import { botDirectory } from "./constants";
 
 /**
- * Extracts ID from mention.
- * 
- * @param text Text containing mention.
- * @returns Extracted ID.
- */
-export function parseMention(text: string, prefix: string): string | null {
-    if (/^\d{17,19}$/.test(text))
-        return text;
-
-    let regex = new RegExp(`^<${prefix}(\\d{17,19})>$`)
-    return text.match(regex)?.[1] ?? null;
-}
-
-/**
- * Extracts channel ID from mention.
- * 
- * @param text Text containing mention.
- * @returns Extracted ID.
- */
-export function parseChannelMention(text: string) {
-    return parseMention(text, "#");
-}
-
-/**
- * Extracts user ID from mention.
- * 
- * @param text Text containing mention.
- * @returns Extracted ID.
- */
-export function parseUserMention(text: string) {
-    return parseMention(text, "@") ?? parseMention(text, "@!");
-}
-
-/**
- * Extracts role ID from mention.
- * 
- * @param text Text containing mention.
- * @returns Extracted ID.
- */
-export function parseRoleMention(text: string) {
-    return parseMention(text, "@&");
-}
-
-
-/**
  * Wraps text in titled borders.
  * 
  * @param title Title for wrapping.
@@ -159,9 +114,5 @@ export type Overwrite<T, U> = Omit<T, keyof U> & U;
 
 export type ArrayElement<ArrayType extends readonly unknown[]> =
     ArrayType extends readonly (infer ElementType)[] ? ElementType : never;
-
-export type DistributiveOmit<T, K extends keyof any> = T extends any
-    ? Omit<T, K>
-    : never;
 
 export type MapValue<T> = T extends Map<any, infer I> ? I : never;

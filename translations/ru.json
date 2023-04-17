@@ -357,7 +357,7 @@
     "strings": {
       "invite_created": "Создано новое приглашение: {code} от {user}",
       "invite_deleted": "Приглашение удалено: {code}",
-      "invite_used": "Использовано приглашение: code от {user}",
+      "invite_used": "Использовано приглашение: {code} от {user}",
       "member_joined": "{user} присоединился",
       "tracking_started": "Отслеживается {count} приглашений."
     }
