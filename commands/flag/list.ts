@@ -14,7 +14,7 @@ async function flagList(msg: CommandRequest, {
     if (!resolvedItem)
         return "Unknown item.";
 
-    await msg.reply({
+    await msg.replyOrEdit({
         embeds: [{
             title: `Flags of ${resolvedItem.item instanceof User ? resolvedItem.item.tag : resolvedItem.item.name}`,
             description: resolvedItem?.data.flags.join("\n") || "None"

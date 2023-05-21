@@ -15,7 +15,7 @@ async function getOwnedServers(msg: CommandRequest) {
     }
 
     if (result !== "")
-        await msg.reply(result);
+        await msg.replyOrEdit(result);
 }
 
 export default defineCommand({

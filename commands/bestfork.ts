@@ -24,7 +24,7 @@ export default defineCommand({
         const fetchReq = await fetch(`https://api.github.com/repos/${repo}/forks?sort=stargazers&per_page=1`);
         const data = await fetchReq.json();
         
-        await req.reply(data.length
+        await req.replyOrEdit(data.length
             ? translations.repo_information.getTranslation(req, {
                 url: data[0].html_url,
                 stars: data[0].stargazers_count

@@ -4,8 +4,7 @@ import { iterateMessages } from "../../modules/messages/iterateMessages";
 import { sendAlwaysLastMessage } from "../../modules/messages/AlwaysLastMessage";
 import sendLongText from "../../modules/messages/sendLongText";
 import { once } from "events";
-import { defineCommand, textChannels as guildTextChannels } from "@s809/noisecord";
-import { CommandRequest } from "@s809/noisecord";
+import { InteractionCommandRequest, defineCommand, textChannels as guildTextChannels } from "@s809/noisecord";
 
 const embedLoc = commandFramework.translationChecker.checkTranslations({
     "title": true,
@@ -67,7 +66,10 @@ export default defineCommand({
         let invites: Set<string> = new Set();
 
         let totalLength = 0;
-        await req.completeSilently();
+
+        if (req instanceof InteractionCommandRequest)
+            await req.response.delete();
+        
         let counterMessage = await sendAlwaysLastMessage(req.channel, {
             embeds: [{
                 title: embedLoc.title.getTranslation(req),
@@ -163,7 +165,7 @@ export default defineCommand({
             let files: string[] = [];
 
             let sendAndClean = async () => {
-                await req.sendSeparate({
+                await req.channel.send({
                     embeds: embeds,
                     files: files.filter(x => x).map((x, i) => ({
                         name: `statistics${i + 1}.txt`,

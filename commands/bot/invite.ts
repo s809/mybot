@@ -7,7 +7,7 @@ const embedLoc = commandFramework.translationChecker.checkTranslations({
 }, `${commandFramework.commandRegistry.getCommandTranslationPath("bot/invite")}.embeds`);
 
 async function botInvite(msg: CommandRequest) {
-    await msg.reply({
+    await msg.replyOrEdit({
         embeds: [{
             title: embedLoc.title.getTranslation(msg),
             description: client.generateInvite({

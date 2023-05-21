@@ -101,7 +101,7 @@ export default defineCommand({
             startId = range.begin;
             endId = range.end;
 
-            range.lastInteraction?.deleteReply().catch(() => { });
+            range.lastRequest?.response.delete();
             delete runtimeData.messageSelectionRange;
         }
 

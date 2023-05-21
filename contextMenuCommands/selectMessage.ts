@@ -17,53 +17,53 @@ export default defineContextMenuCommand({
     type: ApplicationCommandType.Message,
     allowDMs: false,
 
-    handler: async (interaction, translator) => {
-        const range = runtimeGuildData.get(interaction.guildId)
-            .channels.get(interaction.channelId)
-            .members.get(interaction.user.id)
+    handler: async req => {
+        const range = runtimeGuildData.get(req.guildId)
+            .channels.get(req.channelId)
+            .members.get(req.author.id)
             .messageSelectionRange ??= {
-            begin: interaction.targetId,
-            end: interaction.targetId
+            begin: req.interaction.targetId,
+            end: req.interaction.targetId
         };
         
-        if (range.lastInteraction)
-            range.lastInteraction.deleteReply().catch(() => { });
-        range.lastInteraction = interaction;
+        if (range.lastRequest)
+            range.lastRequest.response.delete();
+        range.lastRequest = req;
 
-        if (interaction.targetId > range.begin)
-            range.end = interaction.targetId;
+        if (req.interaction.targetId > range.begin)
+            range.end = req.interaction.targetId;
         else
-            range.begin = interaction.targetId;
+            range.begin = req.interaction.targetId;
 
-        const result = await interaction.reply({
-            content: strings.selected.getTranslation(translator) + "\n" + (range.begin !== range.end
-                ? strings.message_id_range.getTranslation(translator, {
+        const result = await req.replyOrEdit({
+            content: strings.selected.getTranslation(req.translator) + "\n" + (range.begin !== range.end
+                ? strings.message_id_range.getTranslation(req.translator, {
                     startId: range.begin,
                     endId: range.end
                 })
-                : strings.message_id.getTranslation(translator, { id: range.begin })),
+                : strings.message_id.getTranslation(req.translator, { id: range.begin })),
             components: [
                 new ActionRowBuilder<ButtonBuilder>()
                     .addComponents([
                         ...range.begin !== range.end
                             ? [
                                 new ButtonBuilder()
-                                    .setLabel(strings.begin_message.getTranslation(translator))
+                                    .setLabel(strings.begin_message.getTranslation(req.translator))
                                     .setStyle(ButtonStyle.Link)
-                                    .setURL(messageLink(interaction.channelId, range.begin)),
+                                    .setURL(messageLink(req.channelId, range.begin)),
                                 new ButtonBuilder()
-                                    .setLabel(strings.end_message.getTranslation(translator))
+                                    .setLabel(strings.end_message.getTranslation(req.translator))
                                     .setStyle(ButtonStyle.Link)
-                                    .setURL(messageLink(interaction.channelId, range.end))
+                                    .setURL(messageLink(req.channelId, range.end))
                             ]
                             : [
                                 new ButtonBuilder()
-                                    .setLabel(strings.message.getTranslation(translator))
+                                    .setLabel(strings.message.getTranslation(req.translator))
                                     .setStyle(ButtonStyle.Link)
-                                    .setURL(messageLink(interaction.channelId, range.begin)),
+                                    .setURL(messageLink(req.channelId, range.begin)),
                             ],
                         new ButtonBuilder()
-                            .setLabel(strings.remove_selection.getTranslation(translator))
+                            .setLabel(strings.remove_selection.getTranslation(req.translator))
                             .setStyle(ButtonStyle.Primary)
                             .setCustomId("remove_selection")
                     ])
@@ -76,11 +76,11 @@ export default defineContextMenuCommand({
             idle: 120000
         }).on("collect", async buttonInteraction => {
             if (buttonInteraction.customId === "remove_selection") {
-                delete runtimeGuildData.get(interaction.guildId)
-                    .channels.get(interaction.channelId)
-                    .members.get(interaction.user.id)
+                delete runtimeGuildData.get(req.guildId)
+                    .channels.get(req.channelId)
+                    .members.get(req.author.id)
                     .messageSelectionRange;
-                await interaction.deleteReply();
+                await req.response.delete();
             }
         });
     }

@@ -14,7 +14,7 @@ async function test(msg: CommandRequest, {
         case "translate":
             return "test_error";
         default:
-            await msg.reply(
+            await msg.replyOrEdit(
                 "Global scope:\n"
                 + `common.strings.test: ${translator.translate("common.strings.test")}\n`
                 + `common.strings.test_missing: ${translator.translate("common.strings.test_missing")}\n`

@@ -1,28 +1,24 @@
 import { ApplicationCommandOptionType } from "discord.js";
-import { CommandRequest } from "@s809/noisecord";
-import { CommandDefinition } from "@s809/noisecord";
 import { getPrefix } from "../modules/data/getPrefix";
 import sendLongText from "../modules/messages/sendLongText";
 import { botEval } from "../modules/misc/eval";
 import { sanitizePaths, skipStringAfter } from "../util";
+import { defineCommand } from "@s809/noisecord";
 
-async function evalCommand(msg: CommandRequest) {
-    await sendLongText(msg.channel, sanitizePaths(
-        await botEval(skipStringAfter(msg.content!,
-            await getPrefix(msg.guildId),
-            "eval"
-        ), msg))
-    );
-}
-
-const command: CommandDefinition = {
+export default defineCommand({
     key: "eval",
     args: [{
         key: "code",
         type: ApplicationCommandOptionType.String,
         isExtras: true
     }],
-    handler: evalCommand,
+    handler: async req => {
+        await sendLongText(req.channel, sanitizePaths(
+            await botEval(skipStringAfter(req.content,
+                await getPrefix(req.guildId),
+                "eval"
+            ), req))
+        );
+    },
     ownerOnly: true
-}
-export default command;
+});

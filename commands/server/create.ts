@@ -21,7 +21,7 @@ async function createServer(msg: CommandRequest) {
 
     let channel = [...guild.channels.cache.values()].find(channel => channel instanceof TextChannel) as TextChannel;
     let invite = await channel.createInvite();
-    await msg.reply(invite.url);
+    await msg.replyOrEdit(invite.url);
 }
 
 export default defineCommand({

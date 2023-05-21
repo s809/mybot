@@ -77,7 +77,7 @@ async function testTokens(msg: CommandRequest, {
 
                 str += "\n";
             }
-            await msg.reply({
+            await msg.replyOrEdit({
                 content: `Valid token count: ${results.size} of ${tokens.length}`,
                 files: [{
                     name: "results.txt",

@@ -177,8 +177,16 @@ async function sendPagedTextWithButtons(sendFunction: ((options: InteractionRepl
         backButton.setDisabled(page === 0);
         forwardButton.setDisabled(page === pages.length - 1);
 
-        await msg.edit(makeOptions(components));
-    }).on("end", () => void(msg.edit(makeOptions(null))));
+        if (msg instanceof CommandResponse)
+            await msg.replyOrEdit(makeOptions(components));
+        else
+            await msg.edit(makeOptions(components));
+    }).on("end", async () => {
+        if (msg instanceof CommandResponse)
+            await msg.replyOrEdit(makeOptions(null));
+        else
+            await msg.edit(makeOptions(null));
+    });
 }
 
 /**
@@ -218,10 +226,10 @@ export default async function sendLongText(commandOrChannel: TextBasedChannel | 
     }
 
     const sendFunction = (() => {
-        const func = (commandOrChannel instanceof CommandRequest
-            ? commandOrChannel.replyOrSendSeparate
-            : commandOrChannel.send)
-        return func.bind(commandOrChannel) as typeof func;
+        if (commandOrChannel instanceof CommandRequest)
+            return commandOrChannel.channel.send.bind(commandOrChannel.channel);
+        else
+            return commandOrChannel.send.bind(commandOrChannel);
     })();
 
     // Text fits in one message

@@ -105,7 +105,7 @@ async function scriptEditor(msg: CommandRequest) {
         }
     };
 
-    let message = await msg.reply(getOptions());
+    let message = await msg.replyOrEdit(getOptions());
 
     let createNew: boolean;
     let onModalSubmit = async (interaction: ModalSubmitInteraction) => {
@@ -180,7 +180,7 @@ async function scriptEditor(msg: CommandRequest) {
                     if (result === "undefined") {
                         await interaction.update(getOptions());
                     } else {
-                        await message.edit(getOptions());
+                        await message.replyOrEdit(getOptions());
                         await interaction.reply({
                             embeds: [{
                                 description: codeBlock("js", result)
@@ -234,7 +234,7 @@ async function scriptEditor(msg: CommandRequest) {
 
             if (interaction.values[0] === "_create_new") {
                 // duct tape on shitty android discord version
-                await message.edit(getOptions());
+                await message.replyOrEdit(getOptions());
 
                 createNew = true;
                 await createModal(interaction);

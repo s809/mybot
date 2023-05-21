@@ -14,7 +14,7 @@ export default defineCommand({
         if (!oauth2)
             return strings.oauth2_not_enabled.path;
         
-        await req.reply(strings.use_link.getTranslation(req, {
+        await req.replyOrEdit(strings.use_link.getTranslation(req, {
             link: `<${oauth2!.urlBase}/oauth2/linked-roles>`
         }));
     }

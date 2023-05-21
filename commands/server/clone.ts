@@ -145,7 +145,7 @@ async function cloneServer(msg: CommandRequest<true>, {
 
         await (cleanBeforeStarting
             ? newTextChannel?.send.bind(newTextChannel)
-            : msg.sendSeparate.bind(msg)
+            : msg.channel.send.bind(msg.channel)
         )?.("Some channels were skipped as this server is not community-enabled.");
     }
 }

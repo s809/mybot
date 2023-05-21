@@ -33,7 +33,7 @@ async function uptime(msg: CommandRequest) {
     let bot = new Date(client.uptime!);
     let host = new Date(os.uptime() * 1000);
 
-    await msg.reply({
+    await msg.replyOrEdit({
         embeds: [{
             title: embedLoc.title.getTranslation(msg),
             description: embedLoc.text.getTranslation(msg, {

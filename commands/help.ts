@@ -111,7 +111,7 @@ async function help(msg: CommandRequest) {
         };
     };
 
-    let resp = await msg.reply(await makeOptions(null));
+    let resp = await msg.replyOrEdit(await makeOptions(null));
 
     resp.createMessageComponentCollector({
         idle: 60000,
