@@ -14,7 +14,7 @@ install();
     logDebug("Running in debug mode.");
     
     await import("./handlers");
-    await commandFramework.init(client);
+    await commandFramework.init();
     await client.login(token);
     await client.application!.fetch();
 

@@ -1,5 +1,5 @@
 /**
- * @file Mudule for config and auto-generated constant values.
+ * @file Module for config and auto-generated constant values.
  */
 
 import { readFileSync } from "fs";

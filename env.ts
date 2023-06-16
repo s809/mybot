@@ -23,7 +23,7 @@ export const client = new Client({
     }
 });
 
-export const commandFramework: CommandFramework = new CommandFramework({
+export const commandFramework: CommandFramework = new CommandFramework(client, {
     commandRegistryOptions: {
         commandModuleDirectory: "./build/commands",
         contextMenuModuleDirectory: "./build/contextMenuCommands"

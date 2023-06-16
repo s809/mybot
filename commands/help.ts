@@ -83,19 +83,12 @@ async function help(msg: CommandRequest) {
             let description = `${command.descriptionTranslations[translator.localeString]
                 ?? command.descriptionTranslations[defaults.locale]
                 ?? embedLoc.no_description.getTranslation(msg)}`;
-            let requiredPermissions = command.conditions.filter(x => !x.hideInDescription).map(x => x.name).join(", ");
-            
-            if (requiredPermissions)
-                requiredPermissions = `\n${embedLoc.required_permissions.getTranslation(msg, { requiredPermissions })}`;
-            else
-                requiredPermissions = "";
 
             embed = {
                 title: embedLoc.title.getTranslation(msg),
                 description: (command.handler
                     ? codeBlock + description
-                    : embedLoc.select_command_in_category.getTranslation(msg))
-                    + requiredPermissions,
+                    : embedLoc.select_command_in_category.getTranslation(msg)),
                 footer: command.handler && command.interactionCommand
                     ? {
                         text: embedLoc.slash_commands_suggestion.getTranslation(msg)

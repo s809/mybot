@@ -1,8 +1,8 @@
-import { defineCommand, InVoiceChannel } from "@s809/noisecord";
+import { BuiltInCommandConditions, defineCommand } from "@s809/noisecord";
 
 export default defineCommand({
     key: "music",
-    conditions: [InVoiceChannel],
+    conditions: [BuiltInCommandConditions.InVoiceChannel],
     ownerOnly: true,
     allowDMs: false
 });

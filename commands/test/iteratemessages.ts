@@ -1,15 +1,12 @@
 import { Message } from "discord.js";
-import { CommandRequest, InteractionCommandResponse, defineCommand } from "@s809/noisecord";
+import { CommandRequest, defineCommand } from "@s809/noisecord";
 import { iterateMessages } from "../../modules/messages/iterateMessages";
+import all from "it-all";
 
 export default defineCommand({
     key: "iteratemessages",
-    handler: async (msg: CommandRequest<true>) => {
-        const response = msg.response;
-        if (response instanceof InteractionCommandResponse)
-            await response.defer();
-
-        const channel = await msg.guild.channels.create({
+    handler: async (req: CommandRequest<true>) => {
+        const channel = await req.guild.channels.create({
             name: "iterate-messages"
         });
 
@@ -17,10 +14,10 @@ export default defineCommand({
         for (let i = 1; i <= 5; i++)
             messages.push(await channel.send(i.toString()));
 
+        const result: string[] = [];
         const doTest = async (title: string, reference: string, iterable: AsyncGenerator<Message, void, unknown>) => {
-            let result = await msg.channel.send(`--- ${title} ---\nReference: ${reference}\nResult: `);
-            for await (const message of iterable)
-                await result.edit(result.content + " " + message.content);
+            const output = (await all(iterable)).map(msg => msg.content).join(" ");
+            result.push(`--- ${title} ---\nReference: ${reference}\nOutput: ${output}`);
         }
 
         await doTest("No parameters", "5 4 3 2 1", iterateMessages(channel));
@@ -34,7 +31,7 @@ export default defineCommand({
         await doTest("Begin and end with count", "2 3", iterateMessages(channel, messages[1].id, messages[3].id, 2));
         await doTest("Begin and end with count reversed", "4 3", iterateMessages(channel, messages[3].id, messages[1].id, 2));
 
-        await response.replyOrEdit("Done.");
         await channel.delete();
+        await req.replyOrEdit(result.join("\n\n"));
     }
 });

@@ -1,5 +1,4 @@
-import { CommandRequest, defineCommand } from "@s809/noisecord";
-import { InVoiceWithBot } from "@s809/noisecord";
+import { BuiltInCommandConditions, CommandRequest, defineCommand } from "@s809/noisecord";
 import { commandFramework, runtimeGuildData } from "../../env";
 
 const errorLoc = commandFramework.translationChecker.checkTranslations({
@@ -17,5 +16,5 @@ async function pause(msg: CommandRequest<true>) {
 export default defineCommand({
     key: "pause",
     handler: pause,
-        conditions: InVoiceWithBot
+    conditions: BuiltInCommandConditions.InVoiceWithBot
 });
