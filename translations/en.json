@@ -102,6 +102,28 @@
         }
       }
     },
+    "cleanbots": {
+      "name": "clean-bots",
+      "description": "Cleans bot commands and optionally responses to them.",
+      "args": {
+        "prefix": {
+          "name": "prefix",
+          "description": "Prefix of commands to delete."
+        },
+        "limit": {
+          "name": "limit",
+          "description": "Limit of messages to check."
+        },
+        "deleteResponses": {
+          "name": "delete-responses",
+          "description": "Should responses be also deleted?"
+        }
+      },
+      "strings": {
+        "cleaned_commands": "Cleaned {cleanedCount} bot commands.",
+        "cleaned_commands_with_responses": "Cleaned {cleanedCount} bot commands with their responses."
+      }
+    },
     "delrange": {
       "name": "delrange",
       "description": "Delete all messages within range.",

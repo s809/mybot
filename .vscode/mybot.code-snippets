@@ -3,23 +3,15 @@
 		"scope": "typescript",
 		"prefix": "command",
 		"body": [
-			"const command: CommandDefinition = {",
+			"import { defineCommand } from \"@s809/noisecord\";",
+			"",
+			"export default defineCommand({",
 			"    key: \"$1\",",
-			"    args: [$2],",
-			"    handler: $3",
-			"};",
-			"export default command;"
-		]
-	},
-	"category": {
-		"scope": "typescript",
-		"prefix": "category",
-		"body": [
-			"const command: CommandDefinition = {",
-			"    name: \"$1\",",
-			"    subcommands: await importCommands(import.meta.url)",
-			"};",
-			"export default command;"
+			"    args: [],",
+			"    handler: async (req, { }) => {",
+			"        ",
+			"    }",
+			"});",
 		]
 	}
 }

@@ -102,6 +102,28 @@
         }
       }
     },
+    "cleanbots": {
+      "name": "очистить-ботов",
+      "description": "Удаляет команды для ботов и, опционально, ответы к ним.",
+      "args": {
+        "prefix": {
+          "name": "префикс",
+          "description": "Префикс команд для удаления."
+        },
+        "limit": {
+          "name": "лимит",
+          "description": "Количество сообщений для проверки."
+        },
+        "deleteResponses": {
+          "name": "удалять-ответы",
+          "description": "Стоит ли удалять ответы?"
+        }
+      },
+      "strings": {
+        "cleaned_commands": "Удалено {cleanedCount} команд ботов.",
+        "cleaned_commands_with_responses": "Удалено {cleanedCount} команд ботов с ответами к ним."
+      }
+    },
     "delrange": {
       "name": "удалить-диапазон",
       "description": "Удаляет последовательность сообщений.",
