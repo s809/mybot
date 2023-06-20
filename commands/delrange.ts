@@ -69,7 +69,7 @@ export default defineCommand({
         key: "endId",
         type: ApplicationCommandOptionType.String,
         required: false
-    }] as const,
+    }],
     defaultMemberPermissions: PermissionFlagsBits.ManageMessages,
     allowDMs: false,
 

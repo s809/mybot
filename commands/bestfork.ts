@@ -13,7 +13,7 @@ export default defineCommand({
     args: [{
         key: "url",
         type: ApplicationCommandOptionType.String
-    }] as const,
+    }],
     
     handler: async (req, { url }) => {
         if (!url.match(/^https:\/\/github\.com\/[a-z0-9-_]+\/[a-z0-9-_]+$/i))

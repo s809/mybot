@@ -1,4 +1,4 @@
-import { APIEmbed, ApplicationCommandOptionAllowedChannelTypes, ApplicationCommandOptionType, ChannelType, EmbedBuilder, GuildTextBasedChannel, Message, TextChannel, User } from "discord.js";
+import { APIEmbed, ApplicationCommandOptionType, EmbedBuilder, Message, User } from "discord.js";
 import { client, commandFramework } from "../../env";
 import { iterateMessages } from "../../modules/messages/iterateMessages";
 import { sendAlwaysLastMessage } from "../../modules/messages/AlwaysLastMessage";
@@ -49,8 +49,8 @@ export default defineCommand({
     }, {
         key: "channel",
         type: ApplicationCommandOptionType.Channel,
-        channelTypes: guildTextChannels as unknown as ApplicationCommandOptionAllowedChannelTypes[]
-    }] as const,
+        channelTypes: guildTextChannels
+    }],
     ownerOnly: true,
     allowDMs: false,
 

@@ -10,6 +10,7 @@ import { MapWithDefault } from "./modules/misc/MapWithDefault";
 import { Command, CommandFramework, ContextMenuCommand, InteractionCommandRequest } from "@s809/noisecord";
 import { defaults } from "./constants";
 import { getPrefix } from "./modules/data/getPrefix";
+import PLazy from "p-lazy";
 
 export const client = new Client({
     intents: Object.values(IntentsBitField.Flags) as GatewayIntentBits[],
@@ -26,7 +27,8 @@ export const client = new Client({
 export const commandFramework: CommandFramework = new CommandFramework(client, {
     commandRegistryOptions: {
         commandModuleDirectory: "./build/commands",
-        contextMenuModuleDirectory: "./build/contextMenuCommands"
+        contextMenuModuleDirectory: "./build/contextMenuCommands",
+        requireCommandTranslations: true
     },
     translationOptions: {
         translationFileDirectory: "./translations",
@@ -41,12 +43,18 @@ export const commandFramework: CommandFramework = new CommandFramework(client, {
         prefix: msg => getPrefix(msg.guildId),
         ignoreAllPermissionsFor: msg => isBotOwner(msg.author),
         ignoreOwnerOnlyFor: async (msg, command) => {
-            const dbUser = await DbUser.findByIdOrDefault(msg.author.id, { flags: 1 })!;
+            const dbUser = PLazy.from(() => DbUser.findByIdOrDefault(msg.author.id, { flags: 1 }));
+            const dbGuild = PLazy.from(() => DbGuild.findByIdOrDefault(msg.guildId, { flags: 1 }));
             
             for (const splitPath = command.path.split("/"); splitPath.length; splitPath.pop()) {
-                if (dbUser.flags.includes(`allow_${commandFramework.commandRegistry.getCommandTranslationPath(splitPath.join("/"))}`))
+                if ((await dbUser).flags.includes(`allow_${commandFramework.commandRegistry.getCommandTranslationPath(splitPath.join("/"))}`))
                     return true;
             }
+            for (const splitPath = command.path.split("/"); splitPath.length; splitPath.pop()) {
+                if ((await dbGuild).flags.includes(`allow_${commandFramework.commandRegistry.getCommandTranslationPath(splitPath.join("/"))}`))
+                    return true;
+            }
+            
             return false;
         }
     }

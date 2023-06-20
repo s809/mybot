@@ -50,20 +50,6 @@ export function formatDuration(duration: any): string {
 }
 
 /**
- * Skips string past specified parts and removes leading whitespace.
- * 
- * @param text String to skip in.
- * @param parts Parts to skip.
- * @returns String with skipped parts.
- */
-export function skipStringAfter(text: string, ...parts: string[]) {
-    for (let part of parts)
-        text = text.slice(text.indexOf(part) + part.length).trimStart();
-
-    return text;
-}
-
-/**
  * Formats string. \
  * Tokens used for formatting are **$1**, **$2** and so on.
  * 

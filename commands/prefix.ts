@@ -7,7 +7,7 @@ export default defineCommand({
     args: [{
         key: "prefix",
         type: ApplicationCommandOptionType.String,
-    }] as const,
+    }],
     defaultMemberPermissions: PermissionFlagsBits.ManageGuild,
     allowDMs: false,
 
