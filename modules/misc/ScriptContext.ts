@@ -2,7 +2,7 @@ import { Awaitable, Client, ClientEvents } from "discord.js";
 
 export class ScriptContext {
     private _immediates: Map<NodeJS.Immediate, () => void> = new Map();
-    private _intervals: Map<NodeJS.Timer, {
+    private _intervals: Map<NodeJS.Timeout, {
         callback: () => void,
         delay: number,
         next: number
@@ -53,7 +53,7 @@ export class ScriptContext {
             for (let listener of listeners)
                 this._client.removeListener(event, listener);
         }
-            
+
         ScriptContext._store.delete(this._scriptName);
         this.alive = false;
     }
@@ -71,7 +71,7 @@ export class ScriptContext {
                         return (this.functions as any)[prop];
                     else if (prop in clientOnlyFunctions)
                         return (clientOnlyFunctions as any)[prop];
-                
+
                     return (target as any)[prop];
                 }
             });
@@ -153,7 +153,7 @@ export class ScriptContext {
         if (!this.alive) return;
 
         this._client.addListener(event, callback as any);
-        
+
         this._events[event] ??= [];
         this._events[event]!.push(callback as any);
     }

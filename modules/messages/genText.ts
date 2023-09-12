@@ -1,20 +1,24 @@
 import assert from "assert";
 import { Message } from "discord.js";
 import { TextGenData } from "../../database/models";
-import { DocumentOf } from "../../database/types";
+import { RawContents } from "../../database/types";
 import { client } from "../../env";
 import { escapeKey, unescapeKey } from "../data/databaseUtil";
 
-export function generateSingleSample(genData: DocumentOf<typeof TextGenData>, maxWords = 30) {
-    const firstWordGroup = [...genData.entrypoints.values()][Math.floor(Math.random() * genData.entrypoints.size)];
+type TextGenDataRaw = RawContents<typeof TextGenData>;
+
+export function generateSingleSample(genData: TextGenDataRaw, maxWords = 30) {
+    const firstWordGroups = Object.values(genData.entrypoints);
+
+    const firstWordGroup = firstWordGroups[Math.floor(Math.random() * firstWordGroups.length)];
     let nextWord = firstWordGroup[Math.floor(Math.random() * firstWordGroup.length)];
-    
+
     let result = unescapeKey(nextWord);
     for (let i = 1; i < maxWords; i++) {
-        const wordData = genData.words.get(nextWord)!;
+        const wordData = genData.words[nextWord]!;
         let wordIndex = Math.random() * wordData.encounterCount;
 
-        for (const [word, encounters] of wordData.nextWords) {
+        for (const [word, encounters] of Object.entries(wordData.nextWords)) {
             wordIndex -= encounters;
             if (wordIndex <= 0) {
                 nextWord = word;
@@ -26,14 +30,14 @@ export function generateSingleSample(genData: DocumentOf<typeof TextGenData>, ma
             assert(wordData.wasLast);
             break;
         }
-        
+
         result += " " + unescapeKey(nextWord);
     }
 
     return result;
 };
 
-export function generate(textGenData: DocumentOf<typeof TextGenData>, samples = 10) {
+export function generate(textGenData: TextGenDataRaw, samples = 10) {
     let text = "";
     for (let i = 0; i < samples; i++) {
         let newText = generateSingleSample(textGenData);
@@ -57,7 +61,7 @@ export function makeTextGenUpdateQuery(msg: Message<true>, maxWordLength = 30) {
         .split(/\s+/g)
         .filter(word => word.length <= maxWordLength);
     if (!words[0]?.length) return;
-    
+
     const changes = new Map<string, {
         addEncounters: number,
         nextWords: Map<string, number>,
