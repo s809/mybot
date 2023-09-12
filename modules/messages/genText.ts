@@ -5,9 +5,7 @@ import { RawContents } from "../../database/types";
 import { client } from "../../env";
 import { escapeKey, unescapeKey } from "../data/databaseUtil";
 
-type TextGenDataRaw = RawContents<typeof TextGenData>;
-
-export function generateSingleSample(genData: TextGenDataRaw, maxWords = 30) {
+export function generateSingleSample(genData: RawContents<typeof TextGenData>, maxWords = 30) {
     const firstWordGroups = Object.values(genData.entrypoints);
 
     const firstWordGroup = firstWordGroups[Math.floor(Math.random() * firstWordGroups.length)];
@@ -37,7 +35,7 @@ export function generateSingleSample(genData: TextGenDataRaw, maxWords = 30) {
     return result;
 };
 
-export function generate(textGenData: TextGenDataRaw, samples = 10) {
+export function generate(textGenData: RawContents<typeof TextGenData>, samples = 10) {
     let text = "";
     for (let i = 0; i < samples; i++) {
         let newText = generateSingleSample(textGenData);
