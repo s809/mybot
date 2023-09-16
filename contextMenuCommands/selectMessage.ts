@@ -25,7 +25,7 @@ export default defineContextMenuCommand({
             begin: req.interaction.targetId,
             end: req.interaction.targetId
         };
-        
+
         if (range.lastRequest)
             range.lastRequest.response.delete();
         range.lastRequest = req;

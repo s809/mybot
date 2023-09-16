@@ -1,20 +1,21 @@
 import { BuiltInCommandConditions, CommandRequest, defineCommand } from "@s809/noisecord";
-import { commandFramework, runtimeGuildData } from "../../env";
-
-const errorLoc = commandFramework.translationChecker.checkTranslations({
-    nothing_is_playing: true,
-}, `${commandFramework.commandRegistry.getCommandTranslationPath("music/skip")}.errors`);
-
-async function skip(msg: CommandRequest<true>) {
-    const { musicPlayer } = runtimeGuildData.get(msg.guildId);
-    if (!musicPlayer)
-        return errorLoc.nothing_is_playing.path;
-
-    musicPlayer.skip();
-}
+import { runtimeGuildData } from "../../env";
 
 export default defineCommand({
     key: "skip",
-    handler: skip,
-    conditions: BuiltInCommandConditions.InVoiceChannel
+    conditions: BuiltInCommandConditions.InVoiceWithBot,
+
+    translations: {
+        errors: {
+            nothing_is_playing: true
+        }
+    },
+
+    handler: (msg: CommandRequest<true>, { }, { errors }) => {
+        const { musicPlayer } = runtimeGuildData.get(msg.guildId);
+        if (!musicPlayer)
+            return errors.nothing_is_playing;
+
+        musicPlayer.skip();
+    }
 });

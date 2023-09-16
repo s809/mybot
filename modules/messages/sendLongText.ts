@@ -3,7 +3,7 @@
  */
 import { EmbedBuilder } from "@discordjs/builders";
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType, InteractionReplyOptions, Message, MessageCreateOptions, MessagePayload, MessageReplyOptions, TextBasedChannel } from "discord.js";
-import { CommandRequest, CommandResponse } from "@s809/noisecord";
+import { CommandRequest, CommandResponse, PreparedTranslation, Translatable } from "@s809/noisecord";
 
 const title = "Page %page% of %pagecount%";
 const titleAlt = " (%page%/%pagecount%)";
@@ -17,7 +17,7 @@ const back = "◀", stop = "✖", forward = "▶";
 /**
  * Prepare pages for sending.
  * DOES consider page header.
- * 
+ *
  * @param text Text to prepare.
  * @param textWrap Text for wrapping pages.
  * Must contain `%content%` and optionally `%page%` and `%pagecount%`.
@@ -108,7 +108,7 @@ function splitTextByDelimiter(text: string, textWrap: string, delimiter: string)
 
 /**
  * Send message with buttons for page switching.
- * 
+ *
  * @param sendFunction Channel in which to send a message.
  * @param pages Array of page texts.
  * @param embed Embed template for wrapping text.
@@ -191,11 +191,11 @@ async function sendPagedTextWithButtons(sendFunction: ((options: InteractionRepl
 
 /**
  * Sends text, splitting and adding page buttons if necessary.
- * 
+ *
  * @param commandOrChannel Channel to send a message.
  * @param text Text to send.
  */
-export default async function sendLongText(commandOrChannel: TextBasedChannel | CommandRequest, text: string, {
+export default async function sendLongText(commandOrChannel: TextBasedChannel | CommandRequest, text: Translatable.Value<string>, {
     code = "js",
     embed = new EmbedBuilder(),
     delimiter = "\n",
@@ -205,14 +205,15 @@ export default async function sendLongText(commandOrChannel: TextBasedChannel | 
     code?: string | null,
     /** Template for embed of message. */
     embed?: EmbedBuilder,
-    /** 
+    /**
      * Delimiter for splitting text in pages.
      * If not specified, text will be split by characters.
      */
     delimiter?: string | null,
     /** Whether to send multiple messages instead of using single interactable message. */
     multipleMessages?: boolean
-    } = {}): Promise<void> {
+} = {}): Promise<void> {
+    text = Translatable.translateValue<string>(text);
     text = text.replaceAll("```", "\\`\\`\\`");
 
     const contentWrapWithCode = contentWrap.replace("%code%", code ?? "");

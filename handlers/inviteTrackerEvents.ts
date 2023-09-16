@@ -1,6 +1,6 @@
-import { Message, CommandInteraction, CacheType, GuildResolvable } from "discord.js";
+import { CacheType, CommandInteraction, Events, GuildResolvable, Message } from "discord.js";
 import { client, commandFramework, runtimeGuildData } from "../env";
-import { untrackInvites, tryStartTracking } from "../modules/misc/inviteTracker";
+import { tryStartTracking, untrackInvites } from "../modules/misc/inviteTracker";
 
 function getTranslator(context: Message<boolean> | CommandInteraction<CacheType> | GuildResolvable) {
     return commandFramework.translatorManager.getTranslator(context, "invitetracker");
@@ -13,12 +13,12 @@ const strings = commandFramework.translationChecker.checkTranslations({
     invite_used: true
 }, "invitetracker.strings");
 
-client.on("ready", async () => {
+client.on(Events.ClientReady, async () => {
     for (let guild of client.guilds.cache.values())
         tryStartTracking(guild);
 });
 
-client.on("inviteCreate", async invite => {
+client.on(Events.InviteCreate, async invite => {
     const { inviteTracker } = runtimeGuildData.get(invite.guild!.id);
     if (!inviteTracker) return;
 
@@ -29,7 +29,7 @@ client.on("inviteCreate", async invite => {
     }))
 });
 
-client.on("inviteDelete", async invite => {
+client.on(Events.InviteDelete, async invite => {
     const { inviteTracker } = runtimeGuildData.get(invite.guild!.id);
     if (!inviteTracker) return;
 
@@ -37,7 +37,7 @@ client.on("inviteDelete", async invite => {
     await inviteTracker.logChannel.send(await strings.invite_deleted.getTranslation(invite, { code: invite.code }))
 });
 
-client.on("guildMemberAdd", async member => {
+client.on(Events.GuildMemberAdd, async member => {
     const { inviteTracker } = runtimeGuildData.get(member.guild.id);
     if (!inviteTracker) return;
     const { logChannel, counts } = inviteTracker;
@@ -47,7 +47,7 @@ client.on("guildMemberAdd", async member => {
         await logChannel.send(strings.member_joined.getTranslation(translator, {
             user: member.user.tag
         }));
-    
+
         for (let [code, invite] of await member.guild.invites.fetch()) {
             let entry = counts.get(code);
 

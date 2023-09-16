@@ -9,7 +9,7 @@ const strings = commandFramework.translationChecker.checkTranslations({
 export async function getInviteTrackerData(guild: Guild): Promise<[InviteTrackerData, GuildTextBasedChannel] | []> {
     const { inviteTracker } = await DbGuild.findByIdOrDefault(guild.id, { inviteTracker: 1 });
     if (!inviteTracker) return [];
-    
+
     const channel = guild.channels.resolve(inviteTracker.logChannelId) as GuildTextBasedChannel;
     return channel
         ? [inviteTracker, channel]
@@ -46,10 +46,10 @@ export async function startTracking(channel: GuildTextBasedChannel) {
     try {
         const { counts } = runtimeGuildData.get(channel.guildId)
             .inviteTracker = {
-                logChannel: channel,
-                counts: (await channel.guild.invites.fetch())
-                    .mapValues((invite: Invite) => invite.uses!)
-            };
+            logChannel: channel,
+            counts: (await channel.guild.invites.fetch())
+                .mapValues((invite: Invite) => invite.uses!)
+        };
 
         await channel.send(await strings.tracking_started.getTranslation(channel.guild, { count: counts.size }));
     } catch { }

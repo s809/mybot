@@ -1,20 +1,21 @@
 import { BuiltInCommandConditions, CommandRequest, defineCommand } from "@s809/noisecord";
-import { commandFramework, runtimeGuildData } from "../../env";
-
-const errorLoc = commandFramework.translationChecker.checkTranslations({
-    nothing_is_playing: true,
-}, `${commandFramework.commandRegistry.getCommandTranslationPath("music/stop")}.errors`);
-
-async function stop(msg: CommandRequest<true>) {
-    const { musicPlayer } = runtimeGuildData.get(msg.guildId);
-    if (!musicPlayer)
-        return errorLoc.nothing_is_playing.path;
-
-    musicPlayer.stop();
-}
+import { runtimeGuildData } from "../../env";
 
 export default defineCommand({
     key: "stop",
-    handler: stop,
-    conditions: BuiltInCommandConditions.InVoiceWithBot
+    conditions: BuiltInCommandConditions.InVoiceWithBot,
+
+    translations: {
+        errors: {
+            nothing_is_playing: true
+        }
+    },
+
+    handler: (msg: CommandRequest<true>, { }, { errors }) => {
+        const { musicPlayer } = runtimeGuildData.get(msg.guildId);
+        if (!musicPlayer)
+            return errors.nothing_is_playing;
+
+        musicPlayer.stop();
+    }
 });

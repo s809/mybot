@@ -1,22 +1,6 @@
-import { ApplicationCommandOptionType } from "discord.js";
 import { CommandRequest, defineCommand } from "@s809/noisecord";
+import { ApplicationCommandOptionType } from "discord.js";
 import { pinMessage } from "../../modules/messages/pinBottom";
-import { commandFramework } from "../../env";
-
-const errorLoc = commandFramework.translationChecker.checkTranslations({
-    no_content: true,
-}, `${commandFramework.commandRegistry.getCommandTranslationPath("pinbottom/set")}.errors`);
-
-async function setPinnedMessage(msg: CommandRequest<true>, {
-    messageInterval,
-    content
-}: {
-    messageInterval: number,
-    content?: string
-}) {
-    if (!await pinMessage(msg.channel, messageInterval, content))
-        return errorLoc.no_content.path;
-}
 
 export default defineCommand({
     key: "set",
@@ -30,5 +14,18 @@ export default defineCommand({
         type: ApplicationCommandOptionType.String,
         required: false
     }],
-    handler: setPinnedMessage
+
+    translations: {
+        errors: {
+            no_content: true
+        }
+    },
+
+    handler: async (msg: CommandRequest<true>, {
+        messageInterval,
+        content
+    }, { errors }) => {
+        if (!await pinMessage(msg.channel, messageInterval, content))
+            return errors.no_content;
+    }
 });

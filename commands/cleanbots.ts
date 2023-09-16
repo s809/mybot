@@ -1,15 +1,9 @@
 import { defineCommand } from "@s809/noisecord";
 import { ApplicationCommandOptionType, PermissionFlagsBits } from "discord.js";
-import { commandFramework } from "../env";
-
-const strings = commandFramework.translationChecker.checkTranslations({
-    "cleaned_commands": true,
-    "cleaned_commands_with_responses": true
-}, "commands.cleanbots.strings");
 
 export default defineCommand({
     key: "cleanbots",
-    
+
     args: [{
         key: "prefix",
         type: ApplicationCommandOptionType.String,
@@ -26,7 +20,14 @@ export default defineCommand({
     }],
     defaultMemberPermissions: PermissionFlagsBits.ManageMessages,
 
-    handler: async (req, { prefix, limit, deleteResponses }) => {
+    translations: {
+        strings: {
+            cleaned_commands: true,
+            cleaned_commands_with_responses: true
+        }
+    },
+
+    handler: async (req, { prefix, limit, deleteResponses }, { strings }) => {
         let cleanedCount = 0
         let prevMsg = null;
 
@@ -45,7 +46,7 @@ export default defineCommand({
         }
 
         await req.replyOrEdit(deleteResponses
-            ? strings.cleaned_commands_with_responses.getTranslation(req, { cleanedCount })
-            : strings.cleaned_commands.getTranslation(req, { cleanedCount }));
+            ? strings.cleaned_commands_with_responses.withArgs({ cleanedCount })
+            : strings.cleaned_commands.withArgs({ cleanedCount }));
     }
 });

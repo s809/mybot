@@ -1,20 +1,22 @@
 import { defineCommand } from "@s809/noisecord";
 import { oauth2 } from "../constants";
-import { commandFramework } from "../env";
-
-const strings = commandFramework.translationChecker.checkTranslations({
-    use_link: true,
-    oauth2_not_enabled: true
-}, `${commandFramework.commandRegistry.getCommandTranslationPath("linkedroles")}.strings`);
 
 export default defineCommand({
     key: "linkedroles",
     allowDMs: false,
-    handler: async req => {
+
+    translations: {
+        strings: {
+            use_link: true,
+            oauth2_not_enabled: true
+        }
+    },
+
+    handler: async (req, { }, { strings }) => {
         if (!oauth2)
-            return strings.oauth2_not_enabled.path;
-        
-        await req.replyOrEdit(strings.use_link.getTranslation(req, {
+            return strings.oauth2_not_enabled;
+
+        await req.replyOrEdit(strings.use_link.withArgs({
             link: `<${oauth2!.urlBase}/oauth2/linked-roles>`
         }));
     }

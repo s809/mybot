@@ -4,8 +4,10 @@
 import { Message, TextBasedChannel } from "discord.js";
 import EventEmitter from "events";
 import { Overwrite } from "../../util";
+import { PreparedTranslation, Translatable } from "@s809/noisecord";
 
 type MessageSendOptions = Parameters<Extract<TextBasedChannel, { send: any }>["send"]>[0];
+type MessageEditOptionsInternal = Parameters<Message["edit"]>[0];
 
 export type AlwaysLastMessage = Overwrite<Message, AlwaysLastMessageWrapper>;
 
@@ -15,11 +17,11 @@ export type AlwaysLastMessage = Overwrite<Message, AlwaysLastMessageWrapper>;
 class AlwaysLastMessageWrapper extends EventEmitter {
     message: Message;
     editing: boolean = false;
-    lastOptions?: Parameters<Message["edit"]>[0];
+    lastOptions?: MessageEditOptionsInternal;
 
     /**
      * Constructs AlwaysLastMessage instance.
-     * 
+     *
      * @param msg Message to wrap.
      */
     constructor(msg: Message) {
@@ -30,16 +32,16 @@ class AlwaysLastMessageWrapper extends EventEmitter {
     /**
      * Edits or resends message with new content.
      * Do not await unless you want a moment when all edits are done.
-     * 
+     *
      * @param options Content to fill new message with.
      */
-    async edit(options: this["lastOptions"]) {
+    async edit(options: Translatable.Value<MessageEditOptionsInternal>) {
         if (this.editing) {
-            this.lastOptions = options;
+            this.lastOptions = Translatable.translateValue<MessageEditOptionsInternal>(options);
             return this;
         }
 
-        this.lastOptions = options;
+        this.lastOptions = Translatable.translateValue<MessageEditOptionsInternal>(options);
         await this.editInternal();
         return this;
     }
@@ -71,15 +73,15 @@ class AlwaysLastMessageWrapper extends EventEmitter {
     /**
      * Edits message without resending.
      */
-    async editWithoutDeleting(options: this["lastOptions"]) {
+    async editWithoutDeleting(options: Translatable.Value<MessageEditOptionsInternal>) {
         if (!this.editing)
-            this.message = await this.message.edit(options!);
+            this.message = await this.message.edit(Translatable.translateValue<MessageEditOptionsInternal>(options!)!);
     }
 }
 
 /**
  * Sends and creates a wrapper for resending a message when edited.
- * 
+ *
  * @param message Message to wrap.
  * @returns Wrapped message.
  */
@@ -92,11 +94,11 @@ export function wrapAlwaysLastMessage(message: Message) {
 
 /**
  * Sends and creates a wrapper for resending a message when edited.
- * 
+ *
  * @param channel Channel in which to send message.
  * @param options Content to fill new message with.
  * @returns Wrapped message.
  */
-export async function sendAlwaysLastMessage(channel: TextBasedChannel, options: MessageSendOptions) {
-    return wrapAlwaysLastMessage(await channel.send(options));
+export async function sendAlwaysLastMessage(channel: TextBasedChannel, options: Translatable.Value<MessageSendOptions>) {
+    return wrapAlwaysLastMessage(await channel.send(Translatable.translateValue<MessageSendOptions>(options)));
 }

@@ -1,22 +1,10 @@
+import { InteractionCommandRequest, Translatable, defineCommand, textChannels as guildTextChannels } from "@s809/noisecord";
 import { APIEmbed, ApplicationCommandOptionType, EmbedBuilder, Message, User } from "discord.js";
-import { client, commandFramework } from "../../env";
-import { iterateMessages } from "../../modules/messages/iterateMessages";
-import { sendAlwaysLastMessage } from "../../modules/messages/AlwaysLastMessage";
-import sendLongText from "../../modules/messages/sendLongText";
 import { once } from "events";
-import { InteractionCommandRequest, defineCommand, textChannels as guildTextChannels } from "@s809/noisecord";
-
-const embedLoc = commandFramework.translationChecker.checkTranslations({
-    "title": true,
-    "progress.fetching_messages": true,
-    "progress.fetch_progress": true,
-    "progress.fetching_invites": true,
-    "finished.invites_summary": true,
-    "finished.message_statistics": true,
-    "finished.see_attachment": true,
-    "finished.first_message": true,
-    "finished.last_message": true,
-}, `${commandFramework.commandRegistry.getCommandTranslationPath("channel/scan")}.embeds`);
+import { client } from "../../env";
+import { sendAlwaysLastMessage } from "../../modules/messages/AlwaysLastMessage";
+import { iterateMessages } from "../../modules/messages/iterateMessages";
+import sendLongText from "../../modules/messages/sendLongText";
 
 const inviteLink = /(https?:\/\/)?(www.)?(discord.(gg|io|me|li)|discordapp.com\/invite)\/[^\s/]+?(?=\b)/g;
 function getWeekNumber(d: Date) {
@@ -54,7 +42,25 @@ export default defineCommand({
     ownerOnly: true,
     allowDMs: false,
 
-    handler: async (req, { mode, channel }) => {
+    translations: {
+        embeds: {
+            title: true,
+            progress: {
+                fetching_messages: true,
+                fetch_progress: true,
+                fetching_invites: true,
+            },
+            finished: {
+                invites_summary: true,
+                message_statistics: true,
+                see_attachment: true,
+                first_message: true,
+                last_message: true,
+            }
+        }
+    },
+
+    handler: async (req, { mode, channel }, { embeds: embedLoc }) => {
         let fromChannel = channel ?? req.channel;
 
         let authors: Map<string, User> = new Map();
@@ -69,12 +75,13 @@ export default defineCommand({
 
         if (req instanceof InteractionCommandRequest)
             await req.response.delete();
-        
+
         let counterMessage = await sendAlwaysLastMessage(req.channel, {
             embeds: [{
-                title: embedLoc.title.getTranslation(req),
-                description: embedLoc.progress.fetching_messages.getTranslation(req)
-            }]
+                title: embedLoc.title,
+                description: embedLoc.progress.fetching_messages
+            }],
+            content: embedLoc.title
         });
 
         for await (let message of iterateMessages(fromChannel, "0")) {
@@ -111,10 +118,10 @@ export default defineCommand({
             if (!(totalLength % 100)) {
                 counterMessage = await counterMessage.edit({
                     embeds: [{
-                        title: embedLoc.title.getTranslation(req),
-                        description: embedLoc.progress.fetching_messages.getTranslation(req),
+                        title: embedLoc.title,
+                        description: embedLoc.progress.fetching_messages,
                         footer: {
-                            text: embedLoc.progress.fetch_progress.getTranslation(req, { count: totalLength })
+                            text: embedLoc.progress.fetch_progress.withArgs({ count: totalLength })
                         }
                     }]
                 });
@@ -123,10 +130,10 @@ export default defineCommand({
 
         await counterMessage.edit({
             embeds: [{
-                title: embedLoc.title.getTranslation(req),
-                description: embedLoc.progress.fetching_invites.getTranslation(req),
+                title: embedLoc.title,
+                description: embedLoc.progress.fetching_invites,
                 footer: {
-                    text: embedLoc.progress.fetch_progress.getTranslation(req, { count: totalLength })
+                    text: embedLoc.progress.fetch_progress.withArgs({ count: totalLength })
                 }
             }]
         });
@@ -145,15 +152,15 @@ export default defineCommand({
                 }
                 catch (e) { /* Skip */ }
             }
-            result = embedLoc.finished.invites_summary.getTranslation(req, {
+            result = embedLoc.finished.invites_summary.withArgs({
                 invites: invites.size,
                 aliveInvites: aliveInviteCount
-            }) + "\n" + result;
+            }).translate() + "\n" + result;
             await sendLongText(req.channel, result, {
                 code: null,
                 multipleMessages: true,
                 embed: new EmbedBuilder({
-                    title: embedLoc.title.getTranslation(req)
+                    title: embedLoc.title.translate()
                 })
             });
         }
@@ -185,31 +192,31 @@ export default defineCommand({
                     result += `${dayEntry[0]}: ${dayEntry[1]}\n`;
 
                 let authorStr = `${author.tag} (${author.id})`;
-                let statTitle = embedLoc.finished.message_statistics.getTranslation(req);
+                let statTitle = embedLoc.finished.message_statistics.translate();
 
                 let unsanitizedResult = statTitle + "\n```\n" + result + "```";
                 if (unsanitizedResult.length > 4096) {
                     files.push(statTitle.replace(":", ` for ${authorStr}:`) + result);
-                    result = statTitle + embedLoc.finished.see_attachment.getTranslation(req, { name: files.length });
+                    result = statTitle + embedLoc.finished.see_attachment.withArgs({ name: files.length });
                 }
                 else {
                     result = unsanitizedResult;
                 }
 
-                embeds.push({
+                embeds.push(Translatable.translateValue<APIEmbed>({
                     title: authorStr,
                     description: result,
                     fields: [
                         {
-                            name: embedLoc.finished.first_message.getTranslation(req),
+                            name: embedLoc.finished.first_message,
                             value: `${data.first.url} (${data.first.createdAt.toLocaleString()})`
                         },
                         {
-                            name: embedLoc.finished.last_message.getTranslation(req),
+                            name: embedLoc.finished.last_message,
                             value: `${data.last.url} (${data.last.createdAt.toLocaleString()})`
                         },
                     ]
-                });
+                }));
 
                 if (embeds.length === 10)
                     await sendAndClean();

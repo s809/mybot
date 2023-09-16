@@ -1,14 +1,8 @@
+import { defineCommand } from "@s809/noisecord";
 import os from "os";
-import { client, commandFramework } from "../../env";
-import { CommandRequest, defineCommand, Translator } from "@s809/noisecord";
+import { client } from "../../env";
 
-const embedLoc = commandFramework.translationChecker.checkTranslations({
-    title: true,
-    text: true,
-    time_format: true
-}, `${commandFramework.commandRegistry.getCommandTranslationPath("bot/uptime")}.embeds`);
-
-function getUptimeStr(diff: number, translator: Translator) {
+function getUptimeArgs(diff: number) {
     var days = Math.floor(diff / (1000 * 60 * 60 * 24));
     diff -= days * (1000 * 60 * 60 * 24);
 
@@ -21,30 +15,37 @@ function getUptimeStr(diff: number, translator: Translator) {
     var seconds = Math.floor(diff / (1000));
     diff -= seconds * (1000);
 
-    return embedLoc.time_format.getTranslation(translator, {
+    return {
         days,
         hours,
         mins,
         seconds
-    });
-}
-
-async function uptime(msg: CommandRequest) {
-    let bot = new Date(client.uptime!);
-    let host = new Date(os.uptime() * 1000);
-
-    await msg.replyOrEdit({
-        embeds: [{
-            title: embedLoc.title.getTranslation(msg),
-            description: embedLoc.text.getTranslation(msg, {
-                botUptime: getUptimeStr(bot.getTime(), msg.translator),
-                hostUptime: getUptimeStr(host.getTime(), msg.translator)
-            })
-        }]
-    });
+    };
 }
 
 export default defineCommand({
     key: "uptime",
-    handler: uptime,
+
+    translations: {
+        embeds: {
+            title: true,
+            text: true,
+            time_format: true
+        }
+    },
+
+    handler: async (msg, { }, { embeds }) => {
+        let bot = new Date(client.uptime!);
+        let host = new Date(os.uptime() * 1000);
+
+        await msg.replyOrEdit({
+            embeds: [{
+                title: embeds.title,
+                description: embeds.text.withArgs({
+                    botUptime: embeds.time_format.withArgs(getUptimeArgs(bot.getTime())),
+                    hostUptime: embeds.time_format.withArgs(getUptimeArgs(host.getTime()))
+                })
+            }]
+        });
+    },
 });

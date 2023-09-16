@@ -1,27 +1,28 @@
 import { OAuth2Scopes, PermissionFlagsBits } from "discord.js";
-import { client, commandFramework } from "../../env";
-import { CommandRequest, defineCommand } from "@s809/noisecord";
-
-const embedLoc = commandFramework.translationChecker.checkTranslations({
-    "title": true,
-}, `${commandFramework.commandRegistry.getCommandTranslationPath("bot/invite")}.embeds`);
-
-async function botInvite(msg: CommandRequest) {
-    await msg.replyOrEdit({
-        embeds: [{
-            title: embedLoc.title.getTranslation(msg),
-            description: client.generateInvite({
-                scopes: [
-                    OAuth2Scopes.Bot,
-                    OAuth2Scopes.ApplicationsCommands
-                ],
-                permissions: PermissionFlagsBits.Administrator
-            })
-        }]
-    });
-}
+import { client } from "../../env";
+import { defineCommand } from "@s809/noisecord";
 
 export default defineCommand({
     key: "invite",
-    handler: botInvite,
+
+    translations: {
+        embeds: {
+            title: true
+        }
+    },
+
+    handler: async (msg, { }, { embeds }) => {
+        await msg.replyOrEdit({
+            embeds: [{
+                title: embeds.title,
+                description: client.generateInvite({
+                    scopes: [
+                        OAuth2Scopes.Bot,
+                        OAuth2Scopes.ApplicationsCommands
+                    ],
+                    permissions: PermissionFlagsBits.Administrator
+                })
+            }]
+        });
+    },
 });
