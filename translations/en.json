@@ -2,8 +2,16 @@
   "locale_string": "en-US",
   "set_locale_regex": "en(g(lish)?)?",
   "boolean_values": [
-    ["no", "n", "false"],
-    ["yes", "y", "true"]
+    [
+      "no",
+      "n",
+      "false"
+    ],
+    [
+      "yes",
+      "y",
+      "true"
+    ]
   ],
   "commands": {
     "bestfork": {
@@ -517,9 +525,13 @@
               "name": "raw",
               "description": "Send raw error"
             },
-            "translate": {
-              "name": "translate",
-              "description": "Send translated error"
+            "translate_auto": {
+              "name": "translate-auto",
+              "description": "Send translated error (auto)"
+            },
+            "translate_manual": {
+              "name": "translate-manual",
+              "description": "Send translated error (manual)"
             }
           }
         }
@@ -614,7 +626,6 @@
       "initializing": "Initializing...",
       "now_playing": "Now playing: {title} ({duration})",
       "playback_finished": "Playback has finished!",
-      
       "queue_summary": "Queue length: {length} ({duration})",
       "load_remaining": "Remaining to load: {count}",
       "some_removed": "Some videos failed to load and were removed."
