@@ -1,15 +1,15 @@
+import { CommandRequest, defineCommand } from "@s809/noisecord";
 import { ApplicationCommandOptionType, CategoryChannel, GuildChannel, GuildTextBasedChannel, NonThreadGuildBasedChannel, OverwriteType, PermissionFlagsBits, Role, Snowflake, TextChannel, ThreadChannel, VoiceBasedChannel } from "discord.js";
 import { client } from "../../env";
-import { CommandRequest, defineCommand } from "@s809/noisecord";
 
 async function cloneServer(req: CommandRequest<true>, {
     id: guildId,
     mode,
-    cleanBeforeStarting
+    clean
 }: {
     id: Snowflake;
     mode: string;
-    cleanBeforeStarting: boolean;
+    clean: boolean;
 }) {
     if ((mode === "both" || mode === "roles")
         && !req.guild.members.me?.roles.cache.some(role => role.id != req.guild.roles.everyone.id && role.permissions.has(PermissionFlagsBits.Administrator))) {
@@ -21,10 +21,10 @@ async function cloneServer(req: CommandRequest<true>, {
 
     let guild = await client.guilds.fetch(guildId);
 
-    if (cleanBeforeStarting) {
+    if (clean) {
         if (mode === "both" || mode === "channels") {
             for (const channel of req.guild.channels.cache.values())
-                await channel.delete().catch(() => {});
+                await channel.delete().catch(() => { });
         }
 
         if (mode === "both" || mode === "roles") {
@@ -113,7 +113,7 @@ async function cloneServer(req: CommandRequest<true>, {
                 };
 
                 try {
-                    await req.guild.channels.create(options);
+                    channels.set(channel, await req.guild.channels.create(options));
                 }
                 catch (e) {
                     if (e.message === "Cannot execute action on this channel type" ||
@@ -124,7 +124,7 @@ async function cloneServer(req: CommandRequest<true>, {
                     if (e.rawError.errors.bitrate) {
                         options.bitrate = parseInt(e.message.match(/\d+/)[0]);
                         try {
-                            await req.guild.channels.create(options);
+                            channels.set(channel, await req.guild.channels.create(options));
                             continue;
                         } catch (e2) {
                             e = e2;
@@ -143,7 +143,7 @@ async function cloneServer(req: CommandRequest<true>, {
     if (didSkipChannels) {
         const newTextChannel = req.guild.channels.cache.find(x => x.isTextBased()) as GuildTextBasedChannel;
 
-        await (cleanBeforeStarting
+        await (clean
             ? newTextChannel?.send.bind(newTextChannel)
             : req.channel.send.bind(req.channel)
         )?.("Some channels were skipped as this server is not community-enabled.");
@@ -156,8 +156,17 @@ async function cloneServer(req: CommandRequest<true>, {
         await req.guild.setSafetyAlertsChannel(channels.get(guild.safetyAlertsChannel));
 
     if (guild.features.includes("COMMUNITY") && req.guild.features.includes("COMMUNITY")) {
+        const prevRulesChannel = req.guild.rulesChannel;
+        const prevPublicUpdatesChannel = req.guild.publicUpdatesChannel;
+
         await req.guild.setRulesChannel(channels.get(guild.rulesChannel));
         await req.guild.setPublicUpdatesChannel(channels.get(guild.publicUpdatesChannel));
+
+        if (clean) {
+            await prevRulesChannel?.delete();
+            if (prevPublicUpdatesChannel !== prevRulesChannel)
+                await prevPublicUpdatesChannel?.delete();
+        }
     }
 }
 
@@ -180,7 +189,7 @@ export default defineCommand({
             value: "both"
         }]
     }, {
-        key: "cleanBeforeStarting",
+        key: "clean",
         type: ApplicationCommandOptionType.Boolean
     }],
     handler: cloneServer

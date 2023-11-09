@@ -475,9 +475,9 @@
             }
           }
         },
-        "cleanBeforeStarting": {
-          "name": "clean-before-starting",
-          "description": "Whether to clean entries for selected mode."
+        "clean": {
+          "name": "clean",
+          "description": "Should delete old roles/channels?"
         }
       }
     },
