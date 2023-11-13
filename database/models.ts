@@ -1,9 +1,9 @@
 import { model, Schema } from 'mongoose';
-import { MapValue } from '../util';
-import { guildDefaults, userDefaults, findByIdOrDefault } from './defaults';
-import { DocumentOf } from './types';
-import { defaultValue, stringId, languageData, flagData, mapOf, requiredAll, requiredMapOf, required, requiredAllExceptParent } from './parts';
 import { defaults } from "../constants";
+import { MapValue } from '../util';
+import { findByIdOrDefault, guildDefaults, userDefaults } from './defaults';
+import { defaultValue, flagData, languageData, mapOf, required, requiredAll, requiredAllExceptParent, requiredMapOf, stringId } from './parts';
+import { DocumentOf } from './types';
 
 export const Guild = model("guilds", new Schema({
     ...stringId,
@@ -78,4 +78,39 @@ export const TextGenData = model("textGenData", new Schema({
         nextWords: mapOf(Number),
         wasLast: Boolean
     })), new Map())
+}));
+
+export const CommandLogEntry = model("commandLog", new Schema({
+    ...stringId,
+
+    type: required(String),
+    request: required(String),
+    success: Boolean,
+
+    user: required(String),
+    guild: String
+}, {
+    statics: {
+        setEntry(req, success: boolean | undefined = undefined) {
+            const _id = req.interaction?.id ?? req.message.id;
+
+            this.replaceOne({ _id }, {
+                ...req.interaction
+                    ? {
+                        type: "interaction",
+                        request: req.interaction.toString(),
+                    }
+                    : {
+                        type: "message",
+                        request: req.message.toString(),
+                    },
+                success,
+
+                user: req.author.id,
+                guild: req.guildId
+            }, {
+                upsert: true
+            }).finally(() => { });
+        }
+    }
 }));

@@ -3,14 +3,15 @@
  */
 import { defineCommand } from "@s809/noisecord";
 import { ApplicationCommandOptionType } from "discord.js";
-import { User as DbUser, Guild as DbGuild } from "../../database/models";
+import { User as DbUser, Guild as DbGuild, CommandLogEntry } from "../../database/models";
 import sendLongText from "../../modules/messages/sendLongText";
 import { coverSensitiveStrings, formatString } from "../../util";
 import { inspect } from "util";
 
 const databases = {
     user: DbUser,
-    guild: DbGuild
+    guild: DbGuild,
+    commandlog: CommandLogEntry
 };
 
 export default defineCommand({
@@ -43,7 +44,10 @@ export default defineCommand({
                 filterObject = { _id: filter };
         }
 
-        const result: object[] = await (databases as any)[name].find(filterObject).lean();
+        const result: object[] = await (databases as any)[name].find(filterObject)
+            .sort({ _id: -1 })
+            .limit(100)
+            .lean();
 
         await sendLongText(req.channel, coverSensitiveStrings(
             inspect(
