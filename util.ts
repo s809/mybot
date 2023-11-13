@@ -1,11 +1,12 @@
 /**
  * @file Some useful functions.
  */
-import { botDirectory } from "./constants";
+import { botDirectory, oauth2 } from "./constants";
+import { client } from "./env";
 
 /**
  * Wraps text in titled borders.
- * 
+ *
  * @param title Title for wrapping.
  * @param text Text to wrap.
  * @returns Wrapped text.
@@ -20,17 +21,28 @@ export function wrapText(title: string, text: string): string {
 
 /**
  * Removes paths to bot in string.
- * 
+ *
  * @param text Text with paths to be sanitized.
  * @returns Sanitized text.
  */
-export function sanitizePaths(text: string): string {
-    return text.replaceAll(botDirectory, ".").replaceAll("file://", "");
+export function coverSensitiveStrings(text: string): string {
+    text = text
+        .replaceAll(botDirectory, ".")
+        .replaceAll("file://", "")
+        .replaceAll(client.token!, "<TOKEN>");
+
+    if (oauth2) {
+        text = text
+            .replaceAll(oauth2.clientSecret, "<OAUTH CLIENT SECRET>")
+            .replaceAll(oauth2.cookieSecret, "<OAUTH COOKIE SECRET>");
+    }
+
+    return text;
 }
 
 /**
  * Formats duration, stripping hour part if not in use.
- * 
+ *
  * @param duration Duration in seconds.
  * @returns Formatted duration.
  */
@@ -52,7 +64,7 @@ export function formatDuration(duration: any): string {
 /**
  * Formats string. \
  * Tokens used for formatting are **$1**, **$2** and so on.
- * 
+ *
  * @param text Text to format.
  * @param args Arguments for embedding into string.
  * @returns Formatted string.
@@ -71,7 +83,7 @@ export function formatString(text: string, ...args: string[]) {
 
 /**
  * Capitalizes words in a given string.
- * 
+ *
  * @param text String with words to capitalize.
  * @returns String with capitalized words.
  */
@@ -81,7 +93,7 @@ export function capitalizeWords(text: string) {
 
 /**
  * Transforms a given string using a transformation map.
- * 
+ *
  * @param text String to transform.
  * @param map Map to use for transforming.
  * @returns Transformed string.

@@ -357,6 +357,24 @@
       "name": "owner",
       "description": "Owner commands"
     },
+    "owner_dumpdb": {
+      "name": "dumpdb",
+      "description": "Dumps contents of database at specified path.",
+      "args": {
+        "name": {
+          "name": "name",
+          "description": "Database name."
+        },
+        "filter": {
+          "name": "filter",
+          "description": "Code or document ID to use for filtering."
+        },
+        "transform": {
+          "name": "transform",
+          "description": "Code to evaluate for transforming received object."
+        }
+      }
+    },
     "owner_restart": {
       "name": "restart",
       "description": "Restart bot."
